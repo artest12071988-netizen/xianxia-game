@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img">
+<defs>
+ <radialGradient id="bg" cx="50%" cy="38%"><stop offset="0" stop-color="#7c503a" stop-opacity=".42"/><stop offset=".55" stop-color="#071018" stop-opacity=".45"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eef6ff" stop-opacity=".85"/><stop offset=".45" stop-color="#7c503a"/><stop offset="1" stop-color="#111821"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="42" fill="url(#bg)"/>
+<circle cx="256" cy="256" r="205" fill="none" stroke="#7c503a" stroke-opacity=".28" stroke-width="3"/>
+<circle cx="256" cy="256" r="174" fill="none" stroke="#d7b96b" stroke-opacity=".14" stroke-width="2" stroke-dasharray="8 16"/>
+<g filter="url(#glow)"><ellipse cx="256" cy="270" rx="145" ry="118" fill="#2f211d" stroke="#7c503a" stroke-width="10"/><path d="M158 205 L110 118 L206 180M354 205 L402 118 L306 180" fill="#2f211d" stroke="#7c503a" stroke-width="10"/><ellipse cx="256" cy="316" rx="76" ry="52" fill="#17100e"/><path d="M176 310 Q126 338 142 382 Q190 372 208 336M336 310 Q386 338 370 382 Q322 372 304 336" fill="#e9dfc2" stroke="#d7b96b" stroke-width="7"/><circle cx="205" cy="244" r="12" fill="#f7d77d"/><circle cx="307" cy="244" r="12" fill="#f7d77d"/></g>
+<path d="M72 420 Q256 478 440 420" fill="none" stroke="#d7b96b" stroke-opacity=".3" stroke-width="4"/>
+</svg>

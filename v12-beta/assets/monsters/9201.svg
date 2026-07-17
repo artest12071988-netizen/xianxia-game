@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img">
+<defs>
+ <radialGradient id="bg" cx="50%" cy="38%"><stop offset="0" stop-color="#692c55" stop-opacity=".42"/><stop offset=".55" stop-color="#071018" stop-opacity=".45"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eef6ff" stop-opacity=".85"/><stop offset=".45" stop-color="#692c55"/><stop offset="1" stop-color="#111821"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="42" fill="url(#bg)"/>
+<circle cx="256" cy="256" r="205" fill="none" stroke="#692c55" stroke-opacity=".28" stroke-width="3"/>
+<circle cx="256" cy="256" r="174" fill="none" stroke="#d7b96b" stroke-opacity=".14" stroke-width="2" stroke-dasharray="8 16"/>
+<g filter="url(#glow)"><path d="M178 178 Q114 126 134 78 Q196 112 218 168 M334 178 Q398 126 378 78 Q316 112 294 168" fill="#17131e" stroke="#692c55" stroke-width="9"/><path d="M164 170 Q256 104 348 170 L326 354 Q256 408 186 354Z" fill="#17141f" stroke="#692c55" stroke-width="11"/><circle cx="214" cy="242" r="14" fill="#f7d77d"/><circle cx="298" cy="242" r="14" fill="#f7d77d"/><path d="M204 318 Q256 350 308 318" fill="none" stroke="#ef665e" stroke-width="9"/><path d="M256 166 V350" stroke="#692c55" stroke-opacity=".45" stroke-width="5"/></g>
+<path d="M72 420 Q256 478 440 420" fill="none" stroke="#d7b96b" stroke-opacity=".3" stroke-width="4"/>
+</svg>
