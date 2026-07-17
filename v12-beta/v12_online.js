@@ -1419,19 +1419,39 @@ async function completeTestRewardedAd(session){
     closeOv();await applyCompletedAdReward(data);
   }catch(e){cloudState.activeAd=null;closeOv();toast(adErrorText(e.message||String(e)))}
 }
-function meditationAdMultiplier(){return cloudState.meditationAdBoost?.active?2:1}
+function meditationAdMultiplier(){
+  const memoryActive=!!cloudState.meditationAdBoost?.active;
+  const savedActive=!!g?.meditationAdBoostActive&&Number(g?.meditationAdBoostUntil||0)>Date.now();
+  return (memoryActive||savedActive)?2:1;
+}
 function meditationBoostRemaining(){
-  const b=cloudState.meditationAdBoost;if(!b?.active||!b.startedAt)return 0;
+  const savedUntil=Number(g?.meditationAdBoostUntil||0);
+  if(savedUntil>0)return Math.max(0,savedUntil-Date.now());
+  const b=cloudState.meditationAdBoost;
+  if(!b?.active||!b.startedAt)return 0;
   return Math.max(0,b.minutes*60000-(Date.now()-b.startedAt));
 }
 function activateMeditationAdBoost(){
   const b=cloudState.meditationAdBoost;if(!b?.armed)return;
   b.armed=false;b.active=true;b.startedAt=Date.now();
+  g.meditationAdBoostActive=true;
   g.meditationAdBoostUntil=Date.now()+b.minutes*60000;
   log('廣告加持已啟動：本次打坐收益 ×2，最長 '+b.minutes+' 分鐘。','lg');
 }
 function stopMeditationAdBoost(){
-  if(cloudState.meditationAdBoost?.active){cloudState.meditationAdBoost.active=false;g.meditationAdBoostUntil=0;log('本次打坐的廣告雙倍加持已結束。','la')}
+  const hadBoost=!!cloudState.meditationAdBoost?.active||
+    !!g?.meditationAdBoostActive||
+    Number(g?.meditationAdBoostUntil||0)>0;
+  if(cloudState.meditationAdBoost){
+    cloudState.meditationAdBoost.active=false;
+    cloudState.meditationAdBoost.armed=false;
+    cloudState.meditationAdBoost.startedAt=null;
+  }
+  if(g){
+    g.meditationAdBoostActive=false;
+    g.meditationAdBoostUntil=0;
+  }
+  if(hadBoost)log('本次打坐的廣告雙倍加持已結束。','la');
 }
 function v125DirectToggleMeditation(){
   if(!g)return false;
