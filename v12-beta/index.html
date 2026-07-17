@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>修仙大逃殺 V12.2｜聯機與世界後臺封測版</title>
+<title>修仙大逃殺 V12.5｜獎勵廣告封測版</title>
 <style>
 :root{
   --void:#020406;--ink:#eee8da;--muted:#8e99a9;--gold:#d7b96b;--gold2:#8d6b31;
@@ -156,8 +156,8 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 
 <section id="game" class="scr">
   <header class="world-header">
-    <div class="brand-block"><div class="brand-seal">仙</div><div><div class="brand-name">修仙大逃殺</div><div class="brand-tag">V12.2 · ONLINE WORLD CLOSED BETA</div></div></div>
-    <div class="world-meta"><div><span>世界時辰</span><b id="worldClock">--:--</b></div><div><span>全域修士氣息</span><b id="activeAi">150</b></div><div><span>封測模式</span><b id="cloudModeText">ONLINE CBT</b></div><div><span>資料版本</span><b>ENGINE V12.2</b></div></div>
+    <div class="brand-block"><div class="brand-seal">仙</div><div><div class="brand-name">修仙大逃殺</div><div class="brand-tag">V12.5 · REWARDED ADS CLOSED BETA</div></div></div>
+    <div class="world-meta"><div><span>世界時辰</span><b id="worldClock">--:--</b></div><div><span>全域修士氣息</span><b id="activeAi">150</b></div><div><span>封測模式</span><b id="cloudModeText">ONLINE CBT</b></div><div><span>資料版本</span><b>ENGINE V12.5</b></div></div>
   </header>
   <div class="status-ribbon"><i class="pulse"></i><span id="worldStatus">天地氣機穩定，青牛谷護道結界運作中。</span><span class="cloud-badge" id="cloudSyncBadge" data-state="busy">連線準備中</span></div>
 
@@ -725,7 +725,7 @@ function confirmReset(){
   sheet('<h3 style="color:var(--red)">重置角色</h3><p>這會刪除目前存檔、商城沙盒訂單與全部進度。</p><div class="row"><button class="btn red" onclick="localStorage.removeItem(SAVE_KEY);location.reload()">確認重置</button><button class="btn" onclick="closeOv()">取消</button></div>');
 }
 </script>
-<script src="v12_online.js?v=20260718-254"></script>
+<script src="v12_online.js?v=20260718-255"></script>
 <script>
 /* V12.5 打坐廣告入口保險層：
    不依賴舊按鈕綁定，直接顯示「一般打坐／看廣告雙倍」選擇。 */

@@ -1433,18 +1433,47 @@ function activateMeditationAdBoost(){
 function stopMeditationAdBoost(){
   if(cloudState.meditationAdBoost?.active){cloudState.meditationAdBoost.active=false;g.meditationAdBoostUntil=0;log('本次打坐的廣告雙倍加持已結束。','la')}
 }
-function startMeditationNormal(){closeOv();v124BaseToggleMeditate();cloudState.playerAction=g?.meditating?'打坐':'收功';syncPlayerPresence(true)}
+function v125DirectToggleMeditation(){
+  if(!g)return false;
+  if(fight){toast('鬥法中無法打坐');return false}
+  const z=zoneAt(g.pos.r,g.pos.c);
+  if(!g.meditating&&z&&z.meditate===0){toast('此區禁止打坐');return false}
+  g.meditating=!g.meditating;
+  g.meditateSec=0;
+  log(g.meditating?'你盤膝入定，靈氣開始沿經脈流入。':'你收功起身，停止吐納。',g.meditating?'lg':'');
+  render();
+  return true;
+}
+function startMeditationNormal(){
+  closeOv();
+  if(v125DirectToggleMeditation()){
+    cloudState.playerAction=g?.meditating?'打坐':'收功';
+    syncPlayerPresence(true);
+  }
+}
 function startMeditationWithAdBoost(){
-  if(!g.meditating){activateMeditationAdBoost();v124BaseToggleMeditate();cloudState.playerAction='廣告加持打坐';syncPlayerPresence(true)}
+  if(!g||g.meditating)return;
+  activateMeditationAdBoost();
+  if(!v125DirectToggleMeditation()){
+    stopMeditationAdBoost();
+    return;
+  }
+  cloudState.playerAction='廣告加持打坐';
+  syncPlayerPresence(true);
 }
 function openMeditationAdChoice(){
   const a=cloudState.adStatus||{};
   sheet('<h3>開始打坐</h3><div class="list-row"><div class="grow"><strong>一般打坐</strong><small>直接開始，維持原本收益。</small></div><button class="btn" onclick="startMeditationNormal()">直接打坐</button></div><div class="list-row shop-rich"><div class="grow"><strong>觀看廣告，本次打坐收益 ×2</strong><small>完成廣告後啟動，最長 '+Number(a.meditation_boost_minutes||120)+' 分鐘；停止打坐即結束。</small></div><button class="btn gold" onclick="watchRewardedAd(\'meditation_double\')">看廣告打坐</button></div><button class="btn" style="width:100%;margin-top:8px" onclick="closeOv()">取消</button>');
 }
-var v124BaseToggleMeditate=toggleMeditate;
-window.__v124BaseToggleMeditate=v124BaseToggleMeditate;
 toggleMeditate=function(){
-  if(g?.meditating){v124BaseToggleMeditate();stopMeditationAdBoost();cloudState.playerAction='收功';syncPlayerPresence(true);return}
+  if(g?.meditating){
+    if(v125DirectToggleMeditation()){
+      stopMeditationAdBoost();
+      cloudState.playerAction='收功';
+      syncPlayerPresence(true);
+    }
+    return;
+  }
   openMeditationAdChoice();
 };
 const v124BaseTickMeditation=tickMeditation;
