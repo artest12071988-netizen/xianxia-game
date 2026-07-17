@@ -204,6 +204,7 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
           <button class="btn action-tile" id="brkBtn" onclick="openBreak()"><span class="rune">破</span><span><strong>境界突破</strong><small>築基、結丹、元嬰</small></span></button>
           <button class="btn action-tile gold world-event-btn" id="eventRealmBtn" hidden onclick="openEventRealm()"><span class="rune">境</span><span><strong id="eventRealmName">活動秘境</strong><small>管理員限時開放</small></span></button>
         </div>
+        <div id="meditationBoostPanel" style="display:none;margin-top:10px;padding:11px 14px;border:1px solid rgba(85,217,207,.48);border-radius:10px;background:linear-gradient(90deg,rgba(31,112,105,.24),rgba(8,14,22,.96));box-shadow:0 0 24px rgba(85,217,207,.12)"></div>
       </div>
       <div class="comm-grid" style="margin-top:12px">
         <div class="card panel comm-panel">
@@ -725,7 +726,7 @@ function confirmReset(){
   sheet('<h3 style="color:var(--red)">重置角色</h3><p>這會刪除目前存檔、商城沙盒訂單與全部進度。</p><div class="row"><button class="btn red" onclick="localStorage.removeItem(SAVE_KEY);location.reload()">確認重置</button><button class="btn" onclick="closeOv()">取消</button></div>');
 }
 </script>
-<script src="v12_online.js?v=20260718-260"></script>
+<script src="v12_online.js?v=20260718-261"></script>
 <script>
 /* V12.6 打坐入口：一般打坐／廣告雙倍。 */
 (function(){
@@ -739,7 +740,8 @@ function confirmReset(){
   window.v125MeditateClick=async function(){
     if(typeof g==='undefined'||!g){if(window.toast)window.toast('角色資料尚未載入');return}
     if(g.meditating){
-      if(typeof window.toggleMeditate==='function')window.toggleMeditate();
+      if(typeof window.v126StopMeditationNow==='function')window.v126StopMeditationNow();
+      else if(typeof window.toggleMeditate==='function')window.toggleMeditate();
       return;
     }
     if(typeof window.loadAdRewardStatus==='function'){

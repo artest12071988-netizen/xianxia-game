@@ -1612,3 +1612,56 @@ startOnlineWorld=async function(){const r=await v124BaseStartOnlineWorld();await
 
   window.v126UpdateBoostPanel=v126UpdateBoostPanel;
 })();
+
+/* ============================================================
+   V12.6.1 HOTFIX — deterministic meditation boost UI/stop
+   ============================================================ */
+(function(){
+  function boostIsActive(){
+    return !!(g && g.meditating && meditationAdMultiplier()===2 && meditationBoostRemaining()>0);
+  }
+  function fmt(ms){
+    const sec=Math.max(0,Math.ceil(Number(ms||0)/1000));
+    const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+    return (h?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+  function update(){
+    const panel=document.getElementById('meditationBoostPanel');
+    const btn=$('meditateBtn'),sub=$('meditateSub'),text=$('meditateText');
+    const active=boostIsActive();
+    if(panel){
+      panel.style.display=active?'block':'none';
+      if(active)panel.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><b style="color:var(--jade);font-size:15px">廣告加持中｜打坐收益 ×2</b><div class="small" style="margin-top:3px">修為、體力、精力均套用雙倍</div></div><div style="color:var(--gold);font-weight:800">剩餘 '+fmt(meditationBoostRemaining())+'</div></div>';
+    }
+    if(active){
+      if(text)text.textContent='停止打坐 ×2';
+      if(sub)sub.textContent='廣告加持中｜收益 ×2｜剩餘 '+fmt(meditationBoostRemaining());
+      if(btn){btn.style.borderColor='rgba(85,217,207,.9)';btn.style.boxShadow='0 0 22px rgba(85,217,207,.28)'}
+    }else if(btn){
+      btn.style.borderColor='';btn.style.boxShadow='';
+    }
+  }
+
+  window.v126StopMeditationNow=function(){
+    if(!g||!g.meditating)return;
+    const hadBoost=!!(cloudState.meditationAdBoost?.active||g.meditationAdBoostActive||Number(g.meditationAdBoostUntil||0)>Date.now());
+    g.meditating=false;
+    g.meditateSec=0;
+    log('你收功起身，停止吐納。');
+    if(hadBoost)stopMeditationAdBoost();
+    cloudState.playerAction='收功';
+    saveGame(false);
+    syncPlayerPresence(true);
+    render();
+    update();
+  };
+
+  const priorRender=render;
+  render=function(){priorRender();update()};
+  const priorTick=tickMeditation;
+  tickMeditation=function(){priorTick();update()};
+  const priorActivate=activateMeditationAdBoost;
+  activateMeditationAdBoost=function(){priorActivate();setTimeout(update,0)};
+  window.v126UpdateBoostPanel=update;
+  setInterval(update,1000);
+})();
