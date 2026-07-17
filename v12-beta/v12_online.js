@@ -8,7 +8,7 @@ const V12_BUILD = V12_ONLINE.build || 'V12-CBT';
 const cloudState = {
   client:null,user:null,enabled:false,preview:false,revision:0,remoteSave:null,
   saveTimer:null,saving:false,pending:false,lastSyncedAt:null,lastError:'',
-  channel:null,presence:{},chatMessages:[],chatOpen:false,aiChatAt:0
+  channel:null,presence:{},chatMessages:[],chatOpen:false,aiChatAt:0,chatRefreshTimer:null,chatPinnedToBottom:true
 };
 
 const v11Render = render;
@@ -270,7 +270,11 @@ async function initRealtime(){
   const {data}=await cloudState.client.from('world_chat').select('id,user_id,player_name,speaker_type,message,created_at').order('created_at',{ascending:false}).limit(60);
   cloudState.chatMessages=(data||[]).reverse();
 }
-function teardownRealtime(){if(cloudState.channel&&cloudState.client)cloudState.client.removeChannel(cloudState.channel);cloudState.channel=null;cloudState.presence={}}
+function teardownRealtime(){
+  if(cloudState.channel&&cloudState.client)cloudState.client.removeChannel(cloudState.channel);
+  if(cloudState.chatRefreshTimer)clearInterval(cloudState.chatRefreshTimer);
+  cloudState.chatRefreshTimer=null;cloudState.channel=null;cloudState.presence={};
+}
 
 function openWorldChat(){
   if(!cloudState.enabled||!cloudState.user){toast('全服傳音需登入封測伺服器');return}
@@ -417,11 +421,12 @@ function dailyBought(id){return Number(g.purchaseLimits?.[dailyKey(id)]||0)}
 function npcMaxQty(s){const money=g.lingshi+g.boundStone,byMoney=Math.floor(money/s.price),byDaily=Math.max(0,(s.daily||9999)-dailyBought(s.id));return Math.max(0,Math.min(byMoney,byDaily))}
 
 renderShop = function(){
-  let h='<h3>商城與萬寶坊市</h3><div class="money"><div><span>商城元寶</span><b>'+g.yuanbao.toLocaleString()+'</b></div><div><span>靈石</span><b>'+g.lingshi.toLocaleString()+'</b></div><div><span>綁定靈石</span><b>'+g.boundStone.toLocaleString()+'</b></div></div><div class="tabs">'+tabBtn('yuanbao','元寶購買')+tabBtn('premium','功法商城')+tabBtn('exchange','元寶兌換')+tabBtn('npc','NPC購買')+tabBtn('sell','出售物品')+'</div>';
+  let h='<h3>商城與萬寶坊市</h3><div class="money"><div><span>商城元寶</span><b>'+g.yuanbao.toLocaleString()+'</b></div><div><span>靈石</span><b>'+g.lingshi.toLocaleString()+'</b></div><div><span>綁定靈石</span><b>'+g.boundStone.toLocaleString()+'</b></div></div><div class="tabs">'+tabBtn('yuanbao','看廣告得元寶')+tabBtn('premium','功法商城')+tabBtn('exchange','元寶兌換')+tabBtn('npc','NPC購買')+tabBtn('sell','出售物品')+'</div>';
   if(shopTab==='yuanbao'){
-    h+='<div class="notice">封測期間保留原商城流程，但不開啟真實扣款。正式金流仍需後端訂單驗證。</div>';
-    C.paymentPackages.forEach(p=>{h+='<div class="list-row"><div class="grow"><strong>NT$'+p.twd+' → '+p.yuanbao+' 元寶</strong><small>'+p.label+(p.bonus?' · 含贈送 '+p.bonus+' 元寶':'')+'</small></div><button class="btn gold" onclick="startCheckout(\''+p.id+'\')">建立訂單</button></div>'});
-    const pending=g.orders.filter(o=>o.status==='待付款').slice(-3);if(pending.length)h+='<p class="small">待付款訂單</p>'+pending.map(o=>'<div class="list-row"><div class="grow"><strong>'+o.orderNo+'</strong><small>NT$'+o.twd+' · '+o.yuanbao+' 元寶 · '+o.method+'</small></div><button class="btn" onclick="payOrder(\''+o.orderNo+'\')">繼續付款</button></div>').join('');
+    const a=cloudState.adStatus||{};
+    h+='<div class="notice">封測版元寶改為獎勵式廣告取得。每次觀看前會明確顯示獎勵；跳過或未完成不會獲得元寶。</div>';
+    h+='<div class="list-row shop-rich"><div class="grow"><strong>觀看廣告獲得 '+Number(a.yuanbao_per_ad||200)+' 元寶</strong><small>今日已完成 '+Number(a.used_today||0)+'／'+Number(a.daily_limit||5)+' 次'+(a.test_mode?' · 封測模擬廣告':' · 正式廣告')+'</small></div><button class="btn gold" '+(Number(a.remaining_today||0)<=0?'disabled':'')+' onclick="watchRewardedAd(\'yuanbao\')">觀看廣告</button></div>';
+    h+='<button class="btn jade" style="width:100%;margin-top:8px" onclick="loadAdRewardStatus().then(renderShop)">更新今日額度</button>';
   }else if(shopTab==='premium'){
     C.techniques.forEach(t=>{const owned=g.techniques.includes(t.id);h+='<div class="list-row shop-rich"><div class="grow"><strong>'+t.name+' <span class="pill">'+t.category+'</span></strong><small>'+esc(techniqueDetail(t))+'<br>售價：'+t.price+' 元寶</small></div><button class="btn '+(owned?'':'gold')+'" '+(owned?'disabled':'')+' onclick="buyTechnique(\''+t.id+'\')">'+(owned?'已研習':'購買')+'</button></div>'});
     const max=Math.max(1,Math.floor(g.yuanbao/20));h+='<div class="list-row shop-rich"><div class="grow"><strong>轉身丹</strong><small>'+esc(itemDetail(IT['9001']))+'<br>單價：20 元寶</small>'+qtyBox('premium','9001',max)+'</div><button class="btn gold" onclick="buyPremiumItem(\'9001\',20,readQty(\'premium\',\'9001\','+max+'))">批量購買</button></div>';
@@ -748,33 +753,64 @@ tickAiWorld=function(){
   else {v11TickAiWorld();updateWorldPopulation()}
 };
 
+const CHAT_HISTORY_LIMIT=200;
+
+function mergeChatMessages(messages=[]){
+  const merged=new Map();
+  for(const m of cloudState.chatMessages||[])if(m?.id!=null)merged.set(String(m.id),m);
+  for(const m of messages||[])if(m?.id!=null)merged.set(String(m.id),m);
+  cloudState.chatMessages=Array.from(merged.values())
+    .sort((a,b)=>new Date(a.created_at).getTime()-new Date(b.created_at).getTime())
+    .slice(-CHAT_HISTORY_LIMIT);
+}
+async function loadWorldChatHistory(){
+  if(!cloudState.enabled||!cloudState.user)return;
+  const {data,error}=await cloudState.client.from('world_chat')
+    .select('id,user_id,player_name,speaker_type,message,created_at,cultivator_id')
+    .order('created_at',{ascending:false}).limit(CHAT_HISTORY_LIMIT);
+  if(error){console.warn('world chat refresh failed',error);return}
+  mergeChatMessages((data||[]).reverse());renderChatIfOpen();
+}
+function renderChatContainer(el,html,forceBottom=false){
+  if(!el)return;
+  const oldHeight=el.scrollHeight,oldTop=el.scrollTop;
+  const nearBottom=oldHeight-oldTop-el.clientHeight<48;
+  el.innerHTML=html;
+  if(forceBottom||nearBottom||cloudState.chatPinnedToBottom)el.scrollTop=el.scrollHeight;
+  else el.scrollTop=Math.max(0,oldTop+(el.scrollHeight-oldHeight));
+  el.onscroll=()=>{cloudState.chatPinnedToBottom=el.scrollHeight-el.scrollTop-el.clientHeight<48};
+}
 async function initRealtime(){
   teardownRealtime();if(!cloudState.enabled||!cloudState.user)return;
   const channelName=V12_ONLINE.worldChannel||'xianxia-world-v12';
   cloudState.channel=cloudState.client.channel(channelName,{config:{presence:{key:cloudState.user.id}}});
   cloudState.channel
-   .on('postgres_changes',{event:'INSERT',schema:'public',table:'world_chat'},payload=>{cloudState.chatMessages.push(payload.new);cloudState.chatMessages=cloudState.chatMessages.slice(-100);renderChatIfOpen()})
+   .on('postgres_changes',{event:'INSERT',schema:'public',table:'world_chat'},payload=>{mergeChatMessages([payload.new]);renderChatIfOpen()})
    .on('postgres_changes',{event:'*',schema:'public',table:'world_cultivators'},()=>{setTimeout(()=>syncWorldCultivators(true),250)})
    .on('presence',{event:'sync'},()=>{cloudState.presence=cloudState.channel.presenceState();updateWorldPopulation()})
    .subscribe(async status=>{if(status==='SUBSCRIBED'){await cloudState.channel.track({user_id:cloudState.user.id,name:g?.name||'未凝聚道體',build:V12_BUILD,online_at:new Date().toISOString()})}});
-  const {data}=await cloudState.client.from('world_chat').select('id,user_id,player_name,speaker_type,message,created_at,cultivator_id').order('created_at',{ascending:false}).limit(80);
-  cloudState.chatMessages=(data||[]).reverse();renderChatIfOpen();
+  cloudState.chatPinnedToBottom=true;
+  await loadWorldChatHistory();
+  cloudState.chatRefreshTimer=setInterval(loadWorldChatHistory,20000);
+  renderChatIfOpen(true);
 }
 function openWorldChat(){
   const dock=$('worldChatDock');if(dock)dock.scrollIntoView({behavior:'smooth',block:'center'});
   setTimeout(()=>$('worldChatInlineInput')?.focus(),350);
 }
-function renderChatIfOpen(){
-  const html=cloudState.chatMessages.slice(-70).map(m=>'<div class="chat-line '+esc(m.speaker_type==='ai'?'cultivator':m.speaker_type)+'"><span>['+new Date(m.created_at).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false})+']</span><b>'+esc(m.player_name)+'</b><p>'+esc(m.message)+'</p></div>').join('')||'<div class="small">世界頻道尚無傳音。</div>';
-  const inline=$('worldChatInlineList');if(inline){inline.innerHTML=html;inline.scrollTop=inline.scrollHeight}
-  const modal=$('worldChatList');if(modal){modal.innerHTML=html;modal.scrollTop=modal.scrollHeight}
+function renderChatIfOpen(forceBottom=false){
+  const html=cloudState.chatMessages.map(m=>'<div class="chat-line '+esc(m.speaker_type==='ai'?'cultivator':m.speaker_type)+'"><span>['+new Date(m.created_at).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false})+']</span><b>'+esc(m.player_name)+'</b><p>'+esc(m.message)+'</p></div>').join('')||'<div class="small">世界頻道尚無傳音。</div>';
+  renderChatContainer($('worldChatInlineList'),html,forceBottom);
+  renderChatContainer($('worldChatList'),html,forceBottom);
 }
 async function sendWorldChat(){
   if(!cloudState.enabled||!cloudState.user){toast('全服傳音需登入封測伺服器');return}
   const input=$('worldChatInlineInput')||$('worldChatInput'),message=(input?.value||'').trim();if(!message)return;
   if(message.length>160){toast('傳音最多 160 字');return}
+  cloudState.chatPinnedToBottom=true;
   const {error}=await cloudState.client.from('world_chat').insert({user_id:cloudState.user.id,player_name:g?.name||cloudState.user.email.split('@')[0],speaker_type:'player',message});
   if(error){toast('傳音失敗：'+error.message);return}input.value='';
+  setTimeout(loadWorldChatHistory,350);
 }
 async function postAiWorldLine(){return}
 
@@ -871,3 +907,558 @@ openVersion=function(){
 
 // Enter key sends the permanent chat box.
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement===$('worldChatInlineInput')){e.preventDefault();sendWorldChat()}});
+
+
+// V12.1.3 神識動靜：同一大境界才能辨識；持續回報進入、離開、移動、行動改變、負傷與修為變化。
+cloudState.senseEvents = cloudState.senseEvents || [];
+cloudState.senseSnapshot = cloudState.senseSnapshot || new Map();
+cloudState.sensePlayerCoord = cloudState.sensePlayerCoord || null;
+cloudState.senseInitialized = !!cloudState.senseInitialized;
+
+function cloneSenseRow(a){
+  return {id:a.id,name:a.name,lv:a.lv,coord:a.coord,hp:a.hp,hpMax:a.hpMax,action:a.action,alive:a.alive};
+}
+function senseVisibleAt(a,playerCoord){
+  return !!(g&&a&&a.alive&&sameMajorRealm(g.big,a.lv)&&distanceCoord(a.coord,playerCoord)<=senseRange(g.big));
+}
+function pushSenseEvent(text,type='normal'){
+  if(!text)return;
+  const last=cloudState.senseEvents[cloudState.senseEvents.length-1];
+  if(last&&last.text===text&&Date.now()-last.at<3000)return;
+  cloudState.senseEvents.push({text,type,at:Date.now()});
+  cloudState.senseEvents=cloudState.senseEvents.slice(-40);
+}
+function updateSenseActivity(rows){
+  if(!g)return;
+  const nowCoord=coordOf(g.pos.r,g.pos.c);
+  const previous=cloudState.senseSnapshot;
+  const current=new Map((rows||[]).map(a=>[String(a.id),cloneSenseRow(a)]));
+  if(!cloudState.senseInitialized){
+    const count=Array.from(current.values()).filter(a=>senseVisibleAt(a,nowCoord)).length;
+    pushSenseEvent(count?'神識展開，辨識到附近 '+count+' 道同階修士氣息。':'神識展開，附近暫無可辨識的同階修士氣息。');
+    cloudState.senseInitialized=true;
+  }else{
+    const oldCoord=cloudState.sensePlayerCoord||nowCoord;
+    for(const [id,a] of current){
+      const old=previous.get(id);
+      const wasVisible=!!(old&&senseVisibleAt(old,oldCoord));
+      const isVisible=senseVisibleAt(a,nowCoord);
+      if(isVisible&&!wasVisible){
+        pushSenseEvent('感應到 '+a.name+' 進入神識範圍，正在'+(a.action||'修行')+'。','alert');
+        continue;
+      }
+      if(!isVisible&&wasVisible){
+        pushSenseEvent(a.name+' 的氣息離開神識範圍。');
+        continue;
+      }
+      if(!isVisible||!old)continue;
+      if(old.coord!==a.coord)pushSenseEvent(a.name+' 從 '+old.coord+' 移動至 '+a.coord+'。');
+      if(old.action!==a.action)pushSenseEvent(a.name+' 停止'+(old.action||'原本行動')+'，轉為'+(a.action||'修行')+'。');
+      if(Number(a.hp)<Number(old.hp))pushSenseEvent(a.name+' 氣息驟弱，似乎在附近受了傷。','danger');
+      if(Number(a.lv)>Number(old.lv))pushSenseEvent(a.name+' 氣息攀升，修為有所精進。','alert');
+    }
+    for(const [id,old] of previous){
+      if(current.has(id))continue;
+      if(senseVisibleAt(old,oldCoord))pushSenseEvent(old.name+' 的氣息突然斷絕，生死難明。','danger');
+    }
+  }
+  cloudState.senseSnapshot=current;
+  cloudState.sensePlayerCoord=nowCoord;
+}
+function renderSenseFeed(){
+  const el=$('senseFeed');if(!el)return;
+  const rows=cloudState.senseEvents.slice(-12).reverse();
+  el.innerHTML=rows.length?rows.map(e=>'<div class="sense-event '+esc(e.type||'normal')+'"><time>'+new Date(e.at).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})+'</time>'+esc(e.text)+'</div>').join(''):'<div class="sense-empty">附近暫無新的氣機變化。</div>';
+}
+renderAiIntel=function(){
+  if(!g||!$('aiList'))return;
+  updateSenseActivity(ai);
+  const range=senseRange(g.big),playerCoord=coordOf(g.pos.r,g.pos.c);
+  // 跨大境界完全無法辨識，因此不列入姓名、人數、強弱或動靜。
+  const near=ai.filter(a=>senseVisibleAt(a,playerCoord)).sort((a,b)=>distanceCoord(a.coord,playerCoord)-distanceCoord(b.coord,playerCoord)).slice(0,8);
+  $('nearbyCount').textContent=near.length+' 人';
+  $('aiList').innerHTML=near.length?near.map(a=>{
+    const intel=a.personality+' · '+relativePower(a)+' · 體力 '+Math.round(a.hp)+'/'+a.hpMax;
+    return '<div class="ai-item ai-click" onclick="openAiInteract('+a.id+')"><div><b>'+esc(a.name)+'</b><br><span>'+esc(intel)+'</span></div><span>'+esc(a.action||'修行')+'</span></div>';
+  }).join(''):'<div class="small">神識範圍內暫無可辨識的同階修士氣息。</div>';
+  renderSenseFeed();
+};
+
+/* ============================================================
+   V12.2 PATCH — 真人同圖相遇、安全區規則、轉身丹、手機傳音、世界後臺
+   ============================================================ */
+Object.assign(cloudState,{
+  extraChannel:null,otherPlayers:[],playerTimer:null,playerLoadTimer:null,safeZoneTimer:null,
+  pvpTimer:null,pvpCurrent:null,pvpPrompted:new Set(),pvpHandled:new Set(),
+  worldControls:null,announcementIds:new Set(),playerAction:'修行',
+  lastPresenceSync:0,lastPoisonTick:0,eventCombat:false
+});
+
+const V122_SAFE_COORD='A-6';
+const V122_SAFE_LIMIT_SECONDS=7200;
+const v122BaseInitRealtime=initRealtime;
+const v122BaseTeardownRealtime=teardownRealtime;
+const v122BaseStartLoops=startLoops;
+const v122BaseRender=render;
+const v122BaseNormalizeSave=normalizeSave;
+const v122BaseMoveTo=moveTo;
+const v122BaseToggleMeditate=toggleMeditate;
+const v122BaseExplore=explore;
+const v122BaseStartFightAi=startFightAi;
+const v122BaseStartFightMonster=startFightMonster;
+const v122BaseAttackTurn=attackTurn;
+const v122BaseCanUseOutside=canUseOutside;
+const v122BaseUseOutside=useOutside;
+const v122BaseSendWorldChat=sendWorldChat;
+const v122BaseLogout=logoutBeta;
+const v122BaseBeginNewCharacter=beginNewCharacter;
+
+function currentCoord(){return g?coordOf(g.pos.r,g.pos.c):''}
+function isSafeZoneNow(){return currentCoord()===V122_SAFE_COORD}
+function isEventOpen(){
+  const c=cloudState.worldControls;
+  return !!(c&&c.event_open&&(!c.event_ends_at||Date.parse(c.event_ends_at)>Date.now()));
+}
+function playerStatePayload(){
+  if(!g)return null;
+  return {
+    character_id:g.characterId||'unknown',player_name:g.name||'無名散修',coord:currentCoord(),
+    level:Number(g.lv||1),realm:g.big||'練氣期',hp:Math.max(0,Math.round(g.hp||0)),hp_max:Math.max(1,Math.round(g.hpMax||1)),
+    mp:Math.max(0,Math.round(g.mp||0)),mp_max:Math.max(0,Math.round(g.mpMax||0)),attack:pAtk(),defense:pDef(),
+    action:fight?'鬥法':g.meditating?'打坐':cloudState.playerAction||'修行',alive:!g.dead
+  };
+}
+async function syncPlayerPresence(force=false){
+  if(!cloudState.enabled||!cloudState.user||!g||g.dead)return;
+  if(!force&&Date.now()-cloudState.lastPresenceSync<5000)return;
+  cloudState.lastPresenceSync=Date.now();
+  try{
+    const {data,error}=await cloudState.client.rpc('upsert_player_presence',{p_state:playerStatePayload()});
+    if(error)throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    if(row?.safe_zone_entered_at&&isSafeZoneNow()){
+      const serverAt=Date.parse(row.safe_zone_entered_at);
+      if(Number.isFinite(serverAt)&&(!g.safeZoneEnteredAt||serverAt<g.safeZoneEnteredAt))g.safeZoneEnteredAt=serverAt;
+    }
+  }catch(e){console.warn('presence sync failed',e)}
+}
+async function loadPlayerPresence(){
+  if(!cloudState.enabled||!cloudState.user)return;
+  const since=new Date(Date.now()-60000).toISOString();
+  const {data,error}=await cloudState.client.from('player_presence').select('user_id,character_id,player_name,coord,level,realm,hp,hp_max,mp,mp_max,attack,defense,action,alive,safe_zone_entered_at,updated_at').eq('alive',true).gt('updated_at',since);
+  if(error){console.warn('presence load failed',error);return}
+  cloudState.otherPlayers=(data||[]).filter(x=>x.user_id!==cloudState.user.id).map(x=>({
+    userId:x.user_id,characterId:x.character_id,name:x.player_name,coord:x.coord,lv:Number(x.level),realm:x.realm,
+    hp:Number(x.hp),hpMax:Number(x.hp_max),mp:Number(x.mp),mpMax:Number(x.mp_max),atk:Number(x.attack),def:Number(x.defense),
+    action:x.action||'修行',alive:!!x.alive,updatedAt:x.updated_at,id:'human:'+x.user_id,personality:'真人修士'
+  }));
+  if(g){renderAiIntel();checkSameMapPlayers()}
+}
+function sameMajorHuman(p){return !!(g&&p&&p.alive&&p.realm===g.big)}
+function humanVisibleAt(p,coord){return sameMajorHuman(p)&&distanceCoord(p.coord,coord)<=senseRange(g.big)}
+function checkSameMapPlayers(){
+  if(!g)return;
+  cloudState.seenHumans=cloudState.seenHumans||new Set();
+  for(const p of cloudState.otherPlayers.filter(x=>sameMajorHuman(x)&&x.coord===currentCoord())){
+    const key=p.userId+':'+p.coord;
+    if(cloudState.seenHumans.has(key))continue;
+    cloudState.seenHumans.add(key);
+    pushSenseEvent('神識捕捉到真人修士 '+p.name+' 與你落在同一地域。','alert');
+    log('你與真人修士 <b>'+esc(p.name)+'</b> 在 '+esc(p.coord)+' 相遇。','la');
+  }
+}
+
+async function loadWorldControls(){
+  if(!cloudState.enabled||!cloudState.user)return;
+  const {data,error}=await cloudState.client.from('world_controls').select('*').eq('id',1).maybeSingle();
+  if(error){console.warn('world controls unavailable',error);return}
+  cloudState.worldControls=data||null;renderWorldControls();
+}
+async function loadWorldAnnouncements(){
+  if(!cloudState.enabled||!cloudState.user)return;
+  const {data,error}=await cloudState.client.from('world_announcements').select('id,message,kind,created_at,active_until').order('created_at',{ascending:false}).limit(10);
+  if(error)return;
+  for(const a of (data||[]).reverse())showWorldAnnouncement(a);
+}
+function showWorldAnnouncement(a){
+  if(!a||cloudState.announcementIds.has(String(a.id)))return;
+  cloudState.announcementIds.add(String(a.id));
+  log('<b>【全服公告】</b> '+esc(a.message),'la');toast('全服公告：'+a.message);
+}
+function renderWorldControls(){
+  if(!g)return;
+  const c=cloudState.worldControls||{};
+  let status='天地氣機穩定，世界持續運行中。';
+  if(c.great_tribulation_active)status='大天劫正在降臨，天地法則劇烈震盪。';
+  else if(c.black_cloud_active)status='黑雲壓境，中心位於 '+c.black_cloud_coord+'。';
+  else if(c.beast_tide_active)status='獸潮正在世界各地蔓延。';
+  else if(isEventOpen())status=(c.event_name||'活動秘境')+' 已限時開放。';
+  if($('worldStatus'))$('worldStatus').textContent=status;
+  const btn=$('eventRealmBtn');if(btn){btn.hidden=!isEventOpen();$('eventRealmName').textContent=c.event_name||'活動秘境'}
+  if(c.announcement&&c.announcement!==cloudState.lastControlAnnouncement){cloudState.lastControlAnnouncement=c.announcement;log('<b>【世界諭令】</b> '+esc(c.announcement),'la')}
+}
+async function initV122Realtime(){
+  if(!cloudState.enabled||!cloudState.user)return;
+  await Promise.all([loadWorldControls(),loadWorldAnnouncements(),loadPlayerPresence()]);
+  if(cloudState.extraChannel)cloudState.client.removeChannel(cloudState.extraChannel);
+  cloudState.extraChannel=cloudState.client.channel('xianxia-v122-'+cloudState.user.id)
+    .on('postgres_changes',{event:'*',schema:'public',table:'player_presence'},()=>{clearTimeout(cloudState.playerLoadTimer);cloudState.playerLoadTimer=setTimeout(loadPlayerPresence,250)})
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'world_controls'},p=>{cloudState.worldControls=p.new;renderWorldControls();render()})
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'world_announcements'},p=>showWorldAnnouncement(p.new))
+    .on('postgres_changes',{event:'*',schema:'public',table:'pvp_duels'},()=>setTimeout(pollPvp,180))
+    .subscribe();
+}
+initRealtime=async function(){await v122BaseInitRealtime();await initV122Realtime()};
+teardownRealtime=function(){
+  clearInterval(cloudState.playerTimer);clearInterval(cloudState.safeZoneTimer);clearInterval(cloudState.pvpTimer);
+  clearTimeout(cloudState.playerLoadTimer);
+  cloudState.playerTimer=cloudState.safeZoneTimer=cloudState.pvpTimer=cloudState.playerLoadTimer=null;
+  if(cloudState.extraChannel&&cloudState.client)cloudState.client.removeChannel(cloudState.extraChannel);
+  cloudState.extraChannel=null;cloudState.otherPlayers=[];v122BaseTeardownRealtime();
+};
+
+normalizeSave=function(){
+  v122BaseNormalizeSave();
+  if(currentCoord()===V122_SAFE_COORD){if(!g.safeZoneEnteredAt)g.safeZoneEnteredAt=Date.now()}
+  else g.safeZoneEnteredAt=null;
+};
+startLoops=function(){
+  v122BaseStartLoops();
+  clearInterval(cloudState.playerTimer);clearInterval(cloudState.safeZoneTimer);clearInterval(cloudState.pvpTimer);
+  cloudState.playerTimer=setInterval(()=>{syncPlayerPresence();loadPlayerPresence()},8000);
+  cloudState.safeZoneTimer=setInterval(()=>{checkSafeZoneStay();applyWorldHazards()},1000);
+  cloudState.pvpTimer=setInterval(pollPvp,2200);
+  syncPlayerPresence(true);loadPlayerPresence();checkSafeZoneStay();pollPvp();
+};
+render=function(){v122BaseRender();renderWorldControls();renderSafeZoneTimer();syncPlayerPresence()};
+
+function renderSafeZoneTimer(){
+  if(!g||!isSafeZoneNow())return;
+  if(!g.safeZoneEnteredAt)g.safeZoneEnteredAt=Date.now();
+  const left=Math.max(0,V122_SAFE_LIMIT_SECONDS-Math.floor((Date.now()-g.safeZoneEnteredAt)/1000));
+  const h=Math.floor(left/3600),m=Math.floor(left%3600/60),s=left%60;
+  const base='萬寶交易所禁止任何鬥法。停留滿2小時將強制傳送；剩餘 '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+'。';
+  if($('sceneCopy'))$('sceneCopy').innerHTML=base.replace(/(剩餘 .*)/,'<span class="safe-zone-timer">$1</span>');
+}
+function randomWorldCoord(exclude=[]){
+  const banned=new Set(exclude);let arr=[];for(let r=0;r<10;r++)for(let c=0;c<10;c++){const co=coordOf(r,c);if(!banned.has(co))arr.push(co)}return rnd(arr);
+}
+function forceExitSafeZone(){
+  if(!g||!isSafeZoneNow())return;
+  const c=cloudState.worldControls||{};
+  const blackOk=!!(c.black_cloud_active&&/^[A-J]-(10|[1-9])$/.test(c.black_cloud_coord)&&c.black_cloud_coord!==V122_SAFE_COORD);
+  const target=blackOk&&Math.random()<0.20?c.black_cloud_coord:randomWorldCoord([V122_SAFE_COORD]);
+  const p=coordRC(target);g.pos={r:p.r,c:p.c};g.safeZoneEnteredAt=null;cloudState.playerAction='被交易所陣法傳送';
+  closeOv();log('萬寶交易所停留已滿2小時，守界陣法將你隨機排出至 <b>'+esc(target)+'</b>。','la');
+  render();saveGame(false);syncPlayerPresence(true);
+}
+function checkSafeZoneStay(){
+  if(!g||g.dead)return;
+  if(!isSafeZoneNow()){if(g.safeZoneEnteredAt){g.safeZoneEnteredAt=null;saveGame(false)}return}
+  if(!g.safeZoneEnteredAt)g.safeZoneEnteredAt=Date.now();
+  renderSafeZoneTimer();
+  if(Date.now()-g.safeZoneEnteredAt>=V122_SAFE_LIMIT_SECONDS*1000)forceExitSafeZone();
+}
+function applyWorldHazards(){
+  if(!g||g.dead||fight)return;
+  const c=cloudState.worldControls||{};
+  if(!c.poison_active||!c.poison_zone_id)return;
+  const z=zoneAt(g.pos.r,g.pos.c);if(!z||Number(z.id)!==Number(c.poison_zone_id))return;
+  if(Date.now()-cloudState.lastPoisonTick<10000)return;cloudState.lastPoisonTick=Date.now();
+  const poisonGear=(g.equipment||[]).filter(e=>e.element==='毒'||e.enchant==='毒'||e.poison===true).length;
+  const damage=poisonGear>=2?0:poisonGear===1?15:30;
+  if(!damage){log('毒域侵蝕被兩件毒屬性防具完全抵消。','lg');return}
+  g.hp=Math.max(0,g.hp-damage);log('地圖毒域侵蝕，道體損失 '+damage+' 體力。','ld');render();
+  if(g.hp<=0)finalizePermanentDeath('死於管理員開啟的地圖毒域');
+}
+
+moveTo=function(r,c){
+  const before=currentCoord();v122BaseMoveTo(r,c);const after=currentCoord();
+  if(before!==after){
+    g.safeZoneEnteredAt=after===V122_SAFE_COORD?Date.now():null;cloudState.playerAction='御風移動';
+    saveGame(false);syncPlayerPresence(true);setTimeout(()=>{loadPlayerPresence();checkSameMapPlayers()},350);
+  }
+};
+toggleMeditate=function(){v122BaseToggleMeditate();cloudState.playerAction=g?.meditating?'打坐':'收功';syncPlayerPresence(true)};
+explore=function(){cloudState.playerAction='探索';v122BaseExplore();syncPlayerPresence(true)};
+
+startFightAi=function(id){
+  if(isSafeZoneNow()&&!cloudState.eventCombat){toast('萬寶交易所禁止任何鬥法');return}
+  return v122BaseStartFightAi(id);
+};
+startFightMonster=function(m){
+  if(isSafeZoneNow()&&!cloudState.eventCombat){toast('萬寶交易所禁止任何戰鬥');return}
+  return v122BaseStartFightMonster(m);
+};
+attackTurn=function(){if(isSafeZoneNow()&&!fight?.eventRealm){fight=null;closeOv();toast('萬寶交易所守界陣法中止鬥法');return}return v122BaseAttackTurn()};
+openAiInteract=function(id){
+  const a=ai.find(x=>x.id===id);if(!a)return;
+  const same=sameMajorRealm(g.big,a.lv),intel=same?relativePower(a):'境界相隔，無法判斷其強弱與體力';
+  const fightBtn=isSafeZoneNow()?'<button class="btn" disabled>安全區禁戰</button>':'<button class="btn red" onclick="startFightAi('+id+')">攔截鬥法</button>';
+  sheet('<h3>修士互動 · '+esc(a.name)+'</h3><div class="ai-dialogue"><img src="assets/ai_cultivator.svg" alt="修士頭像"><div><b>'+esc(a.personality)+'</b><p>「'+esc(aiReply(a,'greet'))+'」</p><small>'+esc(intel)+'</small></div></div><div class="command-row"><button class="btn jade" onclick="talkToAi('+id+')">交談</button><button class="btn gold" onclick="tradeWithAi('+id+')">詢問交易</button>'+fightBtn+'</div><button class="btn" style="width:100%;margin-top:8px" onclick="closeOv()">離開</button>');
+};
+startAiEncounter=function(a){
+  if(!a)return;
+  const same=sameMajorRealm(g.big,a.lv);
+  const detail=same?('<div class="money"><div><span>同階感知</span><b>'+esc(relativePower(a))+'</b></div><div><span>體力</span><b>'+Math.round(a.hp)+' / '+a.hpMax+'</b></div></div>'):'<div class="notice">對方與你跨越大境界。神識只能確認其存在，無法窺探強弱、等級與實際體力。</div>';
+  const fightBtn=isSafeZoneNow()?'<button class="btn" disabled>安全區禁戰</button>':'<button class="btn red" onclick="startFightAi('+a.id+')">攔截鬥法</button>';
+  sheet('<h3>神識遭遇</h3><div class="ai-dialogue"><img src="assets/ai_cultivator.svg"><div><b>'+esc(a.name)+'</b><p>「'+esc(aiReply(a,'greet'))+'」</p></div></div>'+detail+'<div class="row" style="margin-top:12px"><button class="btn jade" onclick="openAiInteract('+a.id+')">互動</button>'+fightBtn+'<button class="btn" onclick="closeOv()">避開</button></div>');
+};
+
+openWorldMap=function(){
+  const rng=Math.max(1,Number(bigMove(g.big))||1),here=currentCoord(),playerCoord=here;
+  let h='<h3>十方浮島地圖</h3><p class="small">御風距離：最多 '+rng+' 格。相鄰1格至最大距離內皆可前往。</p><div class="grid">';
+  for(let r=0;r<10;r++)for(let c=0;c<10;c++){
+    const co=coordOf(r,c),z=zoneAt(r,c),dist=mapMoveDistance(r,c),me=co===here,reachable=!me&&dist>=1&&dist<=rng;
+    const ac=ai.filter(a=>a.alive&&a.coord===co&&sameMajorRealm(g.big,a.lv)).length;
+    const hc=cloudState.otherPlayers.filter(p=>p.alive&&p.coord===co&&sameMajorHuman(p)&&distanceCoord(co,playerCoord)<=senseRange(g.big)).length;
+    const count=ac+hc;
+    h+='<button type="button" class="cell '+(me?'me ':'')+(!reachable&&!me?'block':'')+'" '+(reachable?'onclick="moveTo('+r+','+c+')"':'disabled')+'><b>'+(z?z.name:'荒野')+'</b><br>'+co+(count?'<br><span class="ai">可感知修士 '+count+'</span>':'')+'</button>';
+  }
+  h+='</div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉地圖</button>';sheet(h);
+};
+
+function humanSenseRows(){return cloudState.otherPlayers.map(p=>({id:'human:'+p.userId,name:p.name,lv:p.lv,coord:p.coord,hp:p.hp,hpMax:p.hpMax,action:p.action,alive:p.alive,human:true,userId:p.userId,realm:p.realm,personality:'真人修士'}))}
+renderAiIntel=function(){
+  if(!g||!$('aiList'))return;
+  const playerCoord=currentCoord(),allRows=[...ai,...humanSenseRows()];updateSenseActivity(allRows);
+  const humans=cloudState.otherPlayers.filter(p=>humanVisibleAt(p,playerCoord)).sort((a,b)=>distanceCoord(a.coord,playerCoord)-distanceCoord(b.coord,playerCoord));
+  const cultivators=ai.filter(a=>senseVisibleAt(a,playerCoord)).sort((a,b)=>distanceCoord(a.coord,playerCoord)-distanceCoord(b.coord,playerCoord));
+  const rows=[];
+  for(const p of humans)rows.push('<div class="ai-item ai-click human-item" onclick="openPlayerInteract(\''+p.userId+'\')"><div><b>'+esc(p.name)+'</b><br><span>真人修士 · '+esc(relativeHumanPower(p))+' · 體力 '+Math.round(p.hp)+'/'+p.hpMax+'</span></div><span>'+esc(p.action)+(p.coord===playerCoord?' · 同地':'')+'</span></div>');
+  for(const a of cultivators.slice(0,Math.max(0,10-humans.length))){const intel=a.personality+' · '+relativePower(a)+' · 體力 '+Math.round(a.hp)+'/'+a.hpMax;rows.push('<div class="ai-item ai-click" onclick="openAiInteract('+a.id+')"><div><b>'+esc(a.name)+'</b><br><span>'+esc(intel)+'</span></div><span>'+esc(a.action||'修行')+'</span></div>')}
+  $('nearbyCount').textContent=(humans.length+cultivators.length)+' 人';$('aiList').innerHTML=rows.join('')||'<div class="small">神識範圍內暫無可辨識的同階修士氣息。</div>';renderSenseFeed();
+};
+function relativeHumanPower(p){const d=Number(p.atk||1)+Number(p.def||0),me=pAtk()+pDef();return d>me*1.25?'氣息強於你':d<me*.75?'氣息弱於你':'與你相近'}
+function preparePlayerChatByUserId(userId){
+  const p=cloudState.otherPlayers.find(x=>x.userId===userId);if(!p)return;
+  closeOv();openWorldChat();const i=$('worldChatInlineInput');if(i){i.value='@'+p.name+' ';i.focus()}
+}
+function openPlayerInteract(userId){
+  const p=cloudState.otherPlayers.find(x=>x.userId===userId);if(!p)return;
+  const samePlace=p.coord===currentCoord(),safe=isSafeZoneNow();
+  const duel=samePlace&&!safe?'<button class="btn red" onclick="challengePlayer(\''+p.userId+'\')">發起真人鬥法</button>':'<button class="btn" disabled>'+(safe?'安全區禁戰':'必須同一地域')+'</button>';
+  sheet('<h3>真人修士 · '+esc(p.name)+'</h3><div class="money"><div><span>位置</span><b>'+esc(p.coord)+(samePlace?' · 與你同地':'')+'</b></div><div><span>境界</span><b>'+esc(p.realm)+' Lv'+p.lv+'</b></div><div><span>氣息</span><b>'+esc(relativeHumanPower(p))+'</b></div></div><p class="notice">真人鬥法採伺服器回合判定；敗者永久死亡。萬寶交易所內完全禁戰。</p><div class="row"><button class="btn jade" onclick="preparePlayerChatByUserId(\''+p.userId+'\')">傳音招呼</button>'+duel+'</div><button class="btn" style="width:100%;margin-top:8px" onclick="closeOv()">離開</button>');
+}
+function pvpSnapshot(){return {characterId:g.characterId,name:g.name,level:g.lv,realm:g.big,hp:g.hp,hpMax:g.hpMax,mp:g.mp,mpMax:g.mpMax,attack:pAtk(),defense:pDef()}}
+async function challengePlayer(userId){
+  if(isSafeZoneNow()){toast('萬寶交易所禁止鬥法');return}
+  const p=cloudState.otherPlayers.find(x=>x.userId===userId);if(!p||p.coord!==currentCoord()){toast('對方已離開此地');return}
+  try{const {data,error}=await cloudState.client.rpc('create_pvp_challenge',{p_target:userId,p_snapshot:pvpSnapshot()});if(error)throw error;cloudState.pvpCurrent=Array.isArray(data)?data[0]:data;closeOv();toast('鬥法邀請已送出，60秒內有效');pollPvp()}catch(e){toast('無法發起鬥法：'+translatePvpError(e.message))}
+}
+function translatePvpError(m){const s=String(m||'');if(s.includes('SAFE_ZONE'))return'安全區禁止鬥法';if(s.includes('NOT_SAME'))return'對方已不在同一地域';if(s.includes('NOT_ONLINE'))return'對方已離線';if(s.includes('ALREADY_IN_DUEL'))return'其中一方已有鬥法';if(s.includes('NOT_YOUR_TURN'))return'尚未輪到你';if(s.includes('INSUFFICIENT_MP'))return'精力不足，僅能遁走';return s}
+async function pollPvp(){
+  if(!cloudState.enabled||!cloudState.user||!g||g.dead)return;
+  const uid=cloudState.user.id;
+  const {data,error}=await cloudState.client.from('pvp_duels').select('*').or('challenger_user_id.eq.'+uid+',target_user_id.eq.'+uid).order('updated_at',{ascending:false}).limit(5);
+  if(error)return;
+  const active=(data||[]).find(d=>d.status==='active');
+  const pending=(data||[]).find(d=>d.status==='pending'&&d.target_user_id===uid&&Date.parse(d.expires_at)>Date.now());
+  const finished=(data||[]).find(d=>d.status==='finished'&&!cloudState.pvpHandled.has(String(d.id)));
+  if(finished)return handlePvpFinished(finished);
+  if(active){cloudState.pvpCurrent=active;applyPvpLocalState(active);renderPvpDuel(active);return}
+  if(pending&&!cloudState.pvpPrompted.has(String(pending.id))){cloudState.pvpPrompted.add(String(pending.id));showPvpChallenge(pending)}
+}
+function showPvpChallenge(d){
+  sheet('<h3 style="color:var(--red)">真人鬥法邀請</h3><p><b>'+esc(d.challenger_name)+'</b> 在 '+esc(d.coord)+' 鎖定你的氣機。</p><div class="notice">接受後進入伺服器回合鬥法；敗者永久死亡。邀請60秒後失效。</div><div class="row" style="margin-top:12px"><button class="btn red" onclick="respondPvp('+d.id+',true)">接受鬥法</button><button class="btn" onclick="respondPvp('+d.id+',false)">拒絕</button></div>');
+}
+async function respondPvp(id,accept){
+  try{const {data,error}=await cloudState.client.rpc('respond_pvp_challenge',{p_duel_id:id,p_accept:accept,p_snapshot:pvpSnapshot()});if(error)throw error;const d=Array.isArray(data)?data[0]:data;if(!accept){closeOv();toast('已拒絕鬥法')}else{cloudState.pvpCurrent=d;applyPvpLocalState(d);renderPvpDuel(d)}}catch(e){toast('回應失敗：'+translatePvpError(e.message))}
+}
+function applyPvpLocalState(d){
+  const mine=d.challenger_user_id===cloudState.user.id?'challenger':'target';
+  g.hp=Math.max(0,Number(mine==='challenger'?d.challenger_hp:d.target_hp));g.mp=Math.max(0,Number(mine==='challenger'?d.challenger_mp:d.target_mp));render();saveGame(false);
+}
+function renderPvpDuel(d){
+  if(!d||d.status!=='active')return;
+  const meCh=d.challenger_user_id===cloudState.user.id;
+  const myName=meCh?d.challenger_name:d.target_name,otherName=meCh?d.target_name:d.challenger_name;
+  const myHp=Number(meCh?d.challenger_hp:d.target_hp),otherHp=Number(meCh?d.target_hp:d.challenger_hp),myMp=Number(meCh?d.challenger_mp:d.target_mp);
+  const myTurn=d.turn_user_id===cloudState.user.id;
+  sheet('<div class="pvp-card"><h3>真人鬥法 · '+esc(d.coord)+'</h3><div class="pvp-bars"><div><span>'+esc(myName)+'</span><b>體力 '+myHp+'｜精力 '+myMp+'</b></div><div><span>'+esc(otherName)+'</span><b>體力 '+otherHp+'</b></div></div><div class="notice">'+esc(d.last_message||'氣機交鋒。')+'</div><div class="row"><button class="btn red" '+(myTurn&&myMp>=10?'':'disabled')+' onclick="pvpAttack('+d.id+')">攻擊 −10精力</button><button class="btn" onclick="pvpFlee('+d.id+')">遁走認敗</button></div><p class="small">'+(myTurn?'輪到你出手。':'等待對方出手，狀態會自動更新。')+'</p></div>');
+}
+async function pvpAttack(id){
+  try{const {data,error}=await cloudState.client.rpc('pvp_attack',{p_duel_id:id});if(error)throw error;const d=Array.isArray(data)?data[0]:data;cloudState.pvpCurrent=d;applyPvpLocalState(d);if(d.status==='finished')handlePvpFinished(d);else renderPvpDuel(d)}catch(e){toast('攻擊失敗：'+translatePvpError(e.message))}
+}
+async function pvpFlee(id){
+  if(!confirm('遁走認敗會使目前角色永久死亡，確定嗎？'))return;
+  try{const {data,error}=await cloudState.client.rpc('pvp_flee',{p_duel_id:id});if(error)throw error;handlePvpFinished(Array.isArray(data)?data[0]:data)}catch(e){toast('遁走失敗：'+translatePvpError(e.message))}
+}
+function handlePvpFinished(d){
+  if(!d||cloudState.pvpHandled.has(String(d.id)))return;cloudState.pvpHandled.add(String(d.id));
+  const uid=cloudState.user.id,won=d.winner_user_id===uid;
+  if(!won){
+    clearInterval(tickTimer);clearInterval(aiTimer);clearInterval(cloudState.playerTimer);clearInterval(cloudState.safeZoneTimer);clearInterval(cloudState.pvpTimer);
+    g.hp=0;g.dead=true;g.meditating=false;cloudState.remoteSave=null;cloudState.revision=0;localStorage.removeItem(V12_LOCAL_CACHE);localStorage.removeItem(SAVE_KEY);
+    showDeathScreen('真人鬥法敗於 '+(d.winner_user_id===d.challenger_user_id?d.challenger_name:d.target_name),true);
+  }else{
+    applyPvpLocalState(d);log('真人鬥法勝利，對手已身隕道消。','lg');saveGame(false);sheet('<h3>鬥法勝利</h3><p>'+esc(d.last_message)+'</p><button class="btn gold" style="width:100%" onclick="closeOv()">收劍</button>');
+  }
+}
+
+canUseOutside=function(it){return v122BaseCanUseOutside(it)||it?.eff==='遺忘功法'};
+useOutside=function(id){if(String(id)==='9001')return openTechniqueRemoval();return v122BaseUseOutside(id)};
+function openTechniqueRemoval(){
+  if(!(g.inv['9001']>0)){toast('行囊中沒有轉身丹');return}
+  if(!(g.techniques||[]).length){toast('目前沒有可卸除的功法');return}
+  let h='<h3>轉身丹 · 卸除功法</h3><div class="notice">選定一門已研習功法後才會消耗1顆轉身丹。卸除立即生效。</div>';
+  for(const id of g.techniques){const t=C.techniques.find(x=>x.id===id);if(t)h+='<div class="list-row"><div class="grow"><strong>'+esc(t.name)+'</strong><small>'+esc(techniqueDetail(t))+'</small></div><button class="btn red" onclick="forgetTechnique(\''+id+'\')">卸除</button></div>'}
+  h+='<button class="btn" style="width:100%;margin-top:10px" onclick="openBag(\'bag\')">取消</button>';sheet(h);
+}
+function forgetTechnique(id){
+  const t=C.techniques.find(x=>x.id===id);if(!t||!g.techniques.includes(id)||!(g.inv['9001']>0))return;
+  g.techniques=g.techniques.filter(x=>x!==id);g.inv['9001']--;log('服用轉身丹，卸除功法 '+t.name+'。','la');saveGame(false);render();openBag('bag');
+}
+
+sendWorldChat=async function(){
+  if(!g||!(g.inv?.['2004']>0)){toast('全服傳音需要持有傳訊玉符');return}
+  const input=$('worldChatInlineInput')||$('worldChatInput');if(input&&document.activeElement===input)input.blur();
+  return v122BaseSendWorldChat();
+};
+document.addEventListener('DOMContentLoaded',()=>{const f=$('worldChatInlineForm');if(f)f.addEventListener('submit',e=>{e.preventDefault();sendWorldChat()})});
+
+function openEventRealm(){
+  if(!isEventOpen()){toast('活動秘境尚未開放');return}
+  const c=cloudState.worldControls||{},name=c.event_name||'秘境·未命名';
+  let cells='';for(let i=0;i<9;i++)cells+='<button class="cell" onclick="eventExploreCell('+i+')"><b>秘境區域</b><br>'+String.fromCharCode(65+Math.floor(i/3))+'-'+(i%3+1)+'</button>';
+  sheet('<h3>'+esc(name)+'</h3><p class="notice">'+esc(c.event_message||'限時活動場域已開啟。')+'</p><div class="grid" style="grid-template-columns:repeat(3,1fr)">'+cells+'</div><button class="btn" style="width:100%;margin-top:10px" onclick="closeOv()">離開秘境入口</button>');
+}
+function eventExploreCell(i){
+  if(!isEventOpen()){toast('活動已結束');closeOv();return}
+  if(g.mp<P.explore_stamina_cost){toast('精力不足');return}
+  g.mp-=P.explore_stamina_cost;cloudState.playerAction='活動秘境探索';
+  const pool=C.monsters.filter(m=>Number(m.id)>=9301&&Number(m.id)<=9305);const m=JSON.parse(JSON.stringify(rnd(pool.length?pool:C.monsters)));
+  closeOv();cloudState.eventCombat=true;v122BaseStartFightMonster(m);if(fight)fight.eventRealm=true;cloudState.eventCombat=false;render();syncPlayerPresence(true);
+}
+
+logoutBeta=async function(){try{if(cloudState.client&&cloudState.user)await cloudState.client.rpc('leave_player_presence')}catch(_){}return v122BaseLogout()};
+beginNewCharacter=function(){try{if(cloudState.client&&cloudState.user)cloudState.client.rpc('leave_player_presence')}catch(_){}return v122BaseBeginNewCharacter()};
+
+openVersion=function(){
+  sheet('<h3>V12.2 聯機與世界後臺版</h3><div class="list-row"><div class="grow"><strong>真人同圖相遇</strong><small>同一世界、同一地域且神識可辨識時，會顯示真人修士，可傳音或發起伺服器回合鬥法。</small></div></div><div class="list-row"><div class="grow"><strong>萬寶交易所規則恢復</strong><small>完全禁止戰鬥；停留上限2小時（含離線），逾時隨機傳送，黑雲存在時20%直送黑雲座標。</small></div></div><div class="list-row"><div class="grow"><strong>轉身丹</strong><small>可在行囊選擇一門已學功法卸除，確認卸除後才消耗。</small></div></div><div class="list-row"><div class="grow"><strong>手機傳音</strong><small>改用手機可提交表單；持有傳訊玉符即可傳音。</small></div></div><div class="list-row"><div class="grow"><strong>手機管理後臺</strong><small>可控制黑雲、大天劫、獸潮、活動秘境、全服公告與地圖毒域。</small></div></div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉</button>');
+};
+
+
+/* V12.3 PATCH — 世界循環與煞氣反噬 */
+cloudState.shaQi=null;cloudState.worldMaintenanceTimer=null;
+async function loadShaQiStatus(){
+  if(!cloudState.enabled||!cloudState.client||!cloudState.user)return;
+  const {data,error}=await cloudState.client.rpc('sha_qi_status');
+  if(!error){cloudState.shaQi=Array.isArray(data)?data[0]:data;renderShaQiBadge()}
+}
+function renderShaQiBadge(){
+  if(!g||!cloudState.shaQi)return;
+  let e=document.getElementById('shaQiBadge');
+  if(!e){e=document.createElement('div');e.id='shaQiBadge';e.className='small';const host=document.getElementById('charStats')||document.querySelector('.character-card')||document.body;host.appendChild(e)}
+  const q=cloudState.shaQi;e.textContent='煞氣｜同階 '+q.same_realm_kills+'（收益 '+Math.round(Number(q.same_reward_multiplier)*100)+'%）｜低階 '+q.lower_realm_kills+'（收益 '+Math.round(Number(q.lower_reward_multiplier)*100)+'%）';
+}
+async function runWorldMaintenance(){if(!cloudState.enabled||!cloudState.client||!cloudState.user)return;try{await cloudState.client.rpc('world_maintenance')}catch(_){}}
+const v123BaseStartOnlineWorld=startOnlineWorld;
+startOnlineWorld=async function(){const r=await v123BaseStartOnlineWorld();clearInterval(cloudState.worldMaintenanceTimer);cloudState.worldMaintenanceTimer=setInterval(runWorldMaintenance,30000);runWorldMaintenance();loadShaQiStatus();return r};
+const v123BaseHandlePvpFinished=handlePvpFinished;
+handlePvpFinished=function(d){
+  const uid=cloudState.user?.id,won=d&&d.winner_user_id===uid,meCh=d&&d.challenger_user_id===uid;
+  if(won&&!cloudState.pvpHandled.has(String(d.id))){
+    const mine=meCh?d.challenger_snapshot:d.target_snapshot,foe=meCh?d.target_snapshot:d.challenger_snapshot;
+    const myLv=Number(mine?.level||g?.lv||1),foeLv=Number(foe?.level||1);const rel=foeLv>myLv?'higher':foeLv<myLv?'lower':'same';
+    cloudState.client.rpc('record_sha_qi_kill',{p_relation:rel}).then(()=>loadShaQiStatus());
+  }
+  return v123BaseHandlePvpFinished(d)
+};
+
+/* V12.4 PATCH — 獎勵式廣告、元寶收益、打坐雙倍 */
+cloudState.adStatus=null;
+cloudState.meditationAdBoost=null;
+async function loadAdRewardStatus(){
+  if(!cloudState.enabled||!cloudState.client||!cloudState.user)return null;
+  const {data,error}=await cloudState.client.rpc('ad_reward_status');
+  if(error){console.warn('ad_reward_status',error);return null}
+  cloudState.adStatus=data;return data;
+}
+function adErrorText(m=''){
+  if(m.includes('DAILY_YUANBAO_AD_LIMIT'))return '今天的元寶廣告次數已用完';
+  if(m.includes('DAILY_MEDITATION_AD_LIMIT'))return '今天的打坐雙倍廣告次數已用完';
+  if(m.includes('ADS_DISABLED'))return '獎勵式廣告目前暫停';
+  if(m.includes('AD_SESSION_EXPIRED'))return '廣告工作階段已逾時，請重新觀看';
+  if(m.includes('TEST_MODE_DISABLED'))return '正式廣告尚未完成伺服器驗證串接';
+  return m;
+}
+function showTestRewardedAd(session){
+  let left=5;
+  sheet('<h3>封測獎勵式廣告</h3><div class="notice">這是封測模擬廣告，只用來測試流程；切換正式模式後才會播放真正廣告並累積廣告收益。</div><div class="money" style="margin-top:12px"><div><span>觀看倒數</span><b id="adCountdown">'+left+' 秒</b></div><div><span>完成獎勵</span><b>'+(session.reward_type==='yuanbao'?session.reward_amount+' 元寶':'本次打坐雙倍')+'</b></div></div><button id="adCancelBtn" class="btn" style="width:100%;margin-top:12px" onclick="cancelRewardedAd()">放棄觀看</button>');
+  cloudState.activeAd={session,timer:setInterval(async()=>{left--;const e=$('adCountdown');if(e)e.textContent=Math.max(0,left)+' 秒';if(left<=0){clearInterval(cloudState.activeAd.timer);await completeTestRewardedAd(session)}},1000)};
+}
+function cancelRewardedAd(){if(cloudState.activeAd?.timer)clearInterval(cloudState.activeAd.timer);cloudState.activeAd=null;closeOv();toast('未完成廣告，因此沒有獎勵')}
+async function watchRewardedAd(rewardType){
+  if(!cloudState.enabled||!cloudState.client||!cloudState.user){toast('請先登入封測帳號');return}
+  try{
+    const {data,error}=await cloudState.client.rpc('start_rewarded_ad',{p_reward_type:rewardType});if(error)throw error;
+    const session=data;
+    if(session.test_mode){showTestRewardedAd(session);return}
+    const provider=window.XIANXIA_REWARDED_AD_PROVIDER;
+    if(!provider||typeof provider.show!=='function'){throw new Error('正式廣告商尚未設定')}
+    await provider.show({adUnitId:session.ad_unit_id,sessionId:session.session_id,rewardType});
+    const {data:done,error:doneError}=await cloudState.client.rpc('complete_rewarded_ad_web',{p_session_id:session.session_id});if(doneError)throw doneError;
+    await applyCompletedAdReward(done);closeOv();
+  }catch(e){toast(adErrorText(e.message||String(e)))}
+}
+async function applyCompletedAdReward(data){
+  if(data.reward_type==='yuanbao'){
+    setWallet(Number(data.yuanbao||cloudState.walletBalance),Number(data.revision||cloudState.walletRevision));
+    log('完成正式獎勵式廣告，帳號元寶 +'+data.reward_amount+'。','lg');
+    await loadAdRewardStatus();render();openShop('yuanbao');
+  }else{
+    cloudState.meditationAdBoost={minutes:Number(data.boost_minutes||120),armed:true,active:false,startedAt:null};
+    await loadAdRewardStatus();startMeditationWithAdBoost();
+  }
+}
+async function completeTestRewardedAd(session){
+  try{
+    const {data,error}=await cloudState.client.rpc('complete_rewarded_ad_test',{p_session_id:session.session_id});if(error)throw error;
+    cloudState.activeAd=null;
+    closeOv();await applyCompletedAdReward(data);
+  }catch(e){cloudState.activeAd=null;closeOv();toast(adErrorText(e.message||String(e)))}
+}
+function meditationAdMultiplier(){return cloudState.meditationAdBoost?.active?2:1}
+function meditationBoostRemaining(){
+  const b=cloudState.meditationAdBoost;if(!b?.active||!b.startedAt)return 0;
+  return Math.max(0,b.minutes*60000-(Date.now()-b.startedAt));
+}
+function activateMeditationAdBoost(){
+  const b=cloudState.meditationAdBoost;if(!b?.armed)return;
+  b.armed=false;b.active=true;b.startedAt=Date.now();
+  g.meditationAdBoostUntil=Date.now()+b.minutes*60000;
+  log('廣告加持已啟動：本次打坐收益 ×2，最長 '+b.minutes+' 分鐘。','lg');
+}
+function stopMeditationAdBoost(){
+  if(cloudState.meditationAdBoost?.active){cloudState.meditationAdBoost.active=false;g.meditationAdBoostUntil=0;log('本次打坐的廣告雙倍加持已結束。','la')}
+}
+function startMeditationNormal(){closeOv();v124BaseToggleMeditate();cloudState.playerAction=g?.meditating?'打坐':'收功';syncPlayerPresence(true)}
+function startMeditationWithAdBoost(){
+  if(!g.meditating){activateMeditationAdBoost();v124BaseToggleMeditate();cloudState.playerAction='廣告加持打坐';syncPlayerPresence(true)}
+}
+function openMeditationAdChoice(){
+  const a=cloudState.adStatus||{};
+  sheet('<h3>開始打坐</h3><div class="list-row"><div class="grow"><strong>一般打坐</strong><small>直接開始，維持原本收益。</small></div><button class="btn" onclick="startMeditationNormal()">直接打坐</button></div><div class="list-row shop-rich"><div class="grow"><strong>觀看廣告，本次打坐收益 ×2</strong><small>完成廣告後啟動，最長 '+Number(a.meditation_boost_minutes||120)+' 分鐘；停止打坐即結束。</small></div><button class="btn gold" onclick="watchRewardedAd(\'meditation_double\')">看廣告打坐</button></div><button class="btn" style="width:100%;margin-top:8px" onclick="closeOv()">取消</button>');
+}
+const v124BaseToggleMeditate=toggleMeditate;
+toggleMeditate=function(){
+  if(g?.meditating){v124BaseToggleMeditate();stopMeditationAdBoost();cloudState.playerAction='收功';syncPlayerPresence(true);return}
+  openMeditationAdChoice();
+};
+const v124BaseTickMeditation=tickMeditation;
+tickMeditation=function(){
+  if(cloudState.meditationAdBoost?.active&&meditationBoostRemaining()<=0)stopMeditationAdBoost();
+  if(!g||!g.meditating||fight)return;
+  g.meditateSec++;
+  const z=zoneAt(g.pos.r,g.pos.c),novice=!!(z&&z.novice),mult=(g.techniques.includes('dust')?2:1)*meditationAdMultiplier();
+  const expInterval=novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec;let changed=false;
+  if(g.meditateSec%expInterval===0){gainExp(1*mult,false);changed=true}
+  if(g.meditateSec%P.meditate_hp_interval_sec===0){g.hp=clamp(g.hp+P.meditate_hp_gain*mult,0,g.hpMax);changed=true}
+  if(g.meditateSec%P.meditate_mp_interval_sec===0){g.mp=clamp(g.mp+P.meditate_mp_gain*mult,0,g.mpMax);changed=true}
+  if(changed)render();
+};
+const v124BaseRender=render;
+render=function(){v124BaseRender();const sub=$('meditateSub');if(sub&&g?.meditating&&cloudState.meditationAdBoost?.active)sub.textContent='廣告加持中：本次吐納收益 ×2'};
+const v124BaseStartOnlineWorld=startOnlineWorld;
+startOnlineWorld=async function(){const r=await v124BaseStartOnlineWorld();await loadAdRewardStatus();return r};
