@@ -1441,7 +1441,8 @@ function openMeditationAdChoice(){
   const a=cloudState.adStatus||{};
   sheet('<h3>開始打坐</h3><div class="list-row"><div class="grow"><strong>一般打坐</strong><small>直接開始，維持原本收益。</small></div><button class="btn" onclick="startMeditationNormal()">直接打坐</button></div><div class="list-row shop-rich"><div class="grow"><strong>觀看廣告，本次打坐收益 ×2</strong><small>完成廣告後啟動，最長 '+Number(a.meditation_boost_minutes||120)+' 分鐘；停止打坐即結束。</small></div><button class="btn gold" onclick="watchRewardedAd(\'meditation_double\')">看廣告打坐</button></div><button class="btn" style="width:100%;margin-top:8px" onclick="closeOv()">取消</button>');
 }
-const v124BaseToggleMeditate=toggleMeditate;
+var v124BaseToggleMeditate=toggleMeditate;
+window.__v124BaseToggleMeditate=v124BaseToggleMeditate;
 toggleMeditate=function(){
   if(g?.meditating){v124BaseToggleMeditate();stopMeditationAdBoost();cloudState.playerAction='收功';syncPlayerPresence(true);return}
   openMeditationAdChoice();
