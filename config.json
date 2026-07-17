@@ -29,8 +29,16 @@
     "meditate_mp_gain": 1,
     "meditate_exp_interval_sec": 20,
     "meditate_novice_exp_interval_sec": 2,
-    "ai_player_count": 50,
-    "ai_tick_interval_sec": 8
+    "ai_player_count": 100,
+    "ai_tick_interval_sec": 8,
+    "normal_attack_mp_cost": 10,
+    "base_crit_rate": 0.08,
+    "base_crit_min": 1.4,
+    "base_crit_max": 1.6,
+    "yuanbao_exchange_lingshi": 1000,
+    "max_techniques": 3,
+    "corpse_lifetime_sec": 3600,
+    "corpse_loot_limit": 2
   },
   "realms": [
     {
@@ -372,10 +380,10 @@
       "type": null
     },
     "6001": {
-      "name": "火雷符",
+      "name": "火焰符",
       "cat": "符籙",
       "eff": "投擲",
-      "val": 150,
+      "val": 500,
       "type": null
     },
     "6002": {
@@ -565,6 +573,20 @@
       "cat": "附魔材料",
       "eff": "附魔材料",
       "val": 15,
+      "type": null
+    },
+    "6003": {
+      "name": "雷震子",
+      "cat": "符籙",
+      "eff": "投擲",
+      "val": 2000,
+      "type": null
+    },
+    "9001": {
+      "name": "轉身丹",
+      "cat": "商城道具",
+      "eff": "遺忘功法",
+      "val": 1,
       "type": null
     }
   },
@@ -1288,72 +1310,114 @@
     {
       "id": 1001,
       "name": "回體丹",
-      "price": 5
+      "price": 5,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 1002,
       "name": "回精丹",
-      "price": 5
+      "price": 5,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 1005,
       "name": "金瘡藥",
-      "price": 15
+      "price": 15,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 4001,
       "name": "靈草",
-      "price": 8
+      "price": 8,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 4002,
       "name": "精鐵",
-      "price": 8
+      "price": 8,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 8101,
       "name": "洞府鑿",
-      "price": 200
+      "price": 200,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 8102,
       "name": "洞府陣盤",
-      "price": 500
+      "price": 500,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 8201,
       "name": "宗門大陣",
-      "price": 5000
+      "price": 5000,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 8501,
       "name": "磨刀石",
-      "price": 30
+      "price": 30,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 8502,
       "name": "護甲片",
-      "price": 30
+      "price": 30,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 2001,
       "name": "長劍",
-      "price": 80
+      "price": 80,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 3001,
       "name": "護體法袍",
-      "price": 60
+      "price": 60,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 3101,
       "name": "玄鐵甲",
-      "price": 260
+      "price": 260,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     },
     {
       "id": 8301,
       "name": "庚精",
-      "price": 120
+      "price": 120,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
+    },
+    {
+      "id": 6001,
+      "name": "火焰符",
+      "price": 50,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
+    },
+    {
+      "id": 6003,
+      "name": "雷震子",
+      "price": 200,
+      "currency": "lingshi",
+      "sourceType": "npc_shop"
     }
   ],
   "weapons": {
@@ -2126,6 +2190,854 @@
       "coord": "F-2",
       "conceal": "中",
       "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10051,
+      "name": "林青玄51",
+      "type": "穩健修士",
+      "weights": "修煉45|探索25|打怪20|交易10",
+      "big": "練氣期",
+      "lv": 1,
+      "coord": "A-1",
+      "conceal": "低",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10052,
+      "name": "陳寒月52",
+      "type": "好戰修士",
+      "weights": "追蹤35|打怪30|伏擊20|修煉15",
+      "big": "練氣期",
+      "lv": 2,
+      "coord": "J-2",
+      "conceal": "低",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10053,
+      "name": "葉星河53",
+      "type": "商人修士",
+      "weights": "交易45|探索30|修煉20|打怪5",
+      "big": "練氣期",
+      "lv": 3,
+      "coord": "C-3",
+      "conceal": "中",
+      "phenomenonReaction": "避開"
+    },
+    {
+      "id": 10054,
+      "name": "沈問天54",
+      "type": "隱修修士",
+      "weights": "修煉55|遮蔽20|探索15|打怪10",
+      "big": "練氣期",
+      "lv": 4,
+      "coord": "H-4",
+      "conceal": "高",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10055,
+      "name": "顧靈犀55",
+      "type": "機緣修士",
+      "weights": "異象40|探索30|打怪20|修煉10",
+      "big": "練氣期",
+      "lv": 5,
+      "coord": "F-2",
+      "conceal": "中",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10056,
+      "name": "蘇聽雪56",
+      "type": "穩健修士",
+      "weights": "修煉45|探索25|打怪20|交易10",
+      "big": "練氣期",
+      "lv": 1,
+      "coord": "A-1",
+      "conceal": "低",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10057,
+      "name": "白凝香57",
+      "type": "好戰修士",
+      "weights": "追蹤35|打怪30|伏擊20|修煉15",
+      "big": "練氣期",
+      "lv": 2,
+      "coord": "J-2",
+      "conceal": "低",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10058,
+      "name": "秦雲舟58",
+      "type": "商人修士",
+      "weights": "交易45|探索30|修煉20|打怪5",
+      "big": "練氣期",
+      "lv": 3,
+      "coord": "C-3",
+      "conceal": "中",
+      "phenomenonReaction": "避開"
+    },
+    {
+      "id": 10059,
+      "name": "楚長風59",
+      "type": "隱修修士",
+      "weights": "修煉55|遮蔽20|探索15|打怪10",
+      "big": "練氣期",
+      "lv": 4,
+      "coord": "H-4",
+      "conceal": "高",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10060,
+      "name": "韓清霜60",
+      "type": "機緣修士",
+      "weights": "異象40|探索30|打怪20|修煉10",
+      "big": "練氣期",
+      "lv": 5,
+      "coord": "F-2",
+      "conceal": "中",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10061,
+      "name": "江知微61",
+      "type": "穩健修士",
+      "weights": "修煉45|探索25|打怪20|交易10",
+      "big": "練氣期",
+      "lv": 1,
+      "coord": "A-1",
+      "conceal": "低",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10062,
+      "name": "洛昭陽62",
+      "type": "好戰修士",
+      "weights": "追蹤35|打怪30|伏擊20|修煉15",
+      "big": "練氣期",
+      "lv": 2,
+      "coord": "J-2",
+      "conceal": "低",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10063,
+      "name": "許逍遙63",
+      "type": "商人修士",
+      "weights": "交易45|探索30|修煉20|打怪5",
+      "big": "練氣期",
+      "lv": 3,
+      "coord": "C-3",
+      "conceal": "中",
+      "phenomenonReaction": "避開"
+    },
+    {
+      "id": 10064,
+      "name": "魏墨竹64",
+      "type": "隱修修士",
+      "weights": "修煉55|遮蔽20|探索15|打怪10",
+      "big": "練氣期",
+      "lv": 4,
+      "coord": "H-4",
+      "conceal": "高",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10065,
+      "name": "唐無塵65",
+      "type": "機緣修士",
+      "weights": "異象40|探索30|打怪20|修煉10",
+      "big": "練氣期",
+      "lv": 5,
+      "coord": "F-2",
+      "conceal": "中",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10066,
+      "name": "凌若水66",
+      "type": "穩健修士",
+      "weights": "修煉45|探索25|打怪20|交易10",
+      "big": "練氣期",
+      "lv": 1,
+      "coord": "A-1",
+      "conceal": "低",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10067,
+      "name": "穆景行67",
+      "type": "好戰修士",
+      "weights": "追蹤35|打怪30|伏擊20|修煉15",
+      "big": "練氣期",
+      "lv": 2,
+      "coord": "J-2",
+      "conceal": "低",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10068,
+      "name": "蕭玄策68",
+      "type": "商人修士",
+      "weights": "交易45|探索30|修煉20|打怪5",
+      "big": "練氣期",
+      "lv": 3,
+      "coord": "C-3",
+      "conceal": "中",
+      "phenomenonReaction": "避開"
+    },
+    {
+      "id": 10069,
+      "name": "段歸元69",
+      "type": "隱修修士",
+      "weights": "修煉55|遮蔽20|探索15|打怪10",
+      "big": "練氣期",
+      "lv": 4,
+      "coord": "H-4",
+      "conceal": "高",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10070,
+      "name": "宋逐日70",
+      "type": "機緣修士",
+      "weights": "異象40|探索30|打怪20|修煉10",
+      "big": "練氣期",
+      "lv": 5,
+      "coord": "F-2",
+      "conceal": "中",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10071,
+      "name": "林青玄71",
+      "type": "穩健修士",
+      "weights": "修煉45|探索25|打怪20|交易10",
+      "big": "練氣期",
+      "lv": 1,
+      "coord": "A-1",
+      "conceal": "低",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10072,
+      "name": "陳寒月72",
+      "type": "好戰修士",
+      "weights": "追蹤35|打怪30|伏擊20|修煉15",
+      "big": "練氣期",
+      "lv": 2,
+      "coord": "J-2",
+      "conceal": "低",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10073,
+      "name": "葉星河73",
+      "type": "商人修士",
+      "weights": "交易45|探索30|修煉20|打怪5",
+      "big": "練氣期",
+      "lv": 3,
+      "coord": "C-3",
+      "conceal": "中",
+      "phenomenonReaction": "避開"
+    },
+    {
+      "id": 10074,
+      "name": "沈問天74",
+      "type": "隱修修士",
+      "weights": "修煉55|遮蔽20|探索15|打怪10",
+      "big": "練氣期",
+      "lv": 4,
+      "coord": "H-4",
+      "conceal": "高",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10075,
+      "name": "顧靈犀75",
+      "type": "機緣修士",
+      "weights": "異象40|探索30|打怪20|修煉10",
+      "big": "練氣期",
+      "lv": 5,
+      "coord": "F-2",
+      "conceal": "中",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10076,
+      "name": "蘇聽雪76",
+      "type": "穩健修士",
+      "weights": "修煉45|探索25|打怪20|交易10",
+      "big": "練氣期",
+      "lv": 1,
+      "coord": "A-1",
+      "conceal": "低",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10077,
+      "name": "白凝香77",
+      "type": "好戰修士",
+      "weights": "追蹤35|打怪30|伏擊20|修煉15",
+      "big": "練氣期",
+      "lv": 2,
+      "coord": "J-2",
+      "conceal": "低",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10078,
+      "name": "秦雲舟78",
+      "type": "商人修士",
+      "weights": "交易45|探索30|修煉20|打怪5",
+      "big": "練氣期",
+      "lv": 3,
+      "coord": "C-3",
+      "conceal": "中",
+      "phenomenonReaction": "避開"
+    },
+    {
+      "id": 10079,
+      "name": "楚長風79",
+      "type": "隱修修士",
+      "weights": "修煉55|遮蔽20|探索15|打怪10",
+      "big": "練氣期",
+      "lv": 4,
+      "coord": "H-4",
+      "conceal": "高",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10080,
+      "name": "韓清霜80",
+      "type": "機緣修士",
+      "weights": "異象40|探索30|打怪20|修煉10",
+      "big": "練氣期",
+      "lv": 5,
+      "coord": "F-2",
+      "conceal": "中",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10081,
+      "name": "江知微81",
+      "type": "穩健修士",
+      "weights": "修煉45|探索25|打怪20|交易10",
+      "big": "練氣期",
+      "lv": 1,
+      "coord": "A-1",
+      "conceal": "低",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10082,
+      "name": "洛昭陽82",
+      "type": "好戰修士",
+      "weights": "追蹤35|打怪30|伏擊20|修煉15",
+      "big": "練氣期",
+      "lv": 2,
+      "coord": "J-2",
+      "conceal": "低",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10083,
+      "name": "許逍遙83",
+      "type": "商人修士",
+      "weights": "交易45|探索30|修煉20|打怪5",
+      "big": "練氣期",
+      "lv": 3,
+      "coord": "C-3",
+      "conceal": "中",
+      "phenomenonReaction": "避開"
+    },
+    {
+      "id": 10084,
+      "name": "魏墨竹84",
+      "type": "隱修修士",
+      "weights": "修煉55|遮蔽20|探索15|打怪10",
+      "big": "練氣期",
+      "lv": 4,
+      "coord": "H-4",
+      "conceal": "高",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10085,
+      "name": "唐無塵85",
+      "type": "機緣修士",
+      "weights": "異象40|探索30|打怪20|修煉10",
+      "big": "練氣期",
+      "lv": 5,
+      "coord": "F-2",
+      "conceal": "中",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10086,
+      "name": "凌若水86",
+      "type": "穩健修士",
+      "weights": "修煉45|探索25|打怪20|交易10",
+      "big": "練氣期",
+      "lv": 1,
+      "coord": "A-1",
+      "conceal": "低",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10087,
+      "name": "穆景行87",
+      "type": "好戰修士",
+      "weights": "追蹤35|打怪30|伏擊20|修煉15",
+      "big": "練氣期",
+      "lv": 2,
+      "coord": "J-2",
+      "conceal": "低",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10088,
+      "name": "蕭玄策88",
+      "type": "商人修士",
+      "weights": "交易45|探索30|修煉20|打怪5",
+      "big": "練氣期",
+      "lv": 3,
+      "coord": "C-3",
+      "conceal": "中",
+      "phenomenonReaction": "避開"
+    },
+    {
+      "id": 10089,
+      "name": "段歸元89",
+      "type": "隱修修士",
+      "weights": "修煉55|遮蔽20|探索15|打怪10",
+      "big": "練氣期",
+      "lv": 4,
+      "coord": "H-4",
+      "conceal": "高",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10090,
+      "name": "宋逐日90",
+      "type": "機緣修士",
+      "weights": "異象40|探索30|打怪20|修煉10",
+      "big": "練氣期",
+      "lv": 5,
+      "coord": "F-2",
+      "conceal": "中",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10091,
+      "name": "林青玄91",
+      "type": "穩健修士",
+      "weights": "修煉45|探索25|打怪20|交易10",
+      "big": "練氣期",
+      "lv": 1,
+      "coord": "A-1",
+      "conceal": "低",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10092,
+      "name": "陳寒月92",
+      "type": "好戰修士",
+      "weights": "追蹤35|打怪30|伏擊20|修煉15",
+      "big": "練氣期",
+      "lv": 2,
+      "coord": "J-2",
+      "conceal": "低",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10093,
+      "name": "葉星河93",
+      "type": "商人修士",
+      "weights": "交易45|探索30|修煉20|打怪5",
+      "big": "練氣期",
+      "lv": 3,
+      "coord": "C-3",
+      "conceal": "中",
+      "phenomenonReaction": "避開"
+    },
+    {
+      "id": 10094,
+      "name": "沈問天94",
+      "type": "隱修修士",
+      "weights": "修煉55|遮蔽20|探索15|打怪10",
+      "big": "練氣期",
+      "lv": 4,
+      "coord": "H-4",
+      "conceal": "高",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10095,
+      "name": "顧靈犀95",
+      "type": "機緣修士",
+      "weights": "異象40|探索30|打怪20|修煉10",
+      "big": "練氣期",
+      "lv": 5,
+      "coord": "F-2",
+      "conceal": "中",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10096,
+      "name": "蘇聽雪96",
+      "type": "穩健修士",
+      "weights": "修煉45|探索25|打怪20|交易10",
+      "big": "練氣期",
+      "lv": 1,
+      "coord": "A-1",
+      "conceal": "低",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10097,
+      "name": "白凝香97",
+      "type": "好戰修士",
+      "weights": "追蹤35|打怪30|伏擊20|修煉15",
+      "big": "練氣期",
+      "lv": 2,
+      "coord": "J-2",
+      "conceal": "低",
+      "phenomenonReaction": "前往"
+    },
+    {
+      "id": 10098,
+      "name": "秦雲舟98",
+      "type": "商人修士",
+      "weights": "交易45|探索30|修煉20|打怪5",
+      "big": "練氣期",
+      "lv": 3,
+      "coord": "C-3",
+      "conceal": "中",
+      "phenomenonReaction": "避開"
+    },
+    {
+      "id": 10099,
+      "name": "楚長風99",
+      "type": "隱修修士",
+      "weights": "修煉55|遮蔽20|探索15|打怪10",
+      "big": "練氣期",
+      "lv": 4,
+      "coord": "H-4",
+      "conceal": "高",
+      "phenomenonReaction": "觀望"
+    },
+    {
+      "id": 10100,
+      "name": "韓清霜100",
+      "type": "機緣修士",
+      "weights": "異象40|探索30|打怪20|修煉10",
+      "big": "練氣期",
+      "lv": 5,
+      "coord": "F-2",
+      "conceal": "中",
+      "phenomenonReaction": "前往"
+    }
+  ],
+  "techniqueTypes": {
+    "spirit": {
+      "name": "靈修功法",
+      "affectedByBlackCloud": true
+    },
+    "body": {
+      "name": "煉體功法",
+      "affectedByBlackCloud": false
+    },
+    "sense": {
+      "name": "神識功法",
+      "affectedByBlackCloud": true
+    },
+    "secret": {
+      "name": "秘術",
+      "affectedByBlackCloud": true
+    }
+  },
+  "techniques": [
+    {
+      "id": "rebirth",
+      "name": "三重轉生訣",
+      "type": "spirit",
+      "active": false,
+      "levels": [
+        {
+          "expRate": 0.3,
+          "foundationRate": 1,
+          "coreBonus": 0.3,
+          "nascentBonus": 0.05
+        },
+        {
+          "expRate": 0.3,
+          "foundationRate": 1,
+          "coreBonus": 0.3,
+          "nascentBonus": 0.05
+        },
+        {
+          "expRate": 0.3,
+          "foundationRate": 1,
+          "coreBonus": 0.3,
+          "nascentBonus": 0.05
+        }
+      ],
+      "desc": "修煉經驗降至30%，換取突破優勢。"
+    },
+    {
+      "id": "green_sword",
+      "name": "綠元劍訣",
+      "type": "spirit",
+      "active": false,
+      "levels": [
+        {
+          "flyingSwordDamage": 0.1
+        },
+        {
+          "flyingSwordDamage": 0.15
+        },
+        {
+          "flyingSwordDamage": 0.2
+        }
+      ],
+      "desc": "提升飛劍武器傷害。"
+    },
+    {
+      "id": "gentleman",
+      "name": "君子功",
+      "type": "spirit",
+      "active": false,
+      "levels": [
+        {
+          "defenseCoeff": 0.1,
+          "extraDamageReduction": 0.5
+        },
+        {
+          "defenseCoeff": 0.15,
+          "extraDamageReduction": 0.5
+        },
+        {
+          "defenseCoeff": 0.2,
+          "extraDamageReduction": 0.5
+        }
+      ],
+      "desc": "提高防禦係數並降低追加傷害。"
+    },
+    {
+      "id": "golden_dragon",
+      "name": "金龍火體訣",
+      "type": "body",
+      "active": false,
+      "levels": [
+        {
+          "hp": 0.15,
+          "def": 0.02
+        },
+        {
+          "hp": 0.2,
+          "def": 0.05
+        },
+        {
+          "hp": 0.25,
+          "def": 0.08
+        }
+      ],
+      "desc": "強化肉身，功法加成不受黑雲修為壓制。"
+    },
+    {
+      "id": "big_eye",
+      "name": "大眼訣",
+      "type": "sense",
+      "active": false,
+      "levels": [
+        {
+          "sense": 1.0,
+          "ambush": 0.1,
+          "ambushCritChance": 0.5,
+          "ambushCritDamage": 2
+        },
+        {
+          "sense": 1.5,
+          "ambush": 0.12,
+          "ambushCritChance": 0.5,
+          "ambushCritDamage": 2
+        },
+        {
+          "sense": 2.0,
+          "ambush": 0.15,
+          "ambushCritChance": 0.5,
+          "ambushCritDamage": 2
+        }
+      ],
+      "desc": "提升神識、伏擊成功率，成功伏擊時有50%機率造成2倍首擊。"
+    },
+    {
+      "id": "descent",
+      "name": "降靈術",
+      "type": "secret",
+      "active": true,
+      "levels": [
+        {
+          "turns": 5,
+          "atk": 1.0,
+          "specialCritChance": 0.2,
+          "specialCritDamage": 1.8,
+          "backlashTurns": 3
+        },
+        {
+          "turns": 5,
+          "atk": 1.0,
+          "specialCritChance": 0.2,
+          "specialCritDamage": 1.8,
+          "backlashTurns": 3
+        },
+        {
+          "turns": 5,
+          "atk": 1.0,
+          "specialCritChance": 0.2,
+          "specialCritDamage": 1.8,
+          "backlashTurns": 3
+        }
+      ],
+      "desc": "五回合攻擊翻倍並可能造成180%特殊暴擊，之後三回合無法行動。"
+    },
+    {
+      "id": "dust",
+      "name": "望塵訣",
+      "type": "spirit",
+      "active": false,
+      "levels": [
+        {
+          "meditate": 1.0,
+          "recover": 1.0
+        },
+        {
+          "meditate": 1.0,
+          "recover": 1.0
+        },
+        {
+          "meditate": 1.0,
+          "recover": 1.0
+        }
+      ],
+      "desc": "打坐修煉與恢復收益增加100%。"
+    },
+    {
+      "id": "lightning_breath",
+      "name": "電之呼吸",
+      "type": "spirit",
+      "active": false,
+      "levels": [
+        {
+          "critRate": 0.1,
+          "critDamageValue": 0.5
+        },
+        {
+          "critRate": 0.125,
+          "critDamageValue": 0.75
+        },
+        {
+          "critRate": 0.15,
+          "critDamageValue": 1.0
+        }
+      ],
+      "desc": "提高暴擊率，並增加暴擊後的實際傷害數值。"
+    }
+  ],
+  "mallProducts": [
+    {
+      "id": "tech_rebirth",
+      "productType": "technique",
+      "targetId": "rebirth",
+      "name": "三重轉生訣",
+      "price": 20,
+      "currency": "yuanbao",
+      "sourceType": "mall",
+      "repeatable": false
+    },
+    {
+      "id": "tech_green_sword",
+      "productType": "technique",
+      "targetId": "green_sword",
+      "name": "綠元劍訣",
+      "price": 20,
+      "currency": "yuanbao",
+      "sourceType": "mall",
+      "repeatable": false
+    },
+    {
+      "id": "tech_gentleman",
+      "productType": "technique",
+      "targetId": "gentleman",
+      "name": "君子功",
+      "price": 20,
+      "currency": "yuanbao",
+      "sourceType": "mall",
+      "repeatable": false
+    },
+    {
+      "id": "tech_golden_dragon",
+      "productType": "technique",
+      "targetId": "golden_dragon",
+      "name": "金龍火體訣",
+      "price": 20,
+      "currency": "yuanbao",
+      "sourceType": "mall",
+      "repeatable": false
+    },
+    {
+      "id": "tech_big_eye",
+      "productType": "technique",
+      "targetId": "big_eye",
+      "name": "大眼訣",
+      "price": 20,
+      "currency": "yuanbao",
+      "sourceType": "mall",
+      "repeatable": false
+    },
+    {
+      "id": "tech_descent",
+      "productType": "technique",
+      "targetId": "descent",
+      "name": "降靈術",
+      "price": 20,
+      "currency": "yuanbao",
+      "sourceType": "mall",
+      "repeatable": false
+    },
+    {
+      "id": "tech_dust",
+      "productType": "technique",
+      "targetId": "dust",
+      "name": "望塵訣",
+      "price": 20,
+      "currency": "yuanbao",
+      "sourceType": "mall",
+      "repeatable": false
+    },
+    {
+      "id": "tech_lightning_breath",
+      "productType": "technique",
+      "targetId": "lightning_breath",
+      "name": "電之呼吸",
+      "price": 20,
+      "currency": "yuanbao",
+      "sourceType": "mall",
+      "repeatable": false
+    },
+    {
+      "id": "item_9001",
+      "productType": "item",
+      "targetId": "9001",
+      "name": "轉身丹",
+      "price": 20,
+      "currency": "yuanbao",
+      "sourceType": "mall",
+      "repeatable": true
     }
   ]
 }

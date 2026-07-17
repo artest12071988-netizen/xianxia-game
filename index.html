@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>修仙大逃殺｜Xianxia Engine V1 Alpha V8</title>
+<title>修仙大逃殺 V10｜Xianxia Engine V1 Alpha V8</title>
 <style>
 
 :root{
@@ -146,6 +146,14 @@ button,input{font:inherit}.small{font-size:12px;color:var(--muted)}
 .meditation-notice{position:relative;z-index:4;text-align:center;color:#8ca5aa;font-size:11px;margin-bottom:8px}
 @media(max-width:600px){.world-ai-pill{padding:4px 7px}.ai-world-grid{grid-template-columns:1fr}.moon-v8{width:62px;height:62px}.moon-v8:after{width:62px;height:62px}.meditation-avatar{transform:scale(.82);margin:-18px 0}.meditation-title{font-size:21px}}
 
+
+/* V10 功法、雙貨幣、戰鬥動畫 */
+.currency-strip{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.currency-chip{padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(216,187,106,.06)}
+.tech-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tech-card{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(255,255,255,.025)}.tech-card h4{margin:0 0 4px;color:var(--gold)}
+.combat-avatar.attack-lunge{animation:v10Lunge .38s ease}.fighter.enemy.hit-shake{animation:v10Shake .32s ease}.damage-pop{position:absolute;left:50%;top:28%;transform:translate(-50%,-50%);font-size:28px;font-weight:900;color:#f7d26c;text-shadow:0 2px 8px #000;pointer-events:none;animation:v10Pop .55s ease forwards}.damage-pop.crit{font-size:34px;color:#ff6b55}
+@keyframes v10Lunge{0%,100%{transform:translateX(0)}45%{transform:translateX(28px)}}@keyframes v10Shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}55%{transform:translateX(8px)}}@keyframes v10Pop{0%{opacity:0;transform:translate(-50%,0) scale(.7)}35%{opacity:1;transform:translate(-50%,-22px) scale(1.1)}100%{opacity:0;transform:translate(-50%,-48px) scale(.9)}}
+.meditation-overlay:not(.meditation-running) .qi-orb,.meditation-overlay:not(.meditation-running) .ring-v8{animation-play-state:paused;opacity:0}.meditation-overlay.meditation-starting .meditation-avatar{animation:v10Begin 1.1s ease}.meditation-overlay.meditation-running .qi-orb{transition:opacity .8s;opacity:1}@keyframes v10Begin{0%{transform:scale(.92);filter:brightness(.6)}50%{transform:scale(1.03);filter:brightness(1.15)}100%{transform:scale(1)}}
+@media(max-width:600px){.tech-grid{grid-template-columns:1fr}}
 </style>
 
 <link rel="manifest" href="./manifest.webmanifest">
@@ -297,6 +305,17 @@ function fmtMsg(key,vars){let s=MSG[key]||key;for(const k in vars)s=s.replaceAll
 
 const BIG_MOVE={"練氣期":1,"築基期":2,"結丹期":3,"元嬰期":4};
 function realmOf(lv){return R[lv-1]}
+function learnedTech(id){return (g&&g.techniques||[]).find(x=>x.id===id)}
+function techDef(id){return (C.techniques||[]).find(x=>x.id===id)}
+function techLevel(id){const x=learnedTech(id);return x?Math.max(1,Math.min(3,x.level||1)):0}
+function techEffect(id){const d=techDef(id),lv=techLevel(id);return d&&lv?d.levels[lv-1]||{}:{}}
+function blackCloudActive(){return !!(g&&g.blackCloud)}
+function techEnabled(id){const d=techDef(id);return !!d&&(!blackCloudActive()||d.type==='body')}
+function effectiveCritRate(){const e=techEnabled('lightning_breath')?techEffect('lightning_breath'):{};return Math.min(.95,Number(P.base_crit_rate||.08)+Number(e.critRate||0))}
+function meditationMultiplier(){return techEnabled('dust')&&learnedTech('dust')?2:1}
+function expMultiplier(){return learnedTech('rebirth')&&techEnabled('rebirth')?.3:1}
+function applyTechniqueStats(){if(!g)return;const r=realmOf(g.lv),body=learnedTech('golden_dragon')?techEffect('golden_dragon'):{};g.hpMax=Math.round(r.hp*(1+Number(body.hp||0)));if(g.hp>g.hpMax)g.hp=g.hpMax;}
+
 
 const SENSE=C.senseProfiles||{};
 function senseProfile(){return SENSE[g.big]||{same:0,one:0,two:0,ambush:0,move:BIG_MOVE[g.big]||1};}
@@ -314,7 +333,7 @@ let meditationTimers=[],meditationSession=null;
 function parseAICoord(coord){const p=coordRC(coord);return {r:p.r,c:p.c};}
 function initAIWorld(){
   aiWorld=(C.aiPlayers||[]).slice(0,Number(P.ai_player_count||50)).map(a=>({
-    ...a,pos:parseAICoord(a.coord||'A-1'),exp:0,hp:100,mp:50,state:'修煉中',lastAction:'初入浮島'
+    ...a,pos:parseAICoord(a.coord||'A-1'),exp:0,hp:100,mp:50,state:'修煉中',lastAction:'初入浮島',lingshi:300,inv:{'1001':2,'1002':2},weapon:null,armor:null,techniques:[]
   }));
   if(aiWorldTimer)clearInterval(aiWorldTimer);
   aiWorldTimer=setInterval(aiWorldTick,Number(P.ai_tick_interval_sec||8)*1000);
@@ -393,15 +412,16 @@ function startMeditation(){
   if(meditationSession)return;
   const z=currentZone();
   meditationSession={start:Date.now(),hp:0,mp:0,xp:0};
-  $('meditationOverlay').classList.add('meditation-running');
-  $('medStatusText').textContent='氣息循環中，停止前將持續吐納……';
-  const hpMs=Number(P.meditate_hp_interval_sec||10)*1000;
+  $('meditationOverlay').classList.add('meditation-starting');
+  $('medStatusText').textContent='凝神盤坐，正在引氣入體……';
+  setTimeout(()=>{$('meditationOverlay').classList.remove('meditation-starting');$('meditationOverlay').classList.add('meditation-running');$('medStatusText').textContent='氣息循環中，停止前將持續吐納……';},900);
+    const hpMs=Number(P.meditate_hp_interval_sec||10)*1000;
   const mpMs=Number(P.meditate_mp_interval_sec||4)*1000;
   const xpMs=Number(z&&z.novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec||20)*1000;
   meditationTimers=[
-    setInterval(()=>{const before=g.hp;g.hp=Math.min(g.hpMax,g.hp+Number(P.meditate_hp_gain||1));meditationSession.hp+=Math.round(g.hp-before);updateMeditationStats();render();},hpMs),
-    setInterval(()=>{const before=g.mp;g.mp=Math.min(g.mpMax,g.mp+Number(P.meditate_mp_gain||1));meditationSession.mp+=Math.round(g.mp-before);updateMeditationStats();render();},mpMs),
-    setInterval(()=>{gainExp(1);meditationSession.xp+=1;updateMeditationStats();},xpMs)
+    setInterval(()=>{const before=g.hp;g.hp=Math.min(g.hpMax,g.hp+Number(P.meditate_hp_gain||1)*meditationMultiplier());meditationSession.hp+=Math.round(g.hp-before);updateMeditationStats();render();},hpMs),
+    setInterval(()=>{const before=g.mp;g.mp=Math.min(g.mpMax,g.mp+Number(P.meditate_mp_gain||1)*meditationMultiplier());meditationSession.mp+=Math.round(g.mp-before);updateMeditationStats();render();},mpMs),
+    setInterval(()=>{const v=meditationMultiplier();gainExp(v);meditationSession.xp+=v;updateMeditationStats();},xpMs)
   ];
   log('開始持續打坐吐納。','lg');
 }
@@ -411,7 +431,7 @@ function stopMeditation(closeView){
     log('停止打坐：體力 +'+meditationSession.hp+'、精力 +'+meditationSession.mp+'、修為 +'+meditationSession.xp+'。','lg');
   }
   meditationSession=null;
-  $('meditationOverlay').classList.remove('meditation-running');
+  $('meditationOverlay').classList.remove('meditation-running','meditation-starting');
   $('medStatusText').textContent='尚未開始打坐';
   if(closeView){$('meditationOverlay').classList.remove('on');document.body.style.overflow='';}
   render();
@@ -425,10 +445,10 @@ function startGame(){
   const nm=$('nm').value.trim()||"無名散修";
   const st=coordRC("A-1"), r0=realmOf(1);
   g={name:nm,lv:1,exp:0,hp:r0.hp,hpMax:r0.hp,mp:P.start_stamina||300,mpMax:P.start_stamina||300,
-     pos:{r:st.r,c:st.c},big:"練氣期",weapon:null,armor:null,enhance:{weapon:0,armor:0},injury:null,status:[],lingshi:600,inv:{"1001":3,"1002":3,"8301":12}};
+     pos:{r:st.r,c:st.c},big:"練氣期",weapon:null,armor:null,enhance:{weapon:0,armor:0},injury:null,status:[],lingshi:600,yuanbao:100,techniques:[],blackCloud:false,inv:{"1001":3,"1002":3,"8301":12}};
   show('game');
   log('你睜眼，發現自己身處 <b>青牛谷</b>，頸上靈環冰冷。','la');
-  initAIWorld();pushWorldFeed('五十名修士已散入浮島，各自尋道。','la');
+  initAIWorld();pushWorldFeed(aiWorld.length+'名修士已散入浮島，各自尋道。','la');
   render();
 }
 
@@ -439,8 +459,8 @@ function enhanceBonus(slot){
   for(let i=0;i<lv;i++){const r=(C.enhancementRules||[]).find(x=>x.current===i);total+=base*((r&&r.bonusRate)||0);}
   return Math.round(total);
 }
-function pAtk(){let a=realmOf(g.lv).atk; if(g.weapon)a+=(IT[g.weapon.id].val||0)+enhanceBonus('weapon'); return Math.round(a)}
-function pDef(){let d=realmOf(g.lv).def; if(g.armor)d+=(IT[g.armor.id].val||0)+enhanceBonus('armor'); return Math.round(d)}
+function pAtk(){let a=realmOf(g.lv).atk;if(g.weapon){let w=(IT[g.weapon.id].val||0)+enhanceBonus('weapon');if(g.weapon.type==='飛劍'&&techEnabled('green_sword'))w*=1+Number(techEffect('green_sword').flyingSwordDamage||0);a+=w;}if(g.secretState&&g.secretState.activeTurns>0)a*=2;return Math.round(a)}
+function pDef(){let d=realmOf(g.lv).def;if(g.armor)d+=(IT[g.armor.id].val||0)+enhanceBonus('armor');if(techEnabled('golden_dragon'))d*=1+Number(techEffect('golden_dragon').def||0);if(techEnabled('gentleman'))d*=1+Number(techEffect('gentleman').defenseCoeff||0);return Math.round(d)}
 function wMult(){return g.weapon?g.weapon.mult:1.0}
 function qiState(){if(g.status.includes('走火入魔'))return['逆行','var(--red)'];if(g.injury||g.status.includes('中毒'))return['紊亂','var(--amber)'];return['通暢','var(--jade)']}
 
@@ -553,7 +573,7 @@ function render(){
   $('zoneMeditate').textContent=(z&&z.novice?'2秒 / EXP':'20秒 / EXP');
   $('sceneGlyph').textContent=zoneGlyph(z);
   $('sceneGlyph').className='scene-glyph '+zoneTone(z);
-  $('ls').textContent=g.lingshi;
+  $('ls').textContent=g.lingshi;applyTechniqueStats();
   $('atk').textContent=pAtk(); $('def').textContent=pDef();
   $('wp').textContent=g.weapon?g.weapon.name:'空手';
   $('threatTitle').textContent=z&&z.novice?'護道結界穩定':'天象暫無異變';
@@ -684,7 +704,7 @@ function renderFight(line){
       '<div><div class="meter-head"><span>'+m.name+' 氣血</span><b>'+mhp+' / '+m.hp+'</b></div><div class="bar"><i class="enemy-hpf" style="width:'+Math.max(0,mhp/m.hp*100)+'%"></i></div></div>'+
     '</div>'+
     '<div class="combat-log" id="fl">'+line+'</div>'+
-    '<div class="combat-actions"><button class="btn red" onclick="atkTurn()"><span>劍</span>出手攻擊</button><button class="btn jade" onclick="openCombatBag()"><span>丹</span>使用道具</button><button class="btn" onclick="fleeTurn()"><span>遁</span>御風撤離</button></div>');
+    '<div class="combat-actions"><button class="btn red" onclick="atkTurn()"><span>劍</span>出手攻擊</button><button class="btn jade" onclick="openCombatBag()"><span>丹</span>使用道具</button><button class="btn gold" onclick="activateDescent()"><span>秘</span>降靈術</button><button class="btn" onclick="fleeTurn()"><span>遁</span>御風撤離</button></div>');
 }
 function openCombatBag(){
   const keys=Object.keys(g.inv).filter(k=>g.inv[k]>0&&IT[k]&&(
@@ -715,14 +735,19 @@ function calcDmg(atk,def,mult){
   let d=atk*atk/(atk+def*coeff)*(mult||1);
   return Math.max(1,Math.round(d));
 }
+function animateHit(d,crit,cb){const pa=document.querySelector('.fighter.player .combat-avatar'),en=document.querySelector('.fighter.enemy');if(pa)pa.classList.add('attack-lunge');setTimeout(()=>{if(en)en.classList.add('hit-shake');const pop=document.createElement('div');pop.className='damage-pop'+(crit?' crit':'');pop.textContent=(crit?'暴擊 ':'')+d;document.querySelector('.fight-stage')?.appendChild(pop);},170);setTimeout(()=>{pa&&pa.classList.remove('attack-lunge');en&&en.classList.remove('hit-shake');cb&&cb();},520)}
 function atkTurn(){
-  const m=fight.m;
-  if(Math.random()<(P.encounter_miss_rate||0.15)){ setFL('你的攻擊落空了！'); return monsterTurn(); }
-  const d=calcDmg(pAtk(),m.def,wMult());
-  fight.mhp-=d;
-  setFL('你使用 '+(g.weapon?'（'+g.weapon.name+'）'+g.weapon.type:'空手')+' 造成 '+d+' 傷害。');
-  if(fight.mhp<=0)return winFight();
-  monsterTurn();
+  const m=fight.m,cost=Number(P.normal_attack_mp_cost||10);
+  if(g.secretState&&g.secretState.backlashTurns>0){g.secretState.backlashTurns--;setFL('降靈術反噬中，本回合無法行動。');return monsterTurn();}
+  if(g.mp<cost){toast('精力不足，普通攻擊需要 '+cost);return;}
+  g.mp-=cost;
+  if(Math.random()<(P.encounter_miss_rate||0.15)){setFL('你的攻擊落空了！');render();return monsterTurn();}
+  let d=calcDmg(pAtk(),m.def,wMult()),crit=false,special=false;
+  if(g.secretState&&g.secretState.activeTurns>0&&Math.random()<.2){d=Math.round(d*1.8);crit=true;special=true;}
+  else if(Math.random()<effectiveCritRate()){const roll=Number(P.base_crit_min||1.4)+Math.random()*(Number(P.base_crit_max||1.6)-Number(P.base_crit_min||1.4));d=Math.round(d*roll);if(techEnabled('lightning_breath'))d=Math.round(d*(1+Number(techEffect('lightning_breath').critDamageValue||0)));crit=true;}
+  if(g.secretState&&g.secretState.activeTurns>0){g.secretState.activeTurns--;if(g.secretState.activeTurns===0)g.secretState.backlashTurns=3;}
+  fight.mhp-=d;setFL('你使用 '+(g.weapon?'（'+g.weapon.name+'）'+g.weapon.type:'空手')+(special?' 引動降靈術':'')+' 造成 '+d+' 傷害。');render();
+  animateHit(d,crit,()=>{if(fight.mhp<=0)return winFight();monsterTurn();});
 }
 function monsterTurn(){
   const m=fight.m;
@@ -872,27 +897,21 @@ function enhanceGear(slot){
   render();openForge();
 }
 
-// ---- 商城 ----
-let shopTab='top';
-function openShop(){ shopTab='top'; renderShop(); }
-function renderShop(){
-  let h='<h3>商城</h3><div class="tabs">'+
-    '<button class="'+(shopTab==='top'?'on':'')+'" onclick="shopTab=\'top\';renderShop()">靈石儲值</button>'+
-    '<button class="'+(shopTab==='npc'?'on':'')+'" onclick="shopTab=\'npc\';renderShop()">坊市</button></div>';
-  if(shopTab==='top'){
-    h+='<p class="small">目前靈石：<b style="color:var(--gold)">'+g.lingshi+'</b>（模擬儲值，未串真金流）</p>';
-    [[60,100],[180,330],[300,600],[600,1300]].forEach(([nt,ls])=>{
-      h+='<button class="btn gold" onclick="topup('+ls+')">NT$'+nt+' → '+ls+' 靈石</button>';});
-  }else{
-    h+='<p class="small">靈石：<b style="color:var(--gold)">'+g.lingshi+'</b></p>';
-    C.shop.forEach(s=>{h+='<div class="kv" style="border-bottom:1px solid var(--line);padding:8px 0">'+
-      '<span>'+s.name+' <span class="tag">'+s.price+' 靈石</span></span>'+
-      '<button class="btn" style="width:auto;padding:6px 14px;margin:0" onclick="buy('+s.id+','+s.price+')">購買</button></div>';});
-  }
-  h+='<button class="btn" style="margin-top:12px" onclick="closeOv()">關閉</button>';
-  sheet(h);
-}
-function topup(ls){g.lingshi+=ls;toast('模擬儲值成功 +'+ls+' 靈石');renderShop();render();}
+// ---- 功法與雙貨幣商城 ----
+function openTechniques(){let h='<div class="sheet-title-row"><div><h3>功法</h3><p class="small">最多研習 '+(P.max_techniques||3)+' 種，可用轉身丹遺忘。</p></div><span class="seal-mark">功</span></div><div class="tech-grid">';const learned=g.techniques||[];(C.techniques||[]).forEach(t=>{const x=learned.find(v=>v.id===t.id);h+='<div class="tech-card"><h4>'+t.name+'</h4><small>'+((C.techniqueTypes||{})[t.type]?.name||t.type)+'</small><p>'+t.desc+'</p>'+(x?'<b>已研習 · 第 '+x.level+' 重</b><button class="btn" onclick="upgradeTechnique(\''+t.id+'\')">提升一重</button><button class="btn red" onclick="forgetTechnique(\''+t.id+'\')">使用轉身丹遺忘</button>':'<span class="tag">尚未研習</span>')+'</div>';});h+='</div><button class="btn" onclick="closeOv()">關閉</button>';sheet(h)}
+function learnTechnique(id){if(learnedTech(id)){toast('已研習此功法');return;}if((g.techniques||[]).length>=Number(P.max_techniques||3)){toast('最多只能研習三種功法');return;}g.techniques.push({id,level:1});applyTechniqueStats();toast('已研習 '+techDef(id).name);render();renderShop();}
+function upgradeTechnique(id){const x=learnedTech(id);if(!x)return;if(x.level>=3){toast('已達第三重');return;}x.level++;applyTechniqueStats();toast(techDef(id).name+' 提升至第 '+x.level+' 重');openTechniques();render();}
+function forgetTechnique(id){if(!(g.inv['9001']>0)){toast('需要轉身丹');return;}g.inv['9001']--;g.techniques=g.techniques.filter(x=>x.id!==id);applyTechniqueStats();toast('已遺忘 '+techDef(id).name);openTechniques();render();}
+function activateDescent(){if(!learnedTech('descent')){toast('尚未研習降靈術');return;}if(g.secretState&&(g.secretState.activeTurns>0||g.secretState.backlashTurns>0)){toast('降靈術尚未恢復');return;}g.secretState={activeTurns:5,backlashTurns:0};toast('降靈術啟動：五回合攻擊提升');}
+let shopTab='mall';
+function openShop(){shopTab='mall';renderShop();}
+function renderShop(){let h='<h3>商城與坊市</h3><div class="currency-strip"><span class="currency-chip">靈石 <b>'+g.lingshi+'</b></span><span class="currency-chip">商城元寶 <b>'+g.yuanbao+'</b></span></div><div class="tabs"><button class="'+(shopTab==='mall'?'on':'')+'" onclick="shopTab=\'mall\';renderShop()">元寶商城</button><button class="'+(shopTab==='exchange'?'on':'')+'" onclick="shopTab=\'exchange\';renderShop()">元寶兌換</button><button class="'+(shopTab==='npc'?'on':'')+'" onclick="shopTab=\'npc\';renderShop()">坊市</button></div>';
+ if(shopTab==='mall'){(C.mallProducts||[]).forEach(s=>{const owned=s.productType==='technique'&&learnedTech(s.targetId);h+='<div class="kv" style="border-bottom:1px solid var(--line);padding:8px 0"><span>'+s.name+' <span class="tag">'+s.price+' 元寶</span></span><button class="btn gold" style="width:auto;padding:6px 14px;margin:0" '+(owned?'disabled':'')+' onclick="buyMall(\''+s.id+'\')">'+(owned?'已研習':'購買')+'</button></div>';});}
+ else if(shopTab==='exchange'){h+='<div class="notice">兌換比例：1 元寶＝'+Number(P.yuanbao_exchange_lingshi||1000)+' 靈石。兌換後不可逆轉。</div><div class="qty-box"><span>兌換元寶</span><input id="exchangeQty" type="number" min="1" max="'+g.yuanbao+'" value="1"></div><button class="btn gold" onclick="exchangeYuanbao()">確認兌換</button>';}
+ else{(C.shop||[]).forEach(s=>{h+='<div class="kv" style="border-bottom:1px solid var(--line);padding:8px 0"><span>'+s.name+' <span class="tag">'+s.price+' 靈石</span></span><button class="btn" style="width:auto;padding:6px 14px;margin:0" onclick="buy('+s.id+','+s.price+')">購買</button></div>';});}
+ h+='<button class="btn" style="margin-top:12px" onclick="closeOv()">關閉</button>';sheet(h);}
+function buyMall(pid){const s=(C.mallProducts||[]).find(x=>x.id===pid);if(!s)return;if(g.yuanbao<s.price){toast('商城元寶不足');return;}if(s.productType==='technique'&&(g.techniques||[]).length>=Number(P.max_techniques||3)){toast('功法欄已滿，請先使用轉身丹遺忘');return;}g.yuanbao-=s.price;if(s.productType==='technique')learnTechnique(s.targetId);else{g.inv[s.targetId]=(g.inv[s.targetId]||0)+1;toast('購得 '+s.name);}render();renderShop();}
+function exchangeYuanbao(){const q=Math.max(1,Math.floor(Number($('exchangeQty').value)||1));if(q>g.yuanbao){toast('元寶不足');return;}g.yuanbao-=q;g.lingshi+=q*Number(P.yuanbao_exchange_lingshi||1000);toast('兌換成功');render();renderShop();}
 function openBuyQty(id,price){const max=Math.max(1,Math.floor(g.lingshi/price));sheet('<h3>購買 '+IT[id].name+'</h3><div class="qty-box"><span>購買數量</span><input id="buyQty" type="number" min="1" max="'+max+'" value="1" oninput="updateBuyTotal('+price+')"></div><div class="notice">單價 '+price+' 靈石｜總價 <b id="buyTotal">'+price+'</b> 靈石｜最多可買 '+max+'</div><div class="row"><button class="btn gold" onclick="confirmBuy('+id+','+price+')">確認購買</button><button class="btn" onclick="renderShop()">返回</button></div>');}
 function updateBuyTotal(price){const q=Math.max(1,Number($('buyQty').value)||1);$('buyTotal').textContent=q*price;}
 function confirmBuy(id,price){const qty=Math.max(1,Math.floor(Number($('buyQty').value)||1)),total=qty*price;if(g.lingshi<total){toast('靈石不足');return;}g.lingshi-=total;g.inv[id]=(g.inv[id]||0)+qty;toast('購得 '+IT[id].name+' ×'+qty);render();renderShop();}
