@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>修仙大逃殺 V12｜聯網封測候選版</title>
+<title>修仙大逃殺 V12.1｜永久死亡聯網封測版</title>
 <style>
 :root{
   --void:#020406;--ink:#eee8da;--muted:#8e99a9;--gold:#d7b96b;--gold2:#8d6b31;
@@ -97,6 +97,11 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 .monster-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.monster-card{display:flex;gap:9px;align-items:center;padding:8px;border:1px solid var(--line);background:rgba(2,7,11,.55);border-radius:10px}.monster-card img{width:78px;height:78px;object-fit:cover;border-radius:8px}.monster-card strong,.monster-card span,.monster-card small{display:block}.monster-card span{font-size:10px;color:var(--amber);margin:3px 0}.monster-card small{font-size:10px;color:var(--muted);line-height:1.5}.form textarea{width:100%;min-height:150px;padding:12px;background:#0b131e;border:1px solid var(--line);color:var(--ink);border-radius:9px;resize:vertical}
 @media(max-width:680px){.meridian-avatar{height:190px}.fight-portrait{width:78px;height:78px}.fight-speech{font-size:11px;max-width:150px;white-space:normal}.world-chat{height:55vh}.chat-line{grid-template-columns:42px 72px 1fr}.monster-grid{grid-template-columns:1fr}.status-ribbon{font-size:10px}.cloud-badge{width:100%;text-align:center}.chat-quick{margin-left:auto}}
 
+
+/* V12.1 permanent-death/world patch */
+.comm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.comm-panel{min-width:0}.world-chat.inline{height:210px}.technique-dock-wrap{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.panel-head.compact{margin-bottom:7px}.technique-dock{display:grid;gap:6px}.technique-slot{padding:8px 9px;border:1px solid rgba(216,187,106,.24);border-radius:8px;background:linear-gradient(90deg,rgba(91,64,23,.18),rgba(8,14,21,.42));font-size:11px;line-height:1.45}.technique-slot b{display:block;color:var(--gold);font-size:12px}.technique-slot span{display:block;color:var(--muted);margin-top:2px}.technique-slot.empty{color:#667381;border-style:dashed;background:rgba(5,10,16,.35)}.grave-lock{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 35%,rgba(92,15,23,.22),rgba(0,0,0,.95));display:grid;place-items:center;padding:20px}.grave-card{width:min(560px,100%);padding:28px;border:1px solid rgba(238,102,94,.42);border-radius:16px;background:#090b10;box-shadow:0 30px 100px #000;text-align:center}.grave-card h2{font:32px "Songti TC",serif;color:var(--red);letter-spacing:.14em}.chat-line.cultivator b,.chat-line.ai b{color:var(--amber)}
+@media(max-width:960px){.comm-grid{grid-template-columns:1fr}.world-chat.inline{height:180px}}
+
 </style>
 </head>
 <body>
@@ -107,13 +112,13 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
     <div class="intro-title">修仙大逃殺</div>
     <div class="intro-sub">SURVIVAL · CULTIVATION · ASCENSION</div>
     <div class="intro-copy">
-      天地不仁，浮島無主。百名修士被投入仙門遺棄的試煉之地。<br>
+      天地不仁，浮島無主。百餘名修士被投入仙門遺棄的試煉之地。<br>
       黑雲壓境，獸潮四起，修為與壽元皆可一夕歸零。
       <b>活下去，成為唯一登仙之人。</b>
     </div>
     <div class="intro-actions">
       <button class="btn gold" onclick="enterBeta()">登入封測世界</button>
-      <button class="btn jade" id="continueBtn" style="display:none" onclick="continueGame()">繼續上次修行</button>
+      <button class="btn jade" id="continueBtn" style="display:none" onclick="continueGame()">進入現存道體</button>
       <button class="btn" onclick="openVersion()">查看 V12 更新</button>
     </div>
   </div>
@@ -134,7 +139,7 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
   <div class="create-shell auth-shell">
     <div class="intro-seal">雲</div>
     <div class="title" style="font-size:28px">封測帳號</div>
-    <p class="small">使用 Email 與密碼登入。存檔以伺服器為準，可跨重新整理與重新登入繼續修行。</p>
+    <p class="small">使用 Email 與密碼登入。存檔以伺服器為準；角色死亡即永久身隕，不能復活或回朔，只能建立新道體。</p>
     <div class="form auth-form">
       <input id="authEmail" type="email" autocomplete="email" placeholder="Email">
       <input id="authPassword" type="password" autocomplete="current-password" placeholder="密碼（至少6碼）">
@@ -146,15 +151,15 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 
 <section id="game" class="scr">
   <header class="world-header">
-    <div class="brand-block"><div class="brand-seal">仙</div><div><div class="brand-name">修仙大逃殺</div><div class="brand-tag">V12 · ONLINE CLOSED BETA</div></div></div>
-    <div class="world-meta"><div><span>世界時辰</span><b id="worldClock">--:--</b></div><div><span>活躍修士</span><b id="activeAi">100</b></div><div><span>封測模式</span><b id="cloudModeText">ONLINE CBT</b></div><div><span>資料版本</span><b>ENGINE V12</b></div></div>
+    <div class="brand-block"><div class="brand-seal">仙</div><div><div class="brand-name">修仙大逃殺</div><div class="brand-tag">V12.1 · PERMADEATH CLOSED BETA</div></div></div>
+    <div class="world-meta"><div><span>世界時辰</span><b id="worldClock">--:--</b></div><div><span>全域修士氣息</span><b id="activeAi">150</b></div><div><span>封測模式</span><b id="cloudModeText">ONLINE CBT</b></div><div><span>資料版本</span><b>ENGINE V12.1</b></div></div>
   </header>
-  <div class="status-ribbon"><i class="pulse"></i><span id="worldStatus">天地氣機穩定，青牛谷護道結界運作中。</span><button class="chat-quick" onclick="openWorldChat()">全服傳音</button><span class="cloud-badge" id="cloudSyncBadge" data-state="busy">連線準備中</span></div>
+  <div class="status-ribbon"><i class="pulse"></i><span id="worldStatus">天地氣機穩定，青牛谷護道結界運作中。</span><span class="cloud-badge" id="cloudSyncBadge" data-state="busy">連線準備中</span></div>
 
   <main class="dashboard">
     <aside class="card panel character-panel">
       <div class="panel-head"><strong>道體命盤</strong><span>CHARACTER</span></div>
-      <div class="avatar-wrap meridian-avatar" id="avatarWrap"><img id="meditationPortrait" src="assets/meditation_meridians.webp?v=20260717" alt="打坐經脈運行圖"><div class="qi-stream" id="qiStream"><i></i><i></i><i></i><i></i><i></i><i></i></div><div id="qibox" hidden></div></div>
+      <div class="avatar-wrap meridian-avatar" id="avatarWrap"><img id="meditationPortrait" src="assets/meditation_meridians.webp?v=20260717-121" alt="打坐經脈運行圖"><div class="qi-stream" id="qiStream"><i></i><i></i><i></i><i></i><i></i><i></i></div><div id="qibox" hidden></div></div>
       <div class="avatar-name" id="pname">無名散修</div>
       <div class="realm-line"><span class="realm-badge" id="prealm">練氣一層</span><span class="small" id="qistate">氣息通暢</span></div>
 
@@ -167,6 +172,14 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
         <div><span>靈石</span><b id="ls">0</b></div><div><span>商城元寶</span><b id="yb">0</b></div>
         <div><span>武器</span><b id="wp">空手</b></div><div><span>防具</span><b id="armor">無</b></div>
         <div><span>神識範圍</span><b id="sense">同格</b></div><div><span>御風距離</span><b id="flight">1 格</b></div>
+      </div>
+      <div class="technique-dock-wrap">
+        <div class="panel-head compact"><strong>常駐功法</strong><span>TECHNIQUES</span></div>
+        <div class="technique-dock" id="techniqueDock">
+          <div class="technique-slot empty">尚未研習</div>
+          <div class="technique-slot empty">尚未研習</div>
+          <div class="technique-slot empty">尚未研習</div>
+        </div>
       </div>
     </aside>
 
@@ -186,9 +199,16 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
           <button class="btn action-tile" id="brkBtn" onclick="openBreak()"><span class="rune">破</span><span><strong>境界突破</strong><small>築基、結丹、元嬰</small></span></button>
         </div>
       </div>
-      <div class="card panel" style="margin-top:12px">
-        <div class="panel-head"><strong>天機紀錄</strong><span>EVENT LOG</span></div>
-        <div class="log" id="log"></div>
+      <div class="comm-grid" style="margin-top:12px">
+        <div class="card panel comm-panel">
+          <div class="panel-head"><strong>天機紀錄</strong><span>EVENT LOG</span></div>
+          <div class="log" id="log"></div>
+        </div>
+        <div class="card panel comm-panel" id="worldChatDock">
+          <div class="panel-head"><strong>全服傳音</strong><span id="worldPopulationText">世界連線中</span></div>
+          <div class="world-chat inline" id="worldChatInlineList"><div class="small">正在接收世界傳音……</div></div>
+          <div class="chat-compose"><input id="worldChatInlineInput" maxlength="160" placeholder="輸入傳音內容…"><button class="btn gold" onclick="sendWorldChat()">傳音</button></div>
+        </div>
       </div>
     </section>
 
@@ -200,15 +220,15 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
         <div><span>打坐速度</span><b id="zoneMeditate">2 秒 / EXP</b></div>
         <div><span>附近修士</span><b id="nearbyCount">0 人</b></div>
       </div>
-      <div class="panel-head" style="margin-top:15px"><strong>神識感應</strong><span>AI CULTIVATORS</span></div>
+      <div class="panel-head" style="margin-top:15px"><strong>神識感應</strong><span>CULTIVATORS</span></div>
       <div class="ai-list" id="aiList"></div>
       <div class="command-row">
         <button class="btn" onclick="openTutorial(0)">新手教學</button>
-        <button class="btn jade" onclick="openWorldChat()">全服傳音</button>
+        
         <button class="btn" onclick="openMonsterDex()">妖獸圖鑑</button>
         <button class="btn" onclick="openCloudStatus()">雲端狀態</button>
         <button class="btn gold" onclick="openFeedback()">問題回報</button>
-        <button class="btn red" onclick="confirmReset()">重置角色</button>
+        <button class="btn red" onclick="confirmReset()">放棄道體</button>
       </div>
     </aside>
   </main>
@@ -227,7 +247,7 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="online_config.js?v=20260717"></script>
+<script src="online_config.js?v=20260717-121"></script>
 <script>
 const $ = id => document.getElementById(id);
 let C, P, R, IT, g=null, ai=[], fight=null, shopTab='yuanbao', tickTimer=null, aiTimer=null, tutorialIndex=0, corpse=null;
@@ -235,7 +255,7 @@ const SAVE_KEY='xianxia_v12_legacy_cache';
 
 async function boot(){
   try{
-    const r=await fetch('xianxia_config_V12.json?v=20260717',{cache:'no-store'});
+    const r=await fetch('xianxia_config_V12.json?v=20260717-121',{cache:'no-store'});
     if(!r.ok)throw new Error('config '+r.status);
     C=await r.json(); P=C.params; R=C.realms; IT=C.items;
     $('continueBtn').style.display=localStorage.getItem(SAVE_KEY)?'block':'none';
@@ -296,7 +316,7 @@ function continueGame(){
     const data=JSON.parse(localStorage.getItem(SAVE_KEY));
     g=data.g;ai=data.ai&&data.ai.length?data.ai:initAi();
     normalizeSave();applyOffline(data.savedAt||g.lastSavedAt||Date.now());
-    show('game');startLoops();render();log('神識歸位，繼續上次修行。','lg');
+    show('game');startLoops();render();log('現存道體已載入。','lg');
   }catch(e){localStorage.removeItem(SAVE_KEY);toast('舊存檔無法讀取，已清除');$('continueBtn').style.display='none'}
 }
 function normalizeSave(){
@@ -680,12 +700,12 @@ function openTutorial(i=0){
 function finishTutorial(){g.tutorialDone=true;closeOv();log('新手教學完成。下一步：開始打坐，或從地圖選擇行動。','lg');saveGame(false)}
 function skipTutorial(){g.tutorialDone=true;closeOv();saveGame(false)}
 function openVersion(){
-  sheet('<h3>V11 新版重點</h3><div class="list-row"><div class="grow"><strong>正式元寶購買流程</strong><small>方案 → 建立訂單 → 付款方式 → 沙盒回傳 → 入帳</small></div></div><div class="list-row"><div class="grow"><strong>新手教學</strong><small>六步驟說明角色、地圖、探索、打坐、裝備與商城</small></div></div><div class="list-row"><div class="grow"><strong>持續與離線打坐</strong><small>新手村2秒1修為；一般區域20秒1修為</small></div></div><div class="list-row"><div class="grow"><strong>100名AI修士世界模擬</strong><small>會打坐、移動、探索、打怪與被玩家遭遇</small></div></div><div class="list-row"><div class="grow"><strong>戰鬥與裝備</strong><small>攻擊耗10精力、戰鬥可用丹藥與符籙、裝備逐件獨立強化</small></div></div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉</button>');
+  sheet('<h3>V11 新版重點</h3><div class="list-row"><div class="grow"><strong>正式元寶購買流程</strong><small>方案 → 建立訂單 → 付款方式 → 沙盒回傳 → 入帳</small></div></div><div class="list-row"><div class="grow"><strong>新手教學</strong><small>六步驟說明角色、地圖、探索、打坐、裝備與商城</small></div></div><div class="list-row"><div class="grow"><strong>持續與離線打坐</strong><small>新手村2秒1修為；一般區域20秒1修為</small></div></div><div class="list-row"><div class="grow"><strong>150名世界修士持久運行</strong><small>共用伺服器世界，會打坐、移動、探索、打怪、交易、聊天與成長</small></div></div><div class="list-row"><div class="grow"><strong>戰鬥與裝備</strong><small>攻擊耗10精力、戰鬥可用丹藥與符籙、裝備逐件獨立強化</small></div></div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉</button>');
 }
 function confirmReset(){
   sheet('<h3 style="color:var(--red)">重置角色</h3><p>這會刪除目前存檔、商城沙盒訂單與全部進度。</p><div class="row"><button class="btn red" onclick="localStorage.removeItem(SAVE_KEY);location.reload()">確認重置</button><button class="btn" onclick="closeOv()">取消</button></div>');
 }
 </script>
-<script src="v12_online.js?v=20260717"></script>
+<script src="v12_online.js?v=20260717-121"></script>
 </body>
 </html>
