@@ -724,7 +724,7 @@ confirmReset=function(){
 async function resetCharacter(){return finalizePermanentDeath('自行散去道體')}
 
 function mapWorldRow(r){
-  return {id:Number(r.id),name:r.name,personality:r.personality,weights:r.behavior_weights,lv:Number(r.level),realm:r.realm,coord:r.coord,hp:Number(r.hp),hpMax:Number(r.hp_max),mp:Number(r.mp),mpMax:Number(r.mp_max),alive:!!r.alive,gear:Array.isArray(r.gear)?r.gear:[],inv:r.inventory||{},techniques:Array.isArray(r.techniques)?r.techniques:[],lingshi:Number(r.lingshi||0),action:r.action||'修行'};
+  return {id:Number(r.id),name:r.name,personality:r.personality,weights:r.behavior_weights,lv:Number(r.level),realm:r.realm,coord:r.coord,hp:Number(r.hp),hpMax:Number(r.hp_max),mp:Number(r.mp),mpMax:Number(r.mp_max),alive:!!r.alive,gear:Array.isArray(r.gear)?r.gear:[],inv:r.inventory||{},techniques:Array.isArray(r.techniques)?r.techniques:[],lingshi:Number(r.lingshi||0),yuanbao:Number(r.yuanbao||0),action:r.action||'修行'};
 }
 async function syncWorldCultivators(force=false){
   if(!cloudState.enabled||!cloudState.user){
@@ -733,8 +733,8 @@ async function syncWorldCultivators(force=false){
   if(cloudState.worldSyncBusy||(!force&&Date.now()-cloudState.worldSyncAt<6000))return;
   cloudState.worldSyncBusy=true;
   try{
-    await cloudState.client.rpc('advance_world_cultivators',{p_limit:50});
-    const {data,error}=await cloudState.client.from('world_cultivators').select('id,name,personality,behavior_weights,level,realm,coord,hp,hp_max,mp,mp_max,lingshi,gear,inventory,techniques,action,alive').eq('alive',true).order('id');
+    await cloudState.client.rpc('advance_world_cultivators',{p_limit:200});
+    const {data,error}=await cloudState.client.from('world_cultivators').select('id,name,personality,behavior_weights,level,realm,coord,hp,hp_max,mp,mp_max,lingshi,yuanbao,gear,inventory,techniques,action,alive').eq('alive',true).order('id');
     if(error)throw error;
     ai=(data||[]).map(mapWorldRow);cloudState.worldLoaded=true;cloudState.worldSyncAt=Date.now();
     renderAiIntel();updateWorldPopulation();
@@ -745,8 +745,8 @@ function updateWorldPopulation(){
   const real=Object.keys(cloudState.presence||{}).length;
   const living=ai.filter(x=>x.alive).length;
   const total=living+real;
-  const e=$('activeAi');if(e)e.textContent=String(total||150);
-  const label=$('worldPopulationText');if(label)label.textContent='全域修士氣息 '+(total||150);
+  const e=$('activeAi');if(e)e.textContent=String(total||200);
+  const label=$('worldPopulationText');if(label)label.textContent='全域修士氣息 '+(total||200);
 }
 tickAiWorld=function(){
   if(cloudState.enabled&&cloudState.user)syncWorldCultivators(false);
@@ -902,7 +902,7 @@ openCloudStatus=function(){
   sheet('<h3>雲端存檔狀態</h3><div class="money"><div><span>模式</span><b style="font-size:14px">'+esc(mode)+'</b></div><div><span>帳號</span><b style="font-size:12px">'+esc(account)+'</b></div><div><span>存檔版本</span><b>'+cloudState.revision+'</b></div><div><span>帳號元寶</span><b>'+cloudState.walletBalance.toLocaleString()+'</b></div></div><div class="notice" style="margin-top:12px">角色行動自動存檔；角色死亡後立即封存墓誌並刪除可遊玩存檔。商城元寶獨立存於帳號錢包，不隨死亡消失。</div><p class="small">最後同步：'+esc(t)+(cloudState.lastError?'<br>錯誤：'+esc(cloudState.lastError):'')+'</p><div class="row"><button class="btn jade" onclick="flushCloudSave(true)">立即檢查同步</button>'+(cloudState.user?'<button class="btn red" onclick="logoutBeta()">登出</button>':'')+'</div><button class="btn" style="width:100%;margin-top:8px" onclick="closeOv()">關閉</button>');
 };
 openVersion=function(){
-  sheet('<h3>V12.1 永久死亡與世界修士版</h3><div class="list-row"><div class="grow"><strong>永久死亡</strong><small>死亡角色立即封存，不能復活、回朔或繼續；只能建立全新道體。</small></div></div><div class="list-row"><div class="grow"><strong>帳號級元寶</strong><small>元寶獨立存放於雲端帳號錢包，角色死亡仍完整保留。</small></div></div><div class="list-row"><div class="grow"><strong>150位共用世界修士</strong><small>伺服器持久保存位置、境界、體力、裝備、行動、聊天與死亡狀態；所有真人看到同一個世界。</small></div></div><div class="list-row"><div class="grow"><strong>常駐全服傳音</strong><small>傳音視窗固定在天機紀錄旁，不必另開視窗。</small></div></div><div class="list-row"><div class="grow"><strong>常駐功法欄</strong><small>三個功法位固定顯示名稱、重數與當前效果。</small></div></div><div class="list-row"><div class="grow"><strong>獨立強化保留</strong><small>每一件裝備仍擁有自己的強化值，規則未改動。</small></div></div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉</button>');
+  sheet('<h3>V12.1 永久死亡與世界修士版</h3><div class="list-row"><div class="grow"><strong>永久死亡</strong><small>死亡角色立即封存，不能復活、回朔或繼續；只能建立全新道體。</small></div></div><div class="list-row"><div class="grow"><strong>帳號級元寶</strong><small>元寶獨立存放於雲端帳號錢包，角色死亡仍完整保留。</small></div></div><div class="list-row"><div class="grow"><strong>200位共用世界修士</strong><small>伺服器持久保存位置、境界、體力、裝備、行動、聊天與死亡狀態；所有真人看到同一個世界。</small></div></div><div class="list-row"><div class="grow"><strong>常駐全服傳音</strong><small>傳音視窗固定在天機紀錄旁，不必另開視窗。</small></div></div><div class="list-row"><div class="grow"><strong>常駐功法欄</strong><small>三個功法位固定顯示名稱、重數與當前效果。</small></div></div><div class="list-row"><div class="grow"><strong>獨立強化保留</strong><small>每一件裝備仍擁有自己的強化值，規則未改動。</small></div></div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉</button>');
 };
 
 // Enter key sends the permanent chat box.
