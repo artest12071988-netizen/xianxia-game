@@ -1119,6 +1119,9 @@ teardownRealtime=function(){
 
 normalizeSave=function(){
   v122BaseNormalizeSave();
+  g.meditationAdBoostActive=!!g.meditationAdBoostActive;
+  g.meditationAdBoostUntil=Number(g.meditationAdBoostUntil||0);
+  g.meditationAdSession=g.meditationAdSession||null;
   if(currentCoord()===V122_SAFE_COORD){if(!g.safeZoneEnteredAt)g.safeZoneEnteredAt=Date.now()}
   else g.safeZoneEnteredAt=null;
 };
@@ -1420,248 +1423,133 @@ async function completeTestRewardedAd(session){
   }catch(e){cloudState.activeAd=null;closeOv();toast(adErrorText(e.message||String(e)))}
 }
 function meditationAdMultiplier(){
-  const memoryActive=!!cloudState.meditationAdBoost?.active;
-  const savedActive=!!g?.meditationAdBoostActive&&Number(g?.meditationAdBoostUntil||0)>Date.now();
-  return (memoryActive||savedActive)?2:1;
+  // V12.6.2 改為「停止時補發同額加成」，每秒 tick 不再直接乘二，避免重複計算。
+  return 1;
 }
 function meditationBoostRemaining(){
   const savedUntil=Number(g?.meditationAdBoostUntil||0);
-  if(savedUntil>0)return Math.max(0,savedUntil-Date.now());
-  const b=cloudState.meditationAdBoost;
-  if(!b?.active||!b.startedAt)return 0;
-  return Math.max(0,b.minutes*60000-(Date.now()-b.startedAt));
+  return savedUntil>0?Math.max(0,savedUntil-Date.now()):0;
+}
+function getMeditationAdSession(){
+  if(!g)return null;
+  if(!g.meditationAdSession)g.meditationAdSession=null;
+  return g.meditationAdSession;
 }
 function activateMeditationAdBoost(){
-  const b=cloudState.meditationAdBoost;if(!b?.armed)return;
+  const b=cloudState.meditationAdBoost;if(!b?.armed||!g)return;
   b.armed=false;b.active=true;b.startedAt=Date.now();
   g.meditationAdBoostActive=true;
   g.meditationAdBoostUntil=Date.now()+b.minutes*60000;
-  log('廣告加持已啟動：本次打坐收益 ×2，最長 '+b.minutes+' 分鐘。','lg');
+  g.meditationAdSession={startedAt:Date.now(),baseExp:0,baseHp:0,baseMp:0,settled:false};
+  log('廣告加持已啟動：停止打坐時，系統會把本次基礎收益再補發一次，總收益 ×2。','lg');
+  saveGame(false);
 }
-function stopMeditationAdBoost(){
-  const hadBoost=!!cloudState.meditationAdBoost?.active||
-    !!g?.meditationAdBoostActive||
-    Number(g?.meditationAdBoostUntil||0)>0;
-  if(cloudState.meditationAdBoost){
-    cloudState.meditationAdBoost.active=false;
-    cloudState.meditationAdBoost.armed=false;
-    cloudState.meditationAdBoost.startedAt=null;
-  }
-  if(g){
-    g.meditationAdBoostActive=false;
-    g.meditationAdBoostUntil=0;
-  }
-  if(hadBoost)log('本次打坐的廣告雙倍加持已結束。','la');
+function recordMeditationBaseReward(kind,amount){
+  const s=getMeditationAdSession();
+  if(!s||s.settled||!g?.meditationAdBoostActive)return;
+  s[kind]=Number(s[kind]||0)+Math.max(0,Number(amount||0));
 }
+function settleMeditationAdBoost(reason='手動收功'){
+  if(!g)return false;
+  const hadBoost=!!cloudState.meditationAdBoost?.active||!!g.meditationAdBoostActive||!!g.meditationAdSession;
+  if(!hadBoost)return false;
+  const s=getMeditationAdSession()||{startedAt:Date.now(),baseExp:0,baseHp:0,baseMp:0,settled:false};
+  if(s.settled)return false;
+  s.settled=true;
+  const elapsed=Math.max(0,Math.floor((Date.now()-Number(s.startedAt||Date.now()))/1000));
+  let baseExp=Math.max(0,Number(s.baseExp||0));
+  let bonusExp=baseExp;
+  let guarantee=false;
+  // Sir 指定：不論打坐多久，停止都必須拿到 ×2。未滿第一個收益週期時，保底 1+1 修為。
+  if(baseExp<=0){baseExp=1;bonusExp=1;gainExp(2,false);guarantee=true}
+  else gainExp(bonusExp,false);
+  const hpBefore=g.hp,mpBefore=g.mp;
+  g.hp=clamp(g.hp+Number(s.baseHp||0),0,g.hpMax);
+  g.mp=clamp(g.mp+Number(s.baseMp||0),0,g.mpMax);
+  const bonusHp=Math.max(0,Math.round(g.hp-hpBefore));
+  const bonusMp=Math.max(0,Math.round(g.mp-mpBefore));
+  if(cloudState.meditationAdBoost){cloudState.meditationAdBoost.active=false;cloudState.meditationAdBoost.armed=false;cloudState.meditationAdBoost.startedAt=null}
+  g.meditationAdBoostActive=false;g.meditationAdBoostUntil=0;g.meditationAdSession=null;
+  log('廣告打坐結算：基礎修為 +'+baseExp+'、雙倍加成 +'+bonusExp+'，總修為 +'+(baseExp+bonusExp)+(guarantee?'（短時保底）':'')+'。','lg');
+  if(bonusHp||bonusMp)log('雙倍加成另補發：體力 +'+bonusHp+'、精力 +'+bonusMp+'。','lg');
+  log('本次廣告雙倍加持已結束｜'+reason+'｜打坐 '+formatDuration(elapsed)+'。','la');
+  saveGame(false);render();
+  setTimeout(()=>sheet('<h3>廣告打坐 ×2 結算</h3><div class="money"><div><span>打坐時間</span><b>'+formatDuration(elapsed)+'</b></div><div><span>基礎修為</span><b>+'+baseExp+'</b></div><div><span>雙倍加成</span><b>+'+bonusExp+'</b></div><div><span>總修為</span><b>+'+(baseExp+bonusExp)+'</b></div></div>'+(guarantee?'<div class="notice" style="margin-top:12px">本次未滿第一個收益週期，已依規則發放短時保底：1 基礎修為＋1 雙倍加成。</div>':'')+'<button class="btn gold" style="width:100%;margin-top:12px" onclick="closeOv()">收下</button>'),60);
+  return true;
+}
+function stopMeditationAdBoost(reason='加持結束'){return settleMeditationAdBoost(reason)}
 function v125DirectToggleMeditation(){
   if(!g)return false;
   if(fight){toast('鬥法中無法打坐');return false}
   const z=zoneAt(g.pos.r,g.pos.c);
   if(!g.meditating&&z&&z.meditate===0){toast('此區禁止打坐');return false}
+  const wasMeditating=!!g.meditating;
   g.meditating=!g.meditating;
   g.meditateSec=0;
   log(g.meditating?'你盤膝入定，靈氣開始沿經脈流入。':'你收功起身，停止吐納。',g.meditating?'lg':'');
+  if(wasMeditating&&!g.meditating)settleMeditationAdBoost('手動收功');
   render();
   return true;
 }
 function startMeditationNormal(){
   closeOv();
   if(v125DirectToggleMeditation()){
-    cloudState.playerAction=g?.meditating?'打坐':'收功';
-    syncPlayerPresence(true);
+    cloudState.playerAction=g?.meditating?'打坐':'收功';syncPlayerPresence(true);
   }
 }
 function startMeditationWithAdBoost(){
   if(!g||g.meditating)return;
   activateMeditationAdBoost();
   if(!v125DirectToggleMeditation()){
-    stopMeditationAdBoost();
+    if(g){g.meditationAdBoostActive=false;g.meditationAdBoostUntil=0;g.meditationAdSession=null}
     return;
   }
-  cloudState.playerAction='廣告加持打坐';
-  syncPlayerPresence(true);
+  cloudState.playerAction='廣告加持打坐';syncPlayerPresence(true);render();
 }
 function openMeditationAdChoice(){
   const a=cloudState.adStatus||{};
-  sheet('<h3>開始打坐</h3><div class="list-row"><div class="grow"><strong>一般打坐</strong><small>直接開始，維持原本收益。</small></div><button class="btn" onclick="startMeditationNormal()">直接打坐</button></div><div class="list-row shop-rich"><div class="grow"><strong>觀看廣告，本次打坐收益 ×2</strong><small>完成廣告後啟動，最長 '+Number(a.meditation_boost_minutes||120)+' 分鐘；停止打坐即結束。</small></div><button class="btn gold" onclick="watchRewardedAd(\'meditation_double\')">看廣告打坐</button></div><button class="btn" style="width:100%;margin-top:8px" onclick="closeOv()">取消</button>');
+  sheet('<h3>開始打坐</h3><div class="list-row"><div class="grow"><strong>一般打坐</strong><small>直接開始，維持原本收益。</small></div><button class="btn" onclick="startMeditationNormal()">直接打坐</button></div><div class="list-row shop-rich"><div class="grow"><strong>觀看廣告，停止時總收益 ×2</strong><small>不論打坐多久，停止時都會結算；未滿第一個收益週期保底總修為 +2。</small></div><button class="btn gold" onclick="watchRewardedAd(\'meditation_double\')">看廣告打坐</button></div><button class="btn" style="width:100%;margin-top:8px" onclick="closeOv()">取消</button>');
 }
 toggleMeditate=function(){
   if(g?.meditating){
-    if(v125DirectToggleMeditation()){
-      stopMeditationAdBoost();
-      cloudState.playerAction='收功';
-      syncPlayerPresence(true);
-    }
+    if(v125DirectToggleMeditation()){cloudState.playerAction='收功';syncPlayerPresence(true)}
     return;
   }
   openMeditationAdChoice();
 };
 const v124BaseTickMeditation=tickMeditation;
 tickMeditation=function(){
-  if(cloudState.meditationAdBoost?.active&&meditationBoostRemaining()<=0)stopMeditationAdBoost();
+  if(g?.meditationAdBoostActive&&meditationBoostRemaining()<=0)settleMeditationAdBoost('120分鐘上限到期');
   if(!g||!g.meditating||fight)return;
   g.meditateSec++;
-  const z=zoneAt(g.pos.r,g.pos.c),novice=!!(z&&z.novice),mult=(g.techniques.includes('dust')?2:1)*meditationAdMultiplier();
+  const z=zoneAt(g.pos.r,g.pos.c),novice=!!(z&&z.novice),baseMult=(g.techniques.includes('dust')?2:1);
   const expInterval=novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec;let changed=false;
-  if(g.meditateSec%expInterval===0){gainExp(1*mult,false);changed=true}
-  if(g.meditateSec%P.meditate_hp_interval_sec===0){g.hp=clamp(g.hp+P.meditate_hp_gain*mult,0,g.hpMax);changed=true}
-  if(g.meditateSec%P.meditate_mp_interval_sec===0){g.mp=clamp(g.mp+P.meditate_mp_gain*mult,0,g.mpMax);changed=true}
+  if(g.meditateSec%expInterval===0){const n=1*baseMult;gainExp(n,false);recordMeditationBaseReward('baseExp',n);changed=true}
+  if(g.meditateSec%P.meditate_hp_interval_sec===0){const before=g.hp;g.hp=clamp(g.hp+P.meditate_hp_gain*baseMult,0,g.hpMax);recordMeditationBaseReward('baseHp',g.hp-before);changed=true}
+  if(g.meditateSec%P.meditate_mp_interval_sec===0){const before=g.mp;g.mp=clamp(g.mp+P.meditate_mp_gain*baseMult,0,g.mpMax);recordMeditationBaseReward('baseMp',g.mp-before);changed=true}
+  renderMeditationBoostUI();
   if(changed)render();
 };
+function renderMeditationBoostUI(){
+  const banner=$('meditationBoostBanner'),active=!!(g?.meditating&&g?.meditationAdBoostActive&&meditationBoostRemaining()>0);
+  const text=$('meditateText'),sub=$('meditateSub');
+  if(active){
+    const left=Math.ceil(meditationBoostRemaining()/1000),s=getMeditationAdSession()||{};
+    if(banner){banner.hidden=false;banner.innerHTML='<b>廣告雙倍加持中 ×2</b><br>停止打坐立即結算｜目前基礎修為 '+Number(s.baseExp||0)+'｜剩餘 '+formatDuration(left)}
+    if(text)text.textContent='停止打坐 ×2 結算';
+    if(sub)sub.textContent='停止後補發同額加成；短時亦有保底';
+  }else{
+    if(banner){banner.hidden=true;banner.textContent=''}
+  }
+}
 const v124BaseRender=render;
-render=function(){v124BaseRender();const sub=$('meditateSub');if(sub&&g?.meditating&&cloudState.meditationAdBoost?.active)sub.textContent='廣告加持中：本次吐納收益 ×2'};
+render=function(){v124BaseRender();renderMeditationBoostUI()};
+// 所有非按鈕中斷（移動、探索、戰鬥）也必須完成 ×2 結算。
+const v1262BaseStopMeditate=stopMeditate;
+stopMeditate=function(reason=''){
+  const was=!!g?.meditating;
+  v1262BaseStopMeditate(reason);
+  if(was&&g?.meditationAdBoostActive)settleMeditationAdBoost(reason||'打坐中斷');
+};
 const v124BaseStartOnlineWorld=startOnlineWorld;
 startOnlineWorld=async function(){const r=await v124BaseStartOnlineWorld();await loadAdRewardStatus();return r};
-
-
-/* ============================================================
-   V12.6 PATCH — 打坐廣告雙倍可視化、重整續存、停止結算
-   ============================================================ */
-(function(){
-  function v126BoostActive(){
-    return !!(g && g.meditating && meditationAdMultiplier()===2 && meditationBoostRemaining()>0);
-  }
-  function v126FormatClock(ms){
-    const total=Math.max(0,Math.ceil(Number(ms||0)/1000));
-    const h=Math.floor(total/3600),m=Math.floor((total%3600)/60),s=total%60;
-    return (h?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  }
-  function v126EnsureBoostPanel(){
-    let el=document.getElementById('meditationBoostPanel');
-    if(el)return el;
-    const grid=document.querySelector('.action-grid');
-    if(!grid)return null;
-    el=document.createElement('div');
-    el.id='meditationBoostPanel';
-    el.style.cssText='display:none;grid-column:1/-1;padding:11px 14px;border:1px solid rgba(85,217,207,.48);border-radius:10px;background:linear-gradient(90deg,rgba(31,112,105,.24),rgba(8,14,22,.96));box-shadow:0 0 24px rgba(85,217,207,.12);';
-    grid.appendChild(el);
-    return el;
-  }
-  function v126UpdateBoostPanel(){
-    const el=v126EnsureBoostPanel();
-    if(!el)return;
-    const active=v126BoostActive();
-    if(!active){el.style.display='none';return}
-    const remain=meditationBoostRemaining();
-    el.style.display='block';
-    el.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">'+
-      '<div><b style="color:var(--jade);font-size:15px">廣告加持中｜打坐收益 ×2</b><div class="small" style="margin-top:3px">修為、體力與精力的本次打坐收益均套用雙倍</div></div>'+
-      '<div style="color:var(--gold);font-weight:800;font-variant-numeric:tabular-nums">剩餘 '+v126FormatClock(remain)+'</div></div>';
-    const sub=$('meditateSub');
-    if(sub)sub.textContent='廣告加持中｜收益 ×2｜剩餘 '+v126FormatClock(remain);
-    const btn=$('meditateBtn');
-    if(btn){btn.style.borderColor='rgba(85,217,207,.78)';btn.style.boxShadow='0 0 20px rgba(85,217,207,.18)'}
-  }
-
-  const v126BaseActivate=activateMeditationAdBoost;
-  activateMeditationAdBoost=function(){
-    v126BaseActivate();
-    if(g){
-      g.meditationAdSessionStart={at:Date.now(),exp:Number(g.exp||0),hp:Number(g.hp||0),mp:Number(g.mp||0)};
-      saveGame(false);
-    }
-    v126UpdateBoostPanel();
-  };
-
-  const v126BaseStopBoost=stopMeditationAdBoost;
-  stopMeditationAdBoost=function(){
-    const start=g?.meditationAdSessionStart;
-    const active=!!(cloudState.meditationAdBoost?.active||g?.meditationAdBoostActive||Number(g?.meditationAdBoostUntil||0)>0);
-    if(active&&start&&g){
-      const duration=Math.max(0,Math.floor((Date.now()-Number(start.at||Date.now()))/1000));
-      const expGain=Math.max(0,Number(g.exp||0)-Number(start.exp||0));
-      const adExtra=Math.floor(expGain/2);
-      if(expGain>0)log('廣告打坐結算：本次修為 +'+expGain+'（其中雙倍加成約 +'+adExtra+'），持續 '+formatDuration(duration)+'。','lg');
-      else log('廣告打坐結算：本次尚未產生修為收益，持續 '+formatDuration(duration)+'。','la');
-    }
-    v126BaseStopBoost();
-    if(g){delete g.meditationAdSessionStart;saveGame(false)}
-    const el=document.getElementById('meditationBoostPanel');if(el)el.style.display='none';
-    const btn=$('meditateBtn');if(btn){btn.style.borderColor='';btn.style.boxShadow=''}
-  };
-
-  const v126BaseStopMeditate=stopMeditate;
-  stopMeditate=function(reason=''){
-    const wasMeditating=!!g?.meditating;
-    const hadBoost=!!(cloudState.meditationAdBoost?.active||g?.meditationAdBoostActive||Number(g?.meditationAdBoostUntil||0)>0);
-    v126BaseStopMeditate(reason);
-    if(wasMeditating&&hadBoost)stopMeditationAdBoost();
-    v126UpdateBoostPanel();
-  };
-
-  const v126BaseTick=tickMeditation;
-  tickMeditation=function(){
-    if(g?.meditating&&meditationAdMultiplier()===2&&meditationBoostRemaining()<=0){
-      stopMeditationAdBoost();
-    }
-    v126BaseTick();
-    v126UpdateBoostPanel();
-  };
-
-  const v126BaseRender=render;
-  render=function(){
-    v126BaseRender();
-    const active=v126BoostActive();
-    if(!active){
-      const sub=$('meditateSub');
-      if(sub&&g?.meditating)sub.textContent='靈氣正在持續流入道體';
-      const btn=$('meditateBtn');if(btn){btn.style.borderColor='';btn.style.boxShadow=''}
-    }
-    v126UpdateBoostPanel();
-  };
-
-  window.v126UpdateBoostPanel=v126UpdateBoostPanel;
-})();
-
-/* ============================================================
-   V12.6.1 HOTFIX — deterministic meditation boost UI/stop
-   ============================================================ */
-(function(){
-  function boostIsActive(){
-    return !!(g && g.meditating && meditationAdMultiplier()===2 && meditationBoostRemaining()>0);
-  }
-  function fmt(ms){
-    const sec=Math.max(0,Math.ceil(Number(ms||0)/1000));
-    const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
-    return (h?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  }
-  function update(){
-    const panel=document.getElementById('meditationBoostPanel');
-    const btn=$('meditateBtn'),sub=$('meditateSub'),text=$('meditateText');
-    const active=boostIsActive();
-    if(panel){
-      panel.style.display=active?'block':'none';
-      if(active)panel.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><b style="color:var(--jade);font-size:15px">廣告加持中｜打坐收益 ×2</b><div class="small" style="margin-top:3px">修為、體力、精力均套用雙倍</div></div><div style="color:var(--gold);font-weight:800">剩餘 '+fmt(meditationBoostRemaining())+'</div></div>';
-    }
-    if(active){
-      if(text)text.textContent='停止打坐 ×2';
-      if(sub)sub.textContent='廣告加持中｜收益 ×2｜剩餘 '+fmt(meditationBoostRemaining());
-      if(btn){btn.style.borderColor='rgba(85,217,207,.9)';btn.style.boxShadow='0 0 22px rgba(85,217,207,.28)'}
-    }else if(btn){
-      btn.style.borderColor='';btn.style.boxShadow='';
-    }
-  }
-
-  window.v126StopMeditationNow=function(){
-    if(!g||!g.meditating)return;
-    const hadBoost=!!(cloudState.meditationAdBoost?.active||g.meditationAdBoostActive||Number(g.meditationAdBoostUntil||0)>Date.now());
-    g.meditating=false;
-    g.meditateSec=0;
-    log('你收功起身，停止吐納。');
-    if(hadBoost)stopMeditationAdBoost();
-    cloudState.playerAction='收功';
-    saveGame(false);
-    syncPlayerPresence(true);
-    render();
-    update();
-  };
-
-  const priorRender=render;
-  render=function(){priorRender();update()};
-  const priorTick=tickMeditation;
-  tickMeditation=function(){priorTick();update()};
-  const priorActivate=activateMeditationAdBoost;
-  activateMeditationAdBoost=function(){priorActivate();setTimeout(update,0)};
-  window.v126UpdateBoostPanel=update;
-  setInterval(update,1000);
-})();
