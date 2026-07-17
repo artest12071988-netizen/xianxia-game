@@ -1512,3 +1512,103 @@ const v124BaseRender=render;
 render=function(){v124BaseRender();const sub=$('meditateSub');if(sub&&g?.meditating&&cloudState.meditationAdBoost?.active)sub.textContent='廣告加持中：本次吐納收益 ×2'};
 const v124BaseStartOnlineWorld=startOnlineWorld;
 startOnlineWorld=async function(){const r=await v124BaseStartOnlineWorld();await loadAdRewardStatus();return r};
+
+
+/* ============================================================
+   V12.6 PATCH — 打坐廣告雙倍可視化、重整續存、停止結算
+   ============================================================ */
+(function(){
+  function v126BoostActive(){
+    return !!(g && g.meditating && meditationAdMultiplier()===2 && meditationBoostRemaining()>0);
+  }
+  function v126FormatClock(ms){
+    const total=Math.max(0,Math.ceil(Number(ms||0)/1000));
+    const h=Math.floor(total/3600),m=Math.floor((total%3600)/60),s=total%60;
+    return (h?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+  function v126EnsureBoostPanel(){
+    let el=document.getElementById('meditationBoostPanel');
+    if(el)return el;
+    const grid=document.querySelector('.action-grid');
+    if(!grid)return null;
+    el=document.createElement('div');
+    el.id='meditationBoostPanel';
+    el.style.cssText='display:none;grid-column:1/-1;padding:11px 14px;border:1px solid rgba(85,217,207,.48);border-radius:10px;background:linear-gradient(90deg,rgba(31,112,105,.24),rgba(8,14,22,.96));box-shadow:0 0 24px rgba(85,217,207,.12);';
+    grid.appendChild(el);
+    return el;
+  }
+  function v126UpdateBoostPanel(){
+    const el=v126EnsureBoostPanel();
+    if(!el)return;
+    const active=v126BoostActive();
+    if(!active){el.style.display='none';return}
+    const remain=meditationBoostRemaining();
+    el.style.display='block';
+    el.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">'+
+      '<div><b style="color:var(--jade);font-size:15px">廣告加持中｜打坐收益 ×2</b><div class="small" style="margin-top:3px">修為、體力與精力的本次打坐收益均套用雙倍</div></div>'+
+      '<div style="color:var(--gold);font-weight:800;font-variant-numeric:tabular-nums">剩餘 '+v126FormatClock(remain)+'</div></div>';
+    const sub=$('meditateSub');
+    if(sub)sub.textContent='廣告加持中｜收益 ×2｜剩餘 '+v126FormatClock(remain);
+    const btn=$('meditateBtn');
+    if(btn){btn.style.borderColor='rgba(85,217,207,.78)';btn.style.boxShadow='0 0 20px rgba(85,217,207,.18)'}
+  }
+
+  const v126BaseActivate=activateMeditationAdBoost;
+  activateMeditationAdBoost=function(){
+    v126BaseActivate();
+    if(g){
+      g.meditationAdSessionStart={at:Date.now(),exp:Number(g.exp||0),hp:Number(g.hp||0),mp:Number(g.mp||0)};
+      saveGame(false);
+    }
+    v126UpdateBoostPanel();
+  };
+
+  const v126BaseStopBoost=stopMeditationAdBoost;
+  stopMeditationAdBoost=function(){
+    const start=g?.meditationAdSessionStart;
+    const active=!!(cloudState.meditationAdBoost?.active||g?.meditationAdBoostActive||Number(g?.meditationAdBoostUntil||0)>0);
+    if(active&&start&&g){
+      const duration=Math.max(0,Math.floor((Date.now()-Number(start.at||Date.now()))/1000));
+      const expGain=Math.max(0,Number(g.exp||0)-Number(start.exp||0));
+      const adExtra=Math.floor(expGain/2);
+      if(expGain>0)log('廣告打坐結算：本次修為 +'+expGain+'（其中雙倍加成約 +'+adExtra+'），持續 '+formatDuration(duration)+'。','lg');
+      else log('廣告打坐結算：本次尚未產生修為收益，持續 '+formatDuration(duration)+'。','la');
+    }
+    v126BaseStopBoost();
+    if(g){delete g.meditationAdSessionStart;saveGame(false)}
+    const el=document.getElementById('meditationBoostPanel');if(el)el.style.display='none';
+    const btn=$('meditateBtn');if(btn){btn.style.borderColor='';btn.style.boxShadow=''}
+  };
+
+  const v126BaseStopMeditate=stopMeditate;
+  stopMeditate=function(reason=''){
+    const wasMeditating=!!g?.meditating;
+    const hadBoost=!!(cloudState.meditationAdBoost?.active||g?.meditationAdBoostActive||Number(g?.meditationAdBoostUntil||0)>0);
+    v126BaseStopMeditate(reason);
+    if(wasMeditating&&hadBoost)stopMeditationAdBoost();
+    v126UpdateBoostPanel();
+  };
+
+  const v126BaseTick=tickMeditation;
+  tickMeditation=function(){
+    if(g?.meditating&&meditationAdMultiplier()===2&&meditationBoostRemaining()<=0){
+      stopMeditationAdBoost();
+    }
+    v126BaseTick();
+    v126UpdateBoostPanel();
+  };
+
+  const v126BaseRender=render;
+  render=function(){
+    v126BaseRender();
+    const active=v126BoostActive();
+    if(!active){
+      const sub=$('meditateSub');
+      if(sub&&g?.meditating)sub.textContent='靈氣正在持續流入道體';
+      const btn=$('meditateBtn');if(btn){btn.style.borderColor='';btn.style.boxShadow=''}
+    }
+    v126UpdateBoostPanel();
+  };
+
+  window.v126UpdateBoostPanel=v126UpdateBoostPanel;
+})();

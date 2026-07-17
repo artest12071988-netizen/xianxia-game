@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>修仙大逃殺 V12.5｜獎勵廣告封測版</title>
+<title>修仙大逃殺 V12.6｜打坐雙倍可視化版</title>
 <style>
 :root{
   --void:#020406;--ink:#eee8da;--muted:#8e99a9;--gold:#d7b96b;--gold2:#8d6b31;
@@ -156,8 +156,8 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 
 <section id="game" class="scr">
   <header class="world-header">
-    <div class="brand-block"><div class="brand-seal">仙</div><div><div class="brand-name">修仙大逃殺</div><div class="brand-tag">V12.5 · REWARDED ADS CLOSED BETA</div></div></div>
-    <div class="world-meta"><div><span>世界時辰</span><b id="worldClock">--:--</b></div><div><span>全域修士氣息</span><b id="activeAi">150</b></div><div><span>封測模式</span><b id="cloudModeText">ONLINE CBT</b></div><div><span>資料版本</span><b>ENGINE V12.5</b></div></div>
+    <div class="brand-block"><div class="brand-seal">仙</div><div><div class="brand-name">修仙大逃殺</div><div class="brand-tag">V12.6 · MEDITATION BOOST VERIFIED</div></div></div>
+    <div class="world-meta"><div><span>世界時辰</span><b id="worldClock">--:--</b></div><div><span>全域修士氣息</span><b id="activeAi">150</b></div><div><span>封測模式</span><b id="cloudModeText">ONLINE CBT</b></div><div><span>資料版本</span><b>ENGINE V12.6</b></div></div>
   </header>
   <div class="status-ribbon"><i class="pulse"></i><span id="worldStatus">天地氣機穩定，青牛谷護道結界運作中。</span><span class="cloud-badge" id="cloudSyncBadge" data-state="busy">連線準備中</span></div>
 
@@ -725,76 +725,35 @@ function confirmReset(){
   sheet('<h3 style="color:var(--red)">重置角色</h3><p>這會刪除目前存檔、商城沙盒訂單與全部進度。</p><div class="row"><button class="btn red" onclick="localStorage.removeItem(SAVE_KEY);location.reload()">確認重置</button><button class="btn" onclick="closeOv()">取消</button></div>');
 }
 </script>
-<script src="v12_online.js?v=20260718-256"></script>
+<script src="v12_online.js?v=20260718-260"></script>
 <script>
-/* V12.5 打坐廣告入口保險層：
-   不依賴舊按鈕綁定，直接顯示「一般打坐／看廣告雙倍」選擇。 */
+/* V12.6 打坐入口：一般打坐／廣告雙倍。 */
 (function(){
-  window.__v125OriginalToggleMeditate = window.toggleMeditate;
-
-  window.v125StartMeditationNormal = function(){
-    if (typeof window.startMeditationNormal === 'function') {
-      window.startMeditationNormal();
-      return;
-    }
-    if (typeof window.closeOv === 'function') window.closeOv();
-    if (typeof window.__v125OriginalToggleMeditate === 'function') {
-      window.__v125OriginalToggleMeditate();
-    }
+  window.v125StartMeditationNormal=function(){
+    if(typeof window.startMeditationNormal==='function')window.startMeditationNormal();
   };
-
-  window.v125StartMeditationAd = function(){
-    if (typeof window.watchRewardedAd === 'function') {
-      window.watchRewardedAd('meditation_double');
-      return;
-    }
-    if (typeof window.toast === 'function') {
-      window.toast('打坐廣告功能尚未載入，請重新整理頁面');
-    }
+  window.v125StartMeditationAd=function(){
+    if(typeof window.watchRewardedAd==='function')window.watchRewardedAd('meditation_double');
+    else if(typeof window.toast==='function')window.toast('打坐廣告功能尚未載入，請重新整理頁面');
   };
-
-  window.v125MeditateClick = async function(){
-    if (typeof g === 'undefined' || !g) {
-      if (typeof window.toast === 'function') window.toast('角色資料尚未載入');
+  window.v125MeditateClick=async function(){
+    if(typeof g==='undefined'||!g){if(window.toast)window.toast('角色資料尚未載入');return}
+    if(g.meditating){
+      if(typeof window.toggleMeditate==='function')window.toggleMeditate();
       return;
     }
-
-    if (g.meditating) {
-      if (typeof window.__v125OriginalToggleMeditate === 'function') {
-        window.__v125OriginalToggleMeditate();
-      }
-      return;
+    if(typeof window.loadAdRewardStatus==='function'){
+      try{await window.loadAdRewardStatus()}catch(_e){}
     }
-
-    if (typeof window.loadAdRewardStatus === 'function') {
-      try { await window.loadAdRewardStatus(); } catch (_e) {}
-    }
-
-    var a = (typeof cloudState !== 'undefined' && cloudState.adStatus)
-      ? cloudState.adStatus
-      : {};
-    var minutes = Number(a.meditation_boost_minutes || 120);
-    var remaining = Number(
-      a.meditation_remaining_today ??
-      a.remaining_meditation_today ??
-      a.meditation_daily_remaining ??
-      3
-    );
-
-    var adDisabled = remaining <= 0 ? ' disabled' : '';
-    var adText = remaining <= 0 ? '今日次數已用完' : '看廣告打坐';
-
+    var a=(typeof cloudState!=='undefined'&&cloudState.adStatus)?cloudState.adStatus:{};
+    var minutes=Number(a.meditation_boost_minutes||120);
+    var remaining=Number(a.meditation_remaining_today??a.remaining_meditation_today??a.meditation_daily_remaining??3);
+    var adDisabled=remaining<=0?' disabled':'';
+    var adText=remaining<=0?'今日次數已用完':'看廣告打坐';
     window.sheet(
-      '<h3>開始打坐</h3>' +
-      '<div class="list-row">' +
-        '<div class="grow"><strong>一般打坐</strong><small>直接開始，維持原本收益。</small></div>' +
-        '<button class="btn" onclick="v125StartMeditationNormal()">直接打坐</button>' +
-      '</div>' +
-      '<div class="list-row shop-rich">' +
-        '<div class="grow"><strong>觀看廣告，本次打坐收益 ×2</strong>' +
-        '<small>完成廣告後啟動，最長 ' + minutes + ' 分鐘；停止打坐即結束。</small></div>' +
-        '<button class="btn gold"' + adDisabled + ' onclick="v125StartMeditationAd()">' + adText + '</button>' +
-      '</div>' +
+      '<h3>開始打坐</h3>'+ 
+      '<div class="list-row"><div class="grow"><strong>一般打坐</strong><small>直接開始，維持原本收益。</small></div><button class="btn" onclick="v125StartMeditationNormal()">直接打坐</button></div>'+ 
+      '<div class="list-row shop-rich"><div class="grow"><strong>觀看廣告，本次打坐收益 ×2</strong><small>完成廣告後啟動，最長 '+minutes+' 分鐘；停止打坐即結束。今日剩餘 '+Math.max(0,remaining)+' 次。</small></div><button class="btn gold"'+adDisabled+' onclick="v125StartMeditationAd()">'+adText+'</button></div>'+ 
       '<button class="btn" style="width:100%;margin-top:8px" onclick="closeOv()">取消</button>'
     );
   };
