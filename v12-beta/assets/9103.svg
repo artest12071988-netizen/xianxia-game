@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img">
+<defs>
+ <radialGradient id="bg" cx="50%" cy="38%"><stop offset="0" stop-color="#3e7b70" stop-opacity=".42"/><stop offset=".55" stop-color="#071018" stop-opacity=".45"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eef6ff" stop-opacity=".85"/><stop offset=".45" stop-color="#3e7b70"/><stop offset="1" stop-color="#111821"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="42" fill="url(#bg)"/>
+<circle cx="256" cy="256" r="205" fill="none" stroke="#3e7b70" stroke-opacity=".28" stroke-width="3"/>
+<circle cx="256" cy="256" r="174" fill="none" stroke="#d7b96b" stroke-opacity=".14" stroke-width="2" stroke-dasharray="8 16"/>
+<g filter="url(#glow)"><ellipse cx="256" cy="280" rx="148" ry="112" fill="#19352f" stroke="#3e7b70" stroke-width="12"/><path d="M256 168 L316 208 L332 280 L292 344 L220 344 L180 280 L196 208Z" fill="#234b42" stroke="#d7b96b" stroke-opacity=".5" stroke-width="7"/><path d="M256 168 V344 M196 208 L316 208 M180 280 H332 M220 344 L316 208 M292 344 L196 208" stroke="#3e7b70" stroke-opacity=".5" stroke-width="5"/><circle cx="256" cy="130" r="44" fill="#142a28" stroke="#3e7b70" stroke-width="8"/><circle cx="242" cy="124" r="7" fill="#f7d77d"/><circle cx="270" cy="124" r="7" fill="#f7d77d"/></g>
+<path d="M72 420 Q256 478 440 420" fill="none" stroke="#d7b96b" stroke-opacity=".3" stroke-width="4"/>
+</svg>
