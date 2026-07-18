@@ -8,13 +8,18 @@
     const game = window.g;
     if (!game) return '';
 
+    const coordFn =
+      (typeof coordOf === 'function')
+        ? coordOf
+        : (typeof window.coordOf === 'function' ? window.coordOf : null);
+
     if (
       game.pos &&
       Number.isFinite(Number(game.pos.r)) &&
       Number.isFinite(Number(game.pos.c)) &&
-      typeof window.coordOf === 'function'
+      coordFn
     ) {
-      return String(window.coordOf(Number(game.pos.r), Number(game.pos.c)));
+      return String(coordFn(Number(game.pos.r), Number(game.pos.c)));
     }
 
     return String(game.coord || game.zone || '');
