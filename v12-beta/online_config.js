@@ -4,7 +4,7 @@ window.XIANXIA_ONLINE_CONFIG = {
   requireCloudForBeta: true,
   supabaseUrl: "https://jbldhalexfrujudljhpf.supabase.co",
   supabasePublishableKey: "sb_publishable_fFAxdaiYEMTSvPpLecoi1A__JsnlfXr",
-  build: "V12.5-CBT-20260717-REAL-REWARDED-ADS",
+  build: "V12.6-STABLE-BASELINE",
   worldChannel: "xianxia-world-v123"
 };
 

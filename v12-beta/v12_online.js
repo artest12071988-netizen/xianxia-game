@@ -1129,6 +1129,7 @@ startLoops=function(){
   cloudState.safeZoneTimer=setInterval(()=>{checkSafeZoneStay();applyWorldHazards()},1000);
   cloudState.pvpTimer=setInterval(pollPvp,2200);
   syncPlayerPresence(true);loadPlayerPresence();checkSafeZoneStay();pollPvp();
+  Promise.resolve(startOnlineWorld()).catch(e=>console.warn('online world start failed',e));
 };
 render=function(){v122BaseRender();renderWorldControls();renderSafeZoneTimer();syncPlayerPresence()};
 
@@ -1339,6 +1340,9 @@ openVersion=function(){
 };
 
 
+// V12.6 bootstrap: the historical patch chain referenced this hook before defining it.
+async function startOnlineWorld(){return true}
+
 /* V12.3 PATCH — 世界循環與煞氣反噬 */
 cloudState.shaQi=null;cloudState.worldMaintenanceTimer=null;
 async function loadShaQiStatus(){
@@ -1352,7 +1356,7 @@ function renderShaQiBadge(){
   if(!e){e=document.createElement('div');e.id='shaQiBadge';e.className='small';const host=document.getElementById('charStats')||document.querySelector('.character-card')||document.body;host.appendChild(e)}
   const q=cloudState.shaQi;e.textContent='煞氣｜同階 '+q.same_realm_kills+'（收益 '+Math.round(Number(q.same_reward_multiplier)*100)+'%）｜低階 '+q.lower_realm_kills+'（收益 '+Math.round(Number(q.lower_reward_multiplier)*100)+'%）';
 }
-async function runWorldMaintenance(){if(!cloudState.enabled||!cloudState.client||!cloudState.user)return;try{await cloudState.client.rpc('world_maintenance_scheduled')}catch(_){}}
+async function runWorldMaintenance(){if(!cloudState.enabled||!cloudState.client||!cloudState.user)return;try{await cloudState.client.rpc('world_maintenance')}catch(_){}}
 const v123BaseStartOnlineWorld=startOnlineWorld;
 startOnlineWorld=async function(){const r=await v123BaseStartOnlineWorld();clearInterval(cloudState.worldMaintenanceTimer);cloudState.worldMaintenanceTimer=setInterval(runWorldMaintenance,30000);runWorldMaintenance();loadShaQiStatus();return r};
 const v123BaseHandlePvpFinished=handlePvpFinished;
