@@ -1,1 +1,1 @@
-V12 monster assets
+V12 game assets

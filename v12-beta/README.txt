@@ -1,1 +1,1 @@
-V12 online closed beta R1
+V12 game assets

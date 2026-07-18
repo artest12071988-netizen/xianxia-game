@@ -1356,7 +1356,7 @@ function renderShaQiBadge(){
   if(!e){e=document.createElement('div');e.id='shaQiBadge';e.className='small';const host=document.getElementById('charStats')||document.querySelector('.character-card')||document.body;host.appendChild(e)}
   const q=cloudState.shaQi;e.textContent='煞氣｜同階 '+q.same_realm_kills+'（收益 '+Math.round(Number(q.same_reward_multiplier)*100)+'%）｜低階 '+q.lower_realm_kills+'（收益 '+Math.round(Number(q.lower_reward_multiplier)*100)+'%）';
 }
-async function runWorldMaintenance(){if(!cloudState.enabled||!cloudState.client||!cloudState.user)return;try{await cloudState.client.rpc('world_maintenance')}catch(_){}}
+async function runWorldMaintenance(){if(!cloudState.enabled||!cloudState.client||!cloudState.user)return;try{await cloudState.client.rpc('world_maintenance_scheduled')}catch(_){}}
 const v123BaseStartOnlineWorld=startOnlineWorld;
 startOnlineWorld=async function(){const r=await v123BaseStartOnlineWorld();clearInterval(cloudState.worldMaintenanceTimer);cloudState.worldMaintenanceTimer=setInterval(runWorldMaintenance,30000);runWorldMaintenance();loadShaQiStatus();return r};
 const v123BaseHandlePvpFinished=handlePvpFinished;
