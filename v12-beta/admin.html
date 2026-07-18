@@ -133,5 +133,7 @@ async function disableAds(){const {error}=await sb.rpc('admin_set_ad_config',{p_
 function subscribe(){if(channel)sb.removeChannel(channel);channel=sb.channel('xianxia-admin-v122').on('postgres_changes',{event:'UPDATE',schema:'public',table:'world_controls'},p=>{controls=p.new;renderControls()}).on('postgres_changes',{event:'*',schema:'public',table:'player_presence'},()=>loadPlayers()).subscribe();setInterval(()=>{loadPlayers();loadStats()},15000)}
 boot();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="admin_config.js?v=20260718-290"></script>
 </body>
 </html>
