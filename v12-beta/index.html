@@ -335,7 +335,7 @@ function continueGame(){
 }
 function normalizeSave(){
   g.inv=g.inv||{};g.equipment=g.equipment||[];g.techniques=g.techniques||[];g.orders=g.orders||[];g.purchaseLimits=g.purchaseLimits||{};
-  g.yuanbao=g.yuanbao||0;g.lingshi=g.lingshi||0;g.boundStone=g.boundStone||0;g.meditating=!!g.meditating;g.meditateSec=g.meditateSec||0;
+  g.yuanbao=g.yuanbao||0;g.lingshi=g.lingshi||0;g.boundStone=g.boundStone||0;g.meditating=!!g.meditating;g.meditateSec=g.meditateSec||0;g.worldStats=g.worldStats||{};g.aiTreasures=g.aiTreasures||{};
 }
 function saveGame(showToast=false){
   if(!g)return;g.lastSavedAt=Date.now();
@@ -414,7 +414,7 @@ function render(){
   $('atk').textContent=pAtk();$('def').textContent=pDef();$('ls').textContent=g.lingshi.toLocaleString();$('yb').textContent=g.yuanbao.toLocaleString();
   $('wp').textContent=w?w.name+' +'+w.enhance:'空手';$('armor').textContent=a?a.name+' +'+a.enhance:'無';$('sense').textContent=senseText(g.big);$('flight').textContent=bigMove(g.big)+' 格';
   $('sceneZone').textContent=z?z.name:'無名荒野';$('sceneCoord').textContent=coordOf(g.pos.r,g.pos.c)+' · '+(z?z.type:'荒野');
-  $('sceneCopy').textContent=z&&z.novice?'新手結界壓制高階妖魔；Lv5以前可快速打坐，但不可在此突破。':(z&&z.type.includes('安全區')?'萬寶交易所禁止鬥法，適合交易與整理裝備。':'此地無護道結界，探索、打坐與移動皆可能遭遇其他修士。');
+  $('sceneCopy').textContent=z&&z.novice?'新手結界壓制高階妖魔；Lv5以前可快速打坐，但不可在此突破。':(z&&z.type.includes('安全區')?'萬寶交易所禁止鬥法，適合交易與整理裝備。':(z&&window.V135_WORLD_EXPANSION?.regionToItem?.[z.name]?'此處可能出現天地異象；靈物僅能探索發現並嘗試收取。':'此地無護道結界，探索、打坐與移動皆可能遭遇其他修士。'));
   $('zoneLing').textContent=(z?z.ling:1)+' 階';$('zoneRecover').textContent='×'+(z?z.recover:1);$('zoneMeditate').textContent=(z&&z.novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec)+' 秒 / EXP';
   $('meditateText').textContent=g.meditating?'停止打坐':'開始打坐';$('meditateSub').textContent=g.meditating?'靈氣正在持續流入道體':'持續吐納並可離線結算';
   const gate=(g.lv===5||g.lv===10||g.lv===15)&&g.exp>=r.expCum&&r.breakTarget;$('brkBtn').disabled=!gate;
@@ -477,6 +477,7 @@ function moveTo(r,c){
 function explore(){
   if(fight)return;if(g.mp<P.explore_stamina_cost){toast('精力不足');return}
   stopMeditate('開始探索');g.mp-=P.explore_stamina_cost;
+  if(window.V135_WORLD_EXPANSION?.beforeExplore?.()){render();return}
   const z=zoneAt(g.pos.r,g.pos.c),pool=z&&z.pool&&z.pool.length?z.pool:[['4001',.35]];let found=null;
   for(const [id,p] of pool){if(Math.random()<p){found=String(id);break}}
   if(found&&IT[found]){
@@ -733,7 +734,14 @@ function confirmReset(){
 <script src="v12_online.js?v=20260718-264"></script>
 <script src="v12_breakthrough.js?v=20260718-280"></script>
 <script src="v12_runtime_config.js?v=20260718-290"></script>
-<script src="v13_ai_brain.js"></script>
-<script src="v13_ambush_fix4.js?v=20260718-4"></script>
+<script>window.XIANXIA_V13_EXTERNAL_SCHEDULER=true;</script>
+<script src="v13_ai_brain.js?v=20260719-350"></script>
+<script src="v13_ambush.js?v=20260719-350"></script>
+<script src="v13_ai_observatory.js?v=20260719-350"></script>
+<script src="rewarded_ads_config.js?v=20260719-350"></script>
+<script src="v13_rewarded_ads.js?v=20260719-350"></script>
+<script src="v13_world_orchestrator.js?v=20260719-350"></script>
+<script src="v13_5_world_expansion.js?v=20260719-fix1-1"></script>
+<script src="v13_5_craft_engine.js?v=20260719-fix1-2"></script>
 </body>
 </html>
