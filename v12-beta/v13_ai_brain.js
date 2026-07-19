@@ -14,7 +14,10 @@
     }catch(e){ console.warn('[V13.1 AI Brain]',e.message||e); }
     finally{ state.busy=false; }
   }
-  function start(){ if(state.timer)clearInterval(state.timer); state.timer=setInterval(tick,15000); setTimeout(tick,4000); }
-  window.V13_AI_BRAIN={tick,start,state};
-  window.addEventListener('load',start,{once:true});
+  function stop(){ if(state.timer){clearInterval(state.timer);state.timer=null;} }
+  function start(){ stop(); state.timer=setInterval(tick,15000); setTimeout(tick,4000); }
+  window.V13_AI_BRAIN={tick,start,stop,state};
+  if(!window.XIANXIA_V13_EXTERNAL_SCHEDULER){
+    window.addEventListener('load',start,{once:true});
+  }
 })();

@@ -47,7 +47,18 @@
     "combat_speech_normal_chance": 0.42,
     "combat_speech_crit_chance": 1.0,
     "combat_speech_block_chance": 1.0,
-    "block_damage_multiplier": 0.35
+    "block_damage_multiplier": 0.35,
+    "heavenly_treasure_discovery_rate": 0.15,
+    "heavenly_treasure_capture_rate": 0.1,
+    "heavenly_treasure_ai_rate": 0.0015,
+    "craft_consume_materials": true,
+    "craft_alchemy_default_success_rate": 0.75,
+    "craft_equipment_default_success_rate": 1.0,
+    "craft_legendary_default_success_rate": 0.35,
+    "master_craftsman_encounter_rate": 0.1,
+    "master_craftsman_initial_willingness_rate": 0.02,
+    "master_craftsman_rejection_increment": 0.01,
+    "master_craftsman_max_willingness_rate": 1.0
   },
   "realms": [
     {
@@ -644,6 +655,116 @@
       "val": 1,
       "type": null,
       "detail": "遺忘一門已研習功法時消耗 1 顆。"
+    },
+    "9501": {
+      "name": "青帝木心",
+      "cat": "天地靈物",
+      "eff": "珍藏材料",
+      "val": 0,
+      "type": null,
+      "detail": "萬木森域孕育的天地靈物；僅作背包珍藏與後續配方材料，不具生命值與寵物屬性。",
+      "treasureRegion": "萬木森域"
+    },
+    "9502": {
+      "name": "大日砂晶",
+      "cat": "天地靈物",
+      "eff": "珍藏材料",
+      "val": 0,
+      "type": null,
+      "detail": "赤砂荒漠凝成的天地靈物；僅作背包珍藏與後續配方材料。",
+      "treasureRegion": "赤砂荒漠"
+    },
+    "9503": {
+      "name": "戰魂玄鐵",
+      "cat": "天地靈物",
+      "eff": "珍藏材料",
+      "val": 0,
+      "type": null,
+      "detail": "太古戰場殘留的天地靈物；不觸發戰鬥，捕捉成功後直接收入背包。",
+      "treasureRegion": "太古戰場"
+    },
+    "9504": {
+      "name": "太初道紋",
+      "cat": "天地靈物",
+      "eff": "珍藏材料",
+      "val": 0,
+      "type": null,
+      "detail": "上古遺跡浮現的天地靈物；僅為物品，不是生物或寵物。",
+      "treasureRegion": "上古遺跡"
+    },
+    "9505": {
+      "name": "崑崙仙髓",
+      "cat": "天地靈物",
+      "eff": "珍藏材料",
+      "val": 0,
+      "type": null,
+      "detail": "崑崙仙山凝聚的天地靈物；可供後續高階製作系統引用。",
+      "treasureRegion": "崑崙仙山"
+    },
+    "9506": {
+      "name": "北辰天璇玉",
+      "cat": "天地靈物",
+      "eff": "珍藏材料",
+      "val": 0,
+      "type": null,
+      "detail": "北天宮星輝凝成的天地靈物；捕捉成功後存入背包。",
+      "treasureRegion": "北天宮"
+    },
+    "9507": {
+      "name": "萬載玄冰魄",
+      "cat": "天地靈物",
+      "eff": "珍藏材料",
+      "val": 0,
+      "type": null,
+      "detail": "玄霜冰原萬載寒氣凝成的天地靈物。",
+      "treasureRegion": "玄霜冰原"
+    },
+    "9508": {
+      "name": "滄海龍涎珠",
+      "cat": "天地靈物",
+      "eff": "珍藏材料",
+      "val": 0,
+      "type": null,
+      "detail": "滄溟外海潮汐孕化的天地靈物。",
+      "treasureRegion": "滄溟外海"
+    },
+    "9509": {
+      "name": "冰火兩儀晶",
+      "cat": "天地靈物",
+      "eff": "珍藏材料",
+      "val": 0,
+      "type": null,
+      "detail": "冰火島兩極靈氣交會形成的天地靈物。",
+      "treasureRegion": "冰火島"
+    },
+    "9510": {
+      "name": "陰陽混元珠",
+      "cat": "天地靈物",
+      "eff": "珍藏材料",
+      "val": 0,
+      "type": null,
+      "detail": "陰陽海潮生潮滅間誕生的天地靈物。",
+      "treasureRegion": "陰陽海"
+    },
+    "9601": {
+      "name": "兩儀斬仙劍",
+      "cat": "法器",
+      "type": "飛劍",
+      "eff": "",
+      "val": 160,
+      "stack": 1,
+      "rarity": "絕世",
+      "detail": "絕世工匠以冰火兩儀晶與陰陽混元珠鍛成的傳說法器。"
+    },
+    "9602": {
+      "name": "北辰玄冰甲",
+      "cat": "防具",
+      "type": "重甲",
+      "eff": "",
+      "val": 150,
+      "stack": 1,
+      "rarity": "絕世",
+      "detail": "融合北辰天璇玉與萬載玄冰魄鍛成的傳說防具。"
     }
   },
   "monsters": [
@@ -1699,6 +1820,268 @@
       "meditate": 12,
       "breakBonus": 0,
       "novice": true
+    },
+    {
+      "id": 14,
+      "coord": "B-7",
+      "name": "萬木森域",
+      "type": "森林",
+      "pool": [
+        [
+          "4001",
+          0.55
+        ],
+        [
+          "4003",
+          0.22
+        ],
+        [
+          "8407",
+          0.025
+        ]
+      ],
+      "ling": 3,
+      "recover": 1.2,
+      "meditate": 20,
+      "breakBonus": 0.01,
+      "novice": false
+    },
+    {
+      "id": 15,
+      "coord": "D-8",
+      "name": "赤砂荒漠",
+      "type": "沙漠",
+      "pool": [
+        [
+          "4002",
+          0.48
+        ],
+        [
+          "8301",
+          0.04
+        ],
+        [
+          "8402",
+          0.03
+        ]
+      ],
+      "ling": 2,
+      "recover": 0.9,
+      "meditate": 16,
+      "breakBonus": 0,
+      "novice": false
+    },
+    {
+      "id": 16,
+      "coord": "F-7",
+      "name": "太古戰場",
+      "type": "古戰場",
+      "pool": [
+        [
+          "2003",
+          0.1
+        ],
+        [
+          "3001",
+          0.1
+        ],
+        [
+          "8301",
+          0.08
+        ]
+      ],
+      "ling": 4,
+      "recover": 1.0,
+      "meditate": 25,
+      "breakBonus": 0.03,
+      "novice": false
+    },
+    {
+      "id": 17,
+      "coord": "H-8",
+      "name": "上古遺跡",
+      "type": "古代遺跡",
+      "pool": [
+        [
+          "7001",
+          0.06
+        ],
+        [
+          "7002",
+          0.06
+        ],
+        [
+          "7003",
+          0.05
+        ],
+        [
+          "4003",
+          0.28
+        ]
+      ],
+      "ling": 5,
+      "recover": 1.2,
+      "meditate": 32,
+      "breakBonus": 0.06,
+      "novice": false
+    },
+    {
+      "id": 18,
+      "coord": "B-9",
+      "name": "崑崙仙山",
+      "type": "崑崙",
+      "pool": [
+        [
+          "4004",
+          0.38
+        ],
+        [
+          "8405",
+          0.04
+        ],
+        [
+          "8002",
+          0.025
+        ]
+      ],
+      "ling": 7,
+      "recover": 1.8,
+      "meditate": 42,
+      "breakBonus": 0.09,
+      "novice": false
+    },
+    {
+      "id": 19,
+      "coord": "A-10",
+      "name": "北天宮",
+      "type": "北方天宮",
+      "pool": [
+        [
+          "8003",
+          0.025
+        ],
+        [
+          "8406",
+          0.05
+        ],
+        [
+          "7003",
+          0.04
+        ]
+      ],
+      "ling": 8,
+      "recover": 1.7,
+      "meditate": 45,
+      "breakBonus": 0.1,
+      "novice": false
+    },
+    {
+      "id": 20,
+      "coord": "C-10",
+      "name": "玄霜冰原",
+      "type": "冰原",
+      "pool": [
+        [
+          "8403",
+          0.055
+        ],
+        [
+          "8404",
+          0.08
+        ],
+        [
+          "4002",
+          0.35
+        ]
+      ],
+      "ling": 5,
+      "recover": 1.1,
+      "meditate": 30,
+      "breakBonus": 0.04,
+      "novice": false
+    },
+    {
+      "id": 21,
+      "coord": "F-10",
+      "name": "滄溟外海",
+      "type": "海域",
+      "pool": [
+        [
+          "4004",
+          0.45
+        ],
+        [
+          "2002",
+          0.05
+        ],
+        [
+          "8403",
+          0.025
+        ]
+      ],
+      "ling": 4,
+      "recover": 1.3,
+      "meditate": 28,
+      "breakBonus": 0.03,
+      "novice": false
+    },
+    {
+      "id": 22,
+      "coord": "H-10",
+      "name": "冰火島",
+      "type": "冰火島",
+      "pool": [
+        [
+          "8401",
+          0.035
+        ],
+        [
+          "8402",
+          0.055
+        ],
+        [
+          "8403",
+          0.035
+        ],
+        [
+          "8404",
+          0.055
+        ]
+      ],
+      "ling": 7,
+      "recover": 1.4,
+      "meditate": 38,
+      "breakBonus": 0.08,
+      "novice": false
+    },
+    {
+      "id": 23,
+      "coord": "J-10",
+      "name": "陰陽海",
+      "type": "陰陽海",
+      "pool": [
+        [
+          "4003",
+          0.42
+        ],
+        [
+          "8407",
+          0.03
+        ],
+        [
+          "8408",
+          0.05
+        ],
+        [
+          "8005",
+          0.02
+        ]
+      ],
+      "ling": 9,
+      "recover": 1.5,
+      "meditate": 48,
+      "breakBonus": 0.12,
+      "novice": false
     }
   ],
   "msg": {
@@ -1971,7 +2354,7 @@
       "action": "shop"
     }
   ],
-  "version": "V12.1-CBT-PERMADEATH-WORLD",
+  "version": "V13.5-PHASE3-WORLD-TREASURE",
   "aiCultivators": [
     {
       "id": 200001,
@@ -3702,5 +4085,169 @@
       "竟敢傷我！",
       "有點本事。"
     ]
-  }
+  },
+  "heavenlyTreasures": [
+    {
+      "itemId": "9501",
+      "region": "萬木森域"
+    },
+    {
+      "itemId": "9502",
+      "region": "赤砂荒漠"
+    },
+    {
+      "itemId": "9503",
+      "region": "太古戰場"
+    },
+    {
+      "itemId": "9504",
+      "region": "上古遺跡"
+    },
+    {
+      "itemId": "9505",
+      "region": "崑崙仙山"
+    },
+    {
+      "itemId": "9506",
+      "region": "北天宮"
+    },
+    {
+      "itemId": "9507",
+      "region": "玄霜冰原"
+    },
+    {
+      "itemId": "9508",
+      "region": "滄溟外海"
+    },
+    {
+      "itemId": "9509",
+      "region": "冰火島"
+    },
+    {
+      "itemId": "9510",
+      "region": "陰陽海"
+    }
+  ],
+  "craftingRecipes": [
+    {
+      "id": "ALC_001",
+      "category": "alchemy",
+      "name": "中品培元丹",
+      "blueprint": "7001",
+      "materials": {
+        "4001": 3,
+        "4003": 1
+      },
+      "stamina": 10,
+      "successRate": 0.75,
+      "output": {
+        "itemId": "1003",
+        "qty": 1
+      },
+      "enabled": true
+    },
+    {
+      "id": "ALC_002",
+      "category": "alchemy",
+      "name": "聚靈丹",
+      "blueprint": "7002",
+      "materials": {
+        "4001": 5,
+        "4003": 2
+      },
+      "stamina": 14,
+      "successRate": 0.7,
+      "output": {
+        "itemId": "1004",
+        "qty": 1
+      },
+      "enabled": true
+    },
+    {
+      "id": "EQP_001",
+      "category": "equipment",
+      "name": "長劍",
+      "blueprint": "7101",
+      "materials": {
+        "4002": 5
+      },
+      "stamina": 12,
+      "successRate": 1.0,
+      "output": {
+        "itemId": "2001",
+        "qty": 1
+      },
+      "enabled": true
+    },
+    {
+      "id": "EQP_002",
+      "category": "equipment",
+      "name": "玄鐵甲",
+      "blueprint": "7102",
+      "materials": {
+        "4002": 8,
+        "8301": 1
+      },
+      "stamina": 18,
+      "successRate": 1.0,
+      "output": {
+        "itemId": "3101",
+        "qty": 1
+      },
+      "enabled": true
+    },
+    {
+      "id": "EQP_003",
+      "category": "equipment",
+      "name": "飛劍",
+      "blueprint": "7103",
+      "materials": {
+        "4002": 10,
+        "8301": 2
+      },
+      "stamina": 22,
+      "successRate": 1.0,
+      "output": {
+        "itemId": "2002",
+        "qty": 1
+      },
+      "enabled": true
+    },
+    {
+      "id": "LEG_001",
+      "category": "legendary",
+      "name": "兩儀斬仙劍",
+      "blueprint": null,
+      "materials": {
+        "9509": 1,
+        "9510": 1,
+        "9503": 1
+      },
+      "stamina": 30,
+      "successRate": 0.35,
+      "output": {
+        "itemId": "9601",
+        "qty": 1
+      },
+      "enabled": true
+    },
+    {
+      "id": "LEG_002",
+      "category": "legendary",
+      "name": "北辰玄冰甲",
+      "blueprint": null,
+      "materials": {
+        "9506": 1,
+        "9507": 1,
+        "9505": 1
+      },
+      "stamina": 30,
+      "successRate": 0.35,
+      "output": {
+        "itemId": "9602",
+        "qty": 1
+      },
+      "enabled": true
+    }
+  ]
 }
