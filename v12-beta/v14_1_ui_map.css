@@ -1,0 +1,26 @@
+/* 修仙大逃殺 V14.1｜UI 與世界地圖視覺層。純 CSS，不改核心規則。 */
+:root{--v14-ink:#e9e2cf;--v14-gold:#d9bd72;--v14-jade:#65c6b5;--v14-panel:rgba(7,13,20,.94);--v14-line:rgba(217,189,114,.24)}
+body{background:radial-gradient(circle at 50% -20%,#17302f 0,#081019 32%,#04070b 78%);color:var(--v14-ink)}
+.world-header{background:linear-gradient(180deg,rgba(13,25,30,.98),rgba(6,12,18,.94));border-color:var(--v14-line)}
+.panel,.sheet{background:linear-gradient(155deg,rgba(15,27,32,.96),rgba(5,10,16,.97));border-color:var(--v14-line);box-shadow:inset 0 1px rgba(255,255,255,.025)}
+.panel-head strong,.brand-name{letter-spacing:.08em;text-shadow:0 0 18px rgba(101,198,181,.12)}
+.btn{min-height:42px;border-radius:10px}.btn.gold{box-shadow:0 6px 18px rgba(217,189,114,.10)}
+.stat-grid>div,.money>div,.kv,.list-row{background:rgba(4,9,14,.62);border-color:rgba(217,189,114,.14)}
+.status-ribbon{border-radius:10px;background:linear-gradient(90deg,rgba(27,93,83,.24),rgba(7,15,22,.72))}
+.mobile-nav{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top-color:var(--v14-line);padding-bottom:max(5px,env(safe-area-inset-bottom))}
+.mobile-nav button{min-height:49px;border-radius:9px}.mobile-nav button:active{background:rgba(217,189,114,.1)}
+.ov{backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.v14-map-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}.v14-map-head h3{margin:0}.v14-map-legend{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}.v14-map-legend span{padding:4px 8px;border:1px solid var(--v14-line);border-radius:999px;font-size:10px;color:#aebbb8}
+.v14-map-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.v14-map-grid .cell{position:relative;min-height:92px;padding:0;overflow:hidden;border-radius:11px;text-align:left;background:#0b1720;border:1px solid rgba(217,189,114,.18);color:#d9e2df}
+.v14-map-grid .cell::before{content:"";display:block;height:48px;background:linear-gradient(145deg,#254a48,#10232d 55%,#392d1e);opacity:.88}
+.v14-map-grid .cell::after{content:"山海";position:absolute;right:6px;top:27px;font:10px serif;color:rgba(255,255,255,.5);letter-spacing:.15em}
+.v14-map-grid .cell .v14-cell-copy{display:block;padding:6px 7px 7px}.v14-map-grid .cell b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:#eed793}.v14-map-grid .cell small{display:block;margin-top:2px;font-size:9px;color:#82918e}.v14-map-grid .cell .ai{display:inline-block;margin-top:3px;font-size:9px;color:#7bd5c5}.v14-map-grid .cell.me{outline:2px solid var(--v14-jade);box-shadow:0 0 0 3px rgba(101,198,181,.12)}.v14-map-grid .cell.me::after{content:"所在";color:#dffff8}.v14-map-grid .cell.block{filter:saturate(.4);opacity:.46}.v14-map-grid .cell:not(:disabled):active{transform:scale(.98)}
+.v14-map-grid .cell[data-terrain="ice"]::before{background:linear-gradient(145deg,#b9d9df,#63869b 55%,#263946)}
+.v14-map-grid .cell[data-terrain="fire"]::before{background:linear-gradient(145deg,#6b2418,#d35b25 48%,#1b1010)}
+.v14-map-grid .cell[data-terrain="forest"]::before{background:linear-gradient(145deg,#163d2b,#2d6845 55%,#0d1b16)}
+.v14-map-grid .cell[data-terrain="desert"]::before{background:linear-gradient(145deg,#8c6b36,#c39a53 52%,#49351f)}
+.v14-map-grid .cell[data-terrain="sea"]::before{background:linear-gradient(145deg,#143e59,#246e83 55%,#101f31)}
+.v14-map-grid .cell[data-terrain="ruin"]::before{background:linear-gradient(145deg,#47352f,#705846 55%,#171318)}
+@media(max-width:680px){#game{padding-left:7px;padding-right:7px}.world-header{position:sticky;top:0;z-index:8}.character-panel .stat-grid{gap:5px}.stat-grid>div{padding:7px 4px}.action-tile{min-height:56px}.sheet{max-height:88vh;overflow:auto;padding:13px}.v14-map-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.v14-map-grid .cell{min-height:88px}.v14-map-grid .cell::before{height:45px}}
+@media(max-width:370px){.v14-map-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
