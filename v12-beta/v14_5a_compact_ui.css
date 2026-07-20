@@ -1,0 +1,76 @@
+/* V14.5A compact mobile UI — presentation only, no core-rule changes. */
+@media (max-width: 820px){
+  #game .world-header{padding:10px 14px;min-height:auto}
+  #game .brand-name{font-size:25px}
+  #game .brand-tag{font-size:10px;letter-spacing:.12em}
+  #game .world-meta{display:none}
+  #game .status-ribbon{margin:8px 12px;padding:9px 12px;font-size:12px}
+  #game .dashboard{display:flex!important;flex-direction:column;gap:10px;padding:0 12px 88px}
+  #game .world-panel{order:1;width:100%}
+  #game .character-panel{order:2;width:100%}
+  #game .intel-panel{order:3;width:100%}
+
+  /* compact current-region hero */
+  #game .world-panel>.card.panel{padding:12px}
+  #game .world-scene{height:205px!important;min-height:205px;border-radius:18px}
+  #game .scene-content{padding:16px 18px!important}
+  #game .scene-zone{font-size:28px!important}
+  #game .scene-copy{font-size:12px;line-height:1.45;max-width:92%}
+
+  /* 4-column mobile-game action deck */
+  #game .action-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+  #game .action-tile{min-height:68px!important;padding:8px 4px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;border-radius:14px}
+  #game .action-tile .rune{width:30px!important;height:30px!important;min-width:30px!important;font-size:17px!important}
+  #game .action-tile strong{font-size:13px!important;white-space:nowrap}
+  #game .action-tile small{display:none!important}
+
+  /* event log and chat: compact by default */
+  #game .comm-grid{display:block!important;margin-top:10px!important}
+  #game .comm-panel{padding:12px!important;margin-bottom:10px}
+  #game #log{height:92px!important;min-height:92px!important;max-height:92px!important;overflow:auto}
+  #game #worldChatDock:not(.v145a-expanded) .world-chat{max-height:118px!important;overflow:hidden!important}
+  #game #worldChatDock:not(.v145a-expanded) .chat-compose{display:none!important}
+  #game .v145a-chat-toggle{width:100%;margin-top:8px;min-height:38px!important;padding:7px 10px!important}
+
+  /* character card becomes a compact status drawer */
+  #game .character-panel{padding:12px!important}
+  #game .character-panel .avatar-wrap{height:112px!important;min-height:112px!important;transition:.2s ease}
+  #game .character-panel:not(.v145a-expanded) .avatar-wrap{display:none!important}
+  #game .avatar-name{font-size:21px!important;margin-top:4px!important}
+  #game .realm-line{margin-bottom:6px!important}
+  #game .meter{margin:6px 0!important}
+  #game .meter-head{font-size:12px!important;margin-bottom:3px!important}
+  #game .bar{height:7px!important}
+  #game .stat-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;margin-top:8px!important}
+  #game .stat-grid>div{padding:8px 7px!important;min-height:56px!important;border-radius:12px!important}
+  #game .stat-grid span{font-size:11px!important}
+  #game .stat-grid b{font-size:14px!important;margin-top:3px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #game .character-panel:not(.v145a-expanded) .stat-grid>div:nth-child(n+5){display:none!important}
+  #game .character-panel:not(.v145a-expanded) .technique-dock-wrap{margin-top:8px}
+  #game .technique-dock{display:block!important}
+  #game .technique-slot{padding:9px 11px!important;min-height:0!important;margin-bottom:6px!important;font-size:13px!important;line-height:1.3!important;cursor:pointer}
+  #game .technique-slot:not(.v145a-tech-expanded){white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-height:38px!important}
+  #game .technique-slot:not(.v145a-tech-expanded) br,
+  #game .technique-slot:not(.v145a-tech-expanded) small{display:none!important}
+  #game .v145a-character-toggle{width:100%;margin-top:7px;min-height:38px!important;padding:7px 10px!important}
+
+  /* secondary intel collapsed to reduce page length */
+  #game .intel-panel:not(.v145a-expanded) .intel-grid,
+  #game .intel-panel:not(.v145a-expanded) .ai-list,
+  #game .intel-panel:not(.v145a-expanded) .sense-feed,
+  #game .intel-panel:not(.v145a-expanded) .command-row,
+  #game .intel-panel:not(.v145a-expanded) .panel-head:not(:first-child){display:none!important}
+  #game .v145a-intel-toggle{width:100%;min-height:38px!important;padding:7px 10px!important}
+
+  /* keep bottom nav compact and readable */
+  #game .mobile-nav{grid-template-columns:repeat(5,1fr)!important}
+  #game .mobile-nav button{font-size:11px!important;padding:7px 2px calc(8px + env(safe-area-inset-bottom))!important}
+  #game .mobile-nav button b{font-size:18px!important;margin-bottom:1px!important}
+  #game .mobile-nav button:nth-child(6){display:none!important}
+}
+@media (max-width: 390px){
+  #game .action-grid{gap:6px}
+  #game .action-tile strong{font-size:12px!important}
+  #game .world-scene{height:188px!important;min-height:188px}
+  #game .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
