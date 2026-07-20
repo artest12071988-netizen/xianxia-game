@@ -1,40 +1,127 @@
-(()=>{
-'use strict';
-const BUILD='V14.3-ARTIFACT-20260720';
-const MATS={
- '8401':{name:'赤陽器紋砂',cat:'器紋材料',stat:'atk_pct',label:'攻擊',min:3,max:8},
- '8402':{name:'玄甲器紋砂',cat:'器紋材料',stat:'def_pct',label:'防禦',min:3,max:8},
- '8403':{name:'雷鳴器紋砂',cat:'器紋材料',stat:'crit_pct',label:'暴擊',min:2,max:6},
- '8404':{name:'長生器紋砂',cat:'器紋材料',stat:'hp_pct',label:'體力',min:4,max:10},
- '8405':{name:'靈泉器紋砂',cat:'器紋材料',stat:'spirit_pct',label:'精力',min:3,max:8},
- '8410':{name:'淬器石',cat:'淬鍊材料'},
- '8411':{name:'護器符',cat:'護器材料'},
- '8412':{name:'天工石',cat:'增幅材料'},
- '8413':{name:'洗煉石',cat:'洗煉材料'}
-};
-const q=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const hash=s=>[...String(s)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,2166136261);
-const rand=(a,b)=>Math.round((a+Math.random()*(b-a))*10)/10;
-function ready(){return !!(window.g&&window.IT)}
-function registerItems(){if(!window.IT)return;for(const [id,m] of Object.entries(MATS)){window.IT[id]=window.IT[id]||{...m,eff:m.stat?'刻印器紋':'器紋系統',val:0,detail:m.stat?`${m.label}器紋 ${m.min}%～${m.max}%`:m.name};}}
-function normalize(e){if(!e||typeof e!=='object')return e;if(!Number.isInteger(e.inscriptionCapacity)){e.inscriptionCapacity=hash(e.uid||e.name)%4}e.inscriptionCapacity=Math.max(0,Math.min(3,e.inscriptionCapacity));if(!Array.isArray(e.inscriptions))e.inscriptions=[];e.inscriptions=e.inscriptions.slice(0,e.inscriptionCapacity).filter(x=>x&&x.stat&&Number.isFinite(Number(x.value))).map(x=>({stat:x.stat,label:x.label||x.stat,value:Number(x.value)}));if(!Number.isFinite(Number(e.temperLevel)))e.temperLevel=Number(e.enhance||0);e.temperLevel=Math.max(0,Math.floor(Number(e.temperLevel)||0));e.enhance=e.temperLevel;return e}
-function migrate(){if(!ready())return;registerItems();window.g.inv=window.g.inv||{};window.g.equipment=window.g.equipment||[];window.g.equipment.forEach(normalize);if(!window.g.v143Migrated){const old=Number(window.g.inv['8301']||0);if(old>0){window.g.inv['8410']=(window.g.inv['8410']||0)+old;window.g.inv['8301']=0;window.log?.(`舊有庚精已安全轉換為淬器石 ×${old}。`,'lg')}window.g.v143Migrated=true;window.saveGame?.(false)}}
-function sumStat(stat){migrate();return (window.g?.equipment||[]).filter(e=>e.uid===window.g.weaponUid||e.uid===window.g.armorUid).flatMap(e=>e.inscriptions||[]).filter(x=>x.stat===stat).reduce((a,x)=>a+Number(x.value||0),0)}
-function capText(e){return '★'.repeat(e.inscriptionCapacity)+'☆'.repeat(3-e.inscriptionCapacity)}
-function lineText(x){return `${x.label} +${Number(x.value).toFixed(1)}%`}
-function eqCard(e){normalize(e);const lines=e.inscriptions.map((x,i)=>`<div class="v143-line"><span>第 ${i+1} 紋</span><b>${esc(lineText(x))}</b></div>`).join('');const empties=Math.max(0,e.inscriptionCapacity-e.inscriptions.length);return `<article class="v143-card"><h4>${esc(e.name)} +${e.temperLevel}</h4><small>${esc(e.cat)}｜器紋容量 <span class="v143-cap">${capText(e)}</span></small><div class="v143-lines">${lines}${Array.from({length:empties},(_,i)=>`<div class="v143-line"><span>第 ${e.inscriptions.length+i+1} 紋</span><span class="v143-empty">未刻印</span></div>`).join('')}${e.inscriptionCapacity===0?'<div class="v143-line"><span>此器胚無天然器紋</span><span class="v143-empty">可交易或收藏</span></div>':''}</div><div class="v143-actions"><button class="btn jade" data-v143-inscribe="${esc(e.uid)}" ${empties?'' :'disabled'}>刻印</button><button class="btn" data-v143-reforge="${esc(e.uid)}" ${e.inscriptions.length?'':'disabled'}>洗煉</button><button class="btn gold" data-v143-temper="${esc(e.uid)}" ${e.inscriptions.length===e.inscriptionCapacity&&e.inscriptionCapacity>0?'':'disabled'}>淬鍊</button></div></article>`}
-function render(){migrate();const root=q('v143Root');if(!root)return;const eq=window.g.equipment||[];root.innerHTML=`<div class="v143-shell"><div class="v143-head"><div><div class="v143-title">天工器紋閣</div><small>刻印必成；器紋刻滿後方可淬鍊。淬鍊失敗時法寶永久消失，護器符可保住法寶。</small></div><span class="pill">${BUILD}</span></div><div class="v143-note">材料：器紋砂用於刻印；洗煉石重抽數值；淬器石用於淬鍊；護器符防止損毀；天工石提高本次成功率。舊庚精已轉為淬器石。</div><div class="v143-grid">${eq.length?eq.map(eqCard).join(''):'<div class="v143-empty">目前沒有可處理的法寶或防具。</div>'}</div><button class="btn" id="v143Close">關閉</button></div>`;bind()}
-function bind(){document.querySelectorAll('[data-v143-inscribe]').forEach(b=>b.addEventListener('click',()=>chooseInscribe(b.dataset.v143Inscribe)));document.querySelectorAll('[data-v143-reforge]').forEach(b=>b.addEventListener('click',()=>chooseReforge(b.dataset.v143Reforge)));document.querySelectorAll('[data-v143-temper]').forEach(b=>b.addEventListener('click',()=>temper(b.dataset.v143Temper)));q('v143Close')?.addEventListener('click',()=>window.closeOv?.())}
-function open(){if(!ready()){window.toast?.('角色資料尚未載入');return}migrate();window.sheet?.('<div id="v143Root"></div>');render()}
-function findEq(uid){migrate();return window.g.equipment.find(e=>String(e.uid)===String(uid))}
-function chooseInscribe(uid){const e=findEq(uid);if(!e||e.inscriptions.length>=e.inscriptionCapacity)return;const opts=Object.entries(MATS).filter(([,m])=>m.stat).map(([id,m])=>`<option value="${id}" ${window.g.inv[id]>0?'':'disabled'}>${esc(m.name)} ×${Number(window.g.inv[id]||0)}｜${m.label} ${m.min}～${m.max}%</option>`).join('');window.sheet?.(`<h3>刻印器紋｜${esc(e.name)}</h3><div class="v143-note">刻印成功率固定 100%，每次消耗 1 份器紋砂。</div><label>器紋材料<select id="v143Mat" class="v143-select">${opts}</select></label><div class="v143-actions"><button class="btn gold" id="v143DoInscribe">確認刻印</button><button class="btn" id="v143Back">返回</button></div>`);q('v143DoInscribe')?.addEventListener('click',()=>inscribe(uid,q('v143Mat')?.value));q('v143Back')?.addEventListener('click',open)}
-function inscribe(uid,id){const e=findEq(uid),m=MATS[id];if(!e||!m?.stat||!(window.g.inv[id]>0)||e.inscriptions.length>=e.inscriptionCapacity){window.toast?.('材料不足或器紋已滿');return}window.g.inv[id]--;e.inscriptions.push({stat:m.stat,label:m.label,value:rand(m.min,m.max)});window.log?.(`${e.name} 成功刻印「${lineText(e.inscriptions.at(-1))}」。`,'lg');window.saveGame?.(false);open();window.render?.()}
-function chooseReforge(uid){const e=findEq(uid);if(!e||!e.inscriptions.length)return;if(!(window.g.inv['8413']>0)){window.toast?.('洗煉石不足');return}const opts=e.inscriptions.map((x,i)=>`<option value="${i}">第 ${i+1} 紋｜${esc(lineText(x))}</option>`).join('');window.sheet?.(`<h3>洗煉器紋｜${esc(e.name)}</h3><div class="v143-note">消耗 1 顆洗煉石，只重抽指定器紋的數值，不改變屬性種類。</div><label>選擇器紋<select id="v143Line" class="v143-select">${opts}</select></label><div class="v143-actions"><button class="btn gold" id="v143DoReforge">確認洗煉</button><button class="btn" id="v143Back">返回</button></div>`);q('v143DoReforge')?.addEventListener('click',()=>reforge(uid,Number(q('v143Line')?.value)));q('v143Back')?.addEventListener('click',open)}
-function reforge(uid,i){const e=findEq(uid),x=e?.inscriptions?.[i],m=Object.values(MATS).find(v=>v.stat===x?.stat);if(!e||!x||!m||!(window.g.inv['8413']>0))return;window.g.inv['8413']--;const old=x.value;x.value=rand(m.min,m.max);window.log?.(`${e.name} 洗煉完成：${x.label} ${old}% → ${x.value}%。`,'lg');window.saveGame?.(false);open();window.render?.()}
-function temperRate(level){return Math.max(.05,level<3?1:level<6?.65:Math.pow(.72,level-5)*.45)}
-function temper(uid){const e=findEq(uid);if(!e||e.inscriptionCapacity===0||e.inscriptions.length!==e.inscriptionCapacity)return;if(!(window.g.inv['8410']>0)){window.toast?.('淬器石不足');return}const useGuard=window.g.inv['8411']>0&&confirm('是否同時消耗 1 張護器符？失敗時可防止法寶消失。');const useBoost=window.g.inv['8412']>0&&confirm('是否同時消耗 1 顆天工石？本次成功率提高 15%。');let rate=Math.min(.95,temperRate(e.temperLevel)+(useBoost?.15:0));if(!confirm(`本次淬鍊成功率 ${Math.round(rate*100)}%。${useGuard?'護器符已選用。':'失敗將永久消失。'} 是否繼續？`))return;window.g.inv['8410']--;if(useGuard)window.g.inv['8411']--;if(useBoost)window.g.inv['8412']--;if(Math.random()<rate){e.temperLevel++;e.enhance=e.temperLevel;window.log?.(`${e.name} 淬鍊成功，達到 +${e.temperLevel}。`,'lg')}else if(useGuard){window.log?.(`${e.name} 淬鍊失敗，護器符化為飛灰，法寶得以保全。`,'la')}else{window.g.equipment=window.g.equipment.filter(x=>x.uid!==uid);if(window.g.weaponUid===uid)window.g.weaponUid=null;if(window.g.armorUid===uid)window.g.armorUid=null;window.log?.(`${e.name} 淬鍊失敗，法寶徹底化為飛灰。`,'ld')}window.saveGame?.(false);open();window.render?.()}
-function patch(){if(window.__V143_PATCHED||!ready())return false;window.__V143_PATCHED=true;registerItems();migrate();const oldNew=window.newEquipment;window.newEquipment=function(itemId,enhance=0){const e=oldNew(itemId,enhance);e.inscriptionCapacity=Math.floor(Math.random()*4);e.inscriptions=[];e.temperLevel=Number(enhance||0);return normalize(e)};const oldAtk=window.pAtk;window.pAtk=function(){return Math.round(oldAtk()*(1+sumStat('atk_pct')/100))};const oldDef=window.pDef;window.pDef=function(){return Math.round(oldDef()*(1+sumStat('def_pct')/100))};const oldAttack=window.attackTurn;window.attackTurn=function(){const oldRate=window.P?.base_crit_rate;try{if(window.P)window.P.base_crit_rate=Number(oldRate||0)+sumStat('crit_pct')/100;return oldAttack()}finally{if(window.P)window.P.base_crit_rate=oldRate}};const oldWin=window.winFight;window.winFight=function(){const r=oldWin.apply(this,arguments);setTimeout(()=>{if(!window.g)return;const pool=['8401','8402','8403','8404','8405','8410','8413'];if(Math.random()<.22){const id=pool[Math.floor(Math.random()*pool.length)];window.g.inv[id]=(window.g.inv[id]||0)+1;window.log?.(`妖獸殘骸中發現 ${MATS[id].name}。`,'lg');window.saveGame?.(false);window.render?.()}},60);return r};const oldOpenBag=window.openBag;window.openBag=function(tab='bag'){if(tab==='forge')return open();return oldOpenBag(tab)};window.enhanceItem=function(uid){open();setTimeout(()=>{document.querySelector(`[data-v143-temper="${CSS.escape(String(uid))}"]`)?.scrollIntoView({block:'center'})},40)};return true}
-function mount(){if(q('v143Launch'))return;const b=document.createElement('button');b.id='v143Launch';b.className='v143-launch';b.type='button';b.textContent='天工器紋';b.addEventListener('click',open);document.body.appendChild(b)}
-window.openArtifactWorkshopV143=open;window.V14_ARTIFACT_BUILD=BUILD;
-let tries=0;const t=setInterval(()=>{tries++;if(patch()){mount();clearInterval(t)}else if(tries>80)clearInterval(t)},250);
+/* 修仙大逃殺 V14.3 FIX2｜地圖開啟與移動緊急修正 */
+(function(){
+  'use strict';
+  const VERSION='14.3-fix3';
+  const ASSET='assets/world_map/';
+  const FILES={plain:'plain.webp',forest:'forest.webp',desert:'desert.webp',ice:'ice.webp',northpalace:'north_palace.webp',sea:'sea.webp',yinyang:'yinyang_sea.webp',icefire:'icefire_island.webp',kunlun:'kunlun.webp',ruin:'ancient_ruins.webp',battle:'ancient_battlefield.webp',market:'market.webp',village:'village.webp'};
+  const LABELS={plain:'荒野',forest:'樹海',desert:'沙漠',ice:'冰原',northpalace:'北寒天宮',sea:'海域',yinyang:'陰陽海',icefire:'冰火島',kunlun:'崑崙山',ruin:'上古修士遺跡',battle:'遠古戰場',market:'坊市',village:'村落'};
+  const TERRAIN_ROWS={
+    A:['village','village','plain','plain','plain','market','plain','ice','ice','ice'],
+    B:['plain','plain','plain','village','plain','plain','forest','forest','kunlun','ice'],
+    C:['plain','plain','market','market','market','forest','forest','plain','ice','ice'],
+    D:['plain','plain','plain','plain','plain','plain','desert','desert','desert','plain'],
+    E:['plain','plain','plain','plain','ruin','plain','desert','desert','plain','plain'],
+    F:['plain','village','plain','plain','plain','battle','battle','sea','sea','sea'],
+    G:['plain','plain','plain','plain','plain','ruin','plain','sea','yinyang','yinyang'],
+    H:['plain','plain','plain','forest','forest','plain','plain','sea','yinyang','icefire'],
+    I:['plain','plain','plain','plain','forest','plain','plain','sea','yinyang','yinyang'],
+    J:['plain','village','plain','plain','plain','plain','plain','sea','sea','yinyang']
+  };
+  const TERRAIN=Object.create(null);
+  Object.keys(TERRAIN_ROWS).forEach(function(row){
+    TERRAIN_ROWS[row].forEach(function(type,index){TERRAIN[row+'-'+(index+1)]=type;});
+  });
+  const NAMED={
+    '青牛谷':'village','萬寶交易所':'market','青雲坊市':'market','萬木森域':'forest','迷霧林':'forest',
+    '赤砂荒漠':'desert','太古戰場':'battle','遠古戰場':'battle','上古遺跡':'ruin','崑崙仙山':'kunlun','崑崙山':'kunlun',
+    '北天宮':'northpalace','北寒天宮':'northpalace','玄霜冰原':'ice','滄溟外海':'sea','海':'sea','冰火島':'icefire','烈火島':'icefire',
+    '陰陽海':'yinyang','鎮海燈塔':'yinyang'
+  };
+
+  function gameReady(){
+    return typeof g!=='undefined' && g && g.pos && typeof C!=='undefined' && C;
+  }
+  function coord(r,c){return String.fromCharCode(65+Number(r))+'-'+(Number(c)+1);}
+  function infoFor(r,c){
+    const co=coord(r,c);
+    const z=(typeof zoneAt==='function' && typeof C!=='undefined' && C)?zoneAt(Number(r),Number(c)):null;
+    const type=(z && NAMED[z.name]) || TERRAIN[co] || 'plain';
+    return {coord:co,zone:z,type:type,label:z?z.name:LABELS[type],terrainLabel:LABELS[type],file:FILES[type]||FILES.plain};
+  }
+  function currentInfo(){return gameReady()?infoFor(g.pos.r,g.pos.c):infoFor(0,0);}
+
+  function updateCurrentScene(){
+    try{
+      if(!gameReady())return;
+      const scene=document.querySelector('.world-scene');
+      if(!scene)return;
+      const i=currentInfo();
+      scene.classList.add('v14f-scene');
+      scene.dataset.terrain=i.type;
+      scene.style.setProperty('--v14-scene-image','url("'+ASSET+i.file+'?v=143fix3")');
+      const zone=document.getElementById('sceneZone');
+      const co=document.getElementById('sceneCoord');
+      if(zone)zone.textContent=i.label;
+      if(co)co.textContent=i.coord+' · '+i.terrainLabel;
+      let badge=scene.querySelector('.v14f-terrain-badge');
+      if(!badge){badge=document.createElement('span');badge.className='v14f-terrain-badge';scene.appendChild(badge);}
+      badge.textContent=i.terrainLabel;
+    }catch(err){console.error('[V14.3 FIX3] current scene update failed',err);}
+  }
+
+  function aiCountAt(co){
+    if(typeof ai==='undefined' || !Array.isArray(ai))return 0;
+    return ai.filter(function(a){return a&&a.alive&&a.coord===co;}).length;
+  }
+
+  const previousOpen=typeof window.openWorldMap==='function'?window.openWorldMap:null;
+  function buildMap(){
+    try{
+      if(!gameReady() || typeof bigMove!=='function' || typeof mapMoveDistance!=='function' || typeof sheet!=='function'){
+        if(previousOpen)return previousOpen();
+        return;
+      }
+      const rng=Math.max(1,Number(bigMove(g.big))||1);
+      const here=coord(g.pos.r,g.pos.c);
+      let h='<div class="v14f-map-title"><div><h3>十方山海圖</h3><p class="small">御風距離 '+rng+' 格；點選亮起的地域即可移動。</p></div><span class="v14f-map-version">FIX3</span></div>';
+      h+='<div class="v14f-map-legend"><span><i class="me"></i>目前位置</span><span><i class="go"></i>可前往</span><span><i class="far"></i>超出距離</span></div><div class="v14f-map-grid">';
+      for(let r=0;r<10;r++){
+        for(let c=0;c<10;c++){
+          const i=infoFor(r,c);
+          const dist=mapMoveDistance(r,c);
+          const me=i.coord===here;
+          const reachable=!me&&dist>=1&&dist<=rng;
+          const count=aiCountAt(i.coord);
+          h+='<button type="button" class="v14f-cell '+(me?'me ':'')+(!reachable&&!me?'block ':'')+'" style="--cell-bg:url(&quot;'+ASSET+i.file+'?v=143fix3&quot;)" '+(reachable?'onclick="moveTo('+r+','+c+')"':'disabled')+' aria-label="'+i.label+' '+i.coord+'">';
+          h+='<span class="v14f-cell-shade"></span><span class="v14f-cell-terrain">'+i.terrainLabel+'</span><span class="v14f-cell-copy"><b>'+i.label+'</b><small>'+i.coord+'</small>'+(count?'<em>修士 '+count+'</em>':'')+'</span></button>';
+        }
+      }
+      h+='</div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉地圖</button>';
+      sheet(h);
+      const s=document.getElementById('sheet');
+      if(s)s.classList.add('v14f-map-sheet');
+    }catch(err){
+      console.error('[V14.3 FIX3] map build failed, reverting to original map',err);
+      if(previousOpen)return previousOpen();
+      if(typeof toast==='function')toast('地圖載入失敗，請重新整理');
+    }
+  }
+
+  window.openWorldMap=buildMap;
+
+  const previousRender=typeof window.render==='function'?window.render:null;
+  if(previousRender){
+    window.render=function(){
+      const out=previousRender.apply(this,arguments);
+      setTimeout(updateCurrentScene,0);
+      return out;
+    };
+  }
+  const previousMove=typeof window.moveTo==='function'?window.moveTo:null;
+  if(previousMove){
+    window.moveTo=function(){
+      const out=previousMove.apply(this,arguments);
+      setTimeout(updateCurrentScene,0);
+      return out;
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    document.documentElement.dataset.v14Ui=VERSION;
+    const header=document.querySelector('.brand-tag');
+    if(header)header.textContent='V14.3 · WORLD MAP FIX3';
+    setTimeout(updateCurrentScene,300);
+  });
+
+  window.V143_FIX1={VERSION:VERSION,TERRAIN:TERRAIN,infoFor:infoFor,updateCurrentScene:updateCurrentScene,previousOpen:previousOpen};
 })();

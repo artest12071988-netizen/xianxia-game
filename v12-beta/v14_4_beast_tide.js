@@ -1,127 +1,121 @@
-/* 修仙大逃殺 V14.3 FIX2｜地圖開啟與移動緊急修正 */
+/* V14.4 FIX4B — 獸潮實效系統
+ * 沿用 world_controls.beast_tide_active，不建立第二套開關。
+ * 依專案既有怪物資料的 spawn 欄位投放獸潮妖獸；spawn=獸潮5% 的妖王固定為 5% 特殊遭遇池。
+ */
 (function(){
   'use strict';
-  const VERSION='14.3-fix3';
-  const ASSET='assets/world_map/';
-  const FILES={plain:'plain.webp',forest:'forest.webp',desert:'desert.webp',ice:'ice.webp',northpalace:'north_palace.webp',sea:'sea.webp',yinyang:'yinyang_sea.webp',icefire:'icefire_island.webp',kunlun:'kunlun.webp',ruin:'ancient_ruins.webp',battle:'ancient_battlefield.webp',market:'market.webp',village:'village.webp'};
-  const LABELS={plain:'荒野',forest:'樹海',desert:'沙漠',ice:'冰原',northpalace:'北寒天宮',sea:'海域',yinyang:'陰陽海',icefire:'冰火島',kunlun:'崑崙山',ruin:'上古修士遺跡',battle:'遠古戰場',market:'坊市',village:'村落'};
-  const TERRAIN_ROWS={
-    A:['village','village','plain','plain','plain','market','plain','ice','ice','ice'],
-    B:['plain','plain','plain','village','plain','plain','forest','forest','kunlun','ice'],
-    C:['plain','plain','market','market','market','forest','forest','plain','ice','ice'],
-    D:['plain','plain','plain','plain','plain','plain','desert','desert','desert','plain'],
-    E:['plain','plain','plain','plain','ruin','plain','desert','desert','plain','plain'],
-    F:['plain','village','plain','plain','plain','battle','battle','sea','sea','sea'],
-    G:['plain','plain','plain','plain','plain','ruin','plain','sea','yinyang','yinyang'],
-    H:['plain','plain','plain','forest','forest','plain','plain','sea','yinyang','icefire'],
-    I:['plain','plain','plain','plain','forest','plain','plain','sea','yinyang','yinyang'],
-    J:['plain','village','plain','plain','plain','plain','plain','sea','sea','yinyang']
-  };
-  const TERRAIN=Object.create(null);
-  Object.keys(TERRAIN_ROWS).forEach(function(row){
-    TERRAIN_ROWS[row].forEach(function(type,index){TERRAIN[row+'-'+(index+1)]=type;});
-  });
-  const NAMED={
-    '青牛谷':'village','萬寶交易所':'market','青雲坊市':'market','萬木森域':'forest','迷霧林':'forest',
-    '赤砂荒漠':'desert','太古戰場':'battle','遠古戰場':'battle','上古遺跡':'ruin','崑崙仙山':'kunlun','崑崙山':'kunlun',
-    '北天宮':'northpalace','北寒天宮':'northpalace','玄霜冰原':'ice','滄溟外海':'sea','海':'sea','冰火島':'icefire','烈火島':'icefire',
-    '陰陽海':'yinyang','鎮海燈塔':'yinyang'
-  };
+  if(window.__V144BeastTideLoaded)return;
+  window.__V144BeastTideLoaded=true;
 
-  function gameReady(){
-    return typeof g!=='undefined' && g && g.pos && typeof C!=='undefined' && C;
-  }
-  function coord(r,c){return String.fromCharCode(65+Number(r))+'-'+(Number(c)+1);}
-  function infoFor(r,c){
-    const co=coord(r,c);
-    const z=(typeof zoneAt==='function' && typeof C!=='undefined' && C)?zoneAt(Number(r),Number(c)):null;
-    const type=(z && NAMED[z.name]) || TERRAIN[co] || 'plain';
-    return {coord:co,zone:z,type:type,label:z?z.name:LABELS[type],terrainLabel:LABELS[type],file:FILES[type]||FILES.plain};
-  }
-  function currentInfo(){return gameReady()?infoFor(g.pos.r,g.pos.c):infoFor(0,0);}
+  const state={active:false,wrapped:false,lastAnnounced:null};
+  const get=(name)=>{try{return Function('return typeof '+name+'!=="undefined"?'+name+':null')()}catch(_){return null}};
+  const setGlobal=(name,value)=>{try{Function('v',name+'=v')(value);return true}catch(_){try{window[name]=value;return true}catch(__){return false}}};
+  const controls=()=>{const cs=window.cloudState||get('cloudState')||{};return cs.worldControls||{}};
+  const active=()=>!!controls().beast_tide_active;
+  const clone=(x)=>JSON.parse(JSON.stringify(x));
+  const random=(arr)=>arr&&arr.length?arr[Math.floor(Math.random()*arr.length)]:null;
+  const notify=(text,type)=>{const log=get('log');if(typeof log==='function')try{log(text,type||'la')}catch(_){};const toast=get('toast');if(typeof toast==='function')try{toast(text)}catch(_){} };
 
-  function updateCurrentScene(){
-    try{
-      if(!gameReady())return;
-      const scene=document.querySelector('.world-scene');
-      if(!scene)return;
-      const i=currentInfo();
-      scene.classList.add('v14f-scene');
-      scene.dataset.terrain=i.type;
-      scene.style.setProperty('--v14-scene-image','url("'+ASSET+i.file+'?v=143fix3")');
-      const zone=document.getElementById('sceneZone');
-      const co=document.getElementById('sceneCoord');
-      if(zone)zone.textContent=i.label;
-      if(co)co.textContent=i.coord+' · '+i.terrainLabel;
-      let badge=scene.querySelector('.v14f-terrain-badge');
-      if(!badge){badge=document.createElement('span');badge.className='v14f-terrain-badge';scene.appendChild(badge);}
-      badge.textContent=i.terrainLabel;
-    }catch(err){console.error('[V14.3 FIX3] current scene update failed',err);}
+  function ensureBadge(){
+    let badge=document.getElementById('beastTideEffectBadge');
+    if(badge)return badge;
+    badge=document.createElement('div');
+    badge.id='beastTideEffectBadge';
+    badge.innerHTML='<span class="beast-tide-icon">獸</span><b>獸潮來襲</b><span>妖獸遭遇率提升，獸潮妖王有 5% 機率現身</span>';
+    const cloud=document.getElementById('blackCloudEffectBadge');
+    const ribbon=document.querySelector('.status-ribbon');
+    if(cloud&&cloud.parentNode)cloud.parentNode.insertBefore(badge,cloud.nextSibling);
+    else if(ribbon&&ribbon.parentNode)ribbon.parentNode.insertBefore(badge,ribbon.nextSibling);
+    else document.body.prepend(badge);
+    return badge;
   }
 
-  function aiCountAt(co){
-    if(typeof ai==='undefined' || !Array.isArray(ai))return 0;
-    return ai.filter(function(a){return a&&a.alive&&a.coord===co;}).length;
-  }
-
-  const previousOpen=typeof window.openWorldMap==='function'?window.openWorldMap:null;
-  function buildMap(){
-    try{
-      if(!gameReady() || typeof bigMove!=='function' || typeof mapMoveDistance!=='function' || typeof sheet!=='function'){
-        if(previousOpen)return previousOpen();
-        return;
+  function updateVisualState(){
+    ensureBadge();
+    const on=active();
+    document.body.classList.toggle('beast-tide-active',on);
+    if(state.lastAnnounced!==on){
+      if(state.lastAnnounced!==null){
+        notify(on?'萬獸奔騰，獸潮已席捲十方浮島！':'獸吼漸息，這一輪獸潮已經退去。',on?'ld':'lg');
       }
-      const rng=Math.max(1,Number(bigMove(g.big))||1);
-      const here=coord(g.pos.r,g.pos.c);
-      let h='<div class="v14f-map-title"><div><h3>十方山海圖</h3><p class="small">御風距離 '+rng+' 格；點選亮起的地域即可移動。</p></div><span class="v14f-map-version">FIX3</span></div>';
-      h+='<div class="v14f-map-legend"><span><i class="me"></i>目前位置</span><span><i class="go"></i>可前往</span><span><i class="far"></i>超出距離</span></div><div class="v14f-map-grid">';
-      for(let r=0;r<10;r++){
-        for(let c=0;c<10;c++){
-          const i=infoFor(r,c);
-          const dist=mapMoveDistance(r,c);
-          const me=i.coord===here;
-          const reachable=!me&&dist>=1&&dist<=rng;
-          const count=aiCountAt(i.coord);
-          h+='<button type="button" class="v14f-cell '+(me?'me ':'')+(!reachable&&!me?'block ':'')+'" style="--cell-bg:url(&quot;'+ASSET+i.file+'?v=143fix3&quot;)" '+(reachable?'onclick="moveTo('+r+','+c+')"':'disabled')+' aria-label="'+i.label+' '+i.coord+'">';
-          h+='<span class="v14f-cell-shade"></span><span class="v14f-cell-terrain">'+i.terrainLabel+'</span><span class="v14f-cell-copy"><b>'+i.label+'</b><small>'+i.coord+'</small>'+(count?'<em>修士 '+count+'</em>':'')+'</span></button>';
-        }
-      }
-      h+='</div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉地圖</button>';
-      sheet(h);
-      const s=document.getElementById('sheet');
-      if(s)s.classList.add('v14f-map-sheet');
-    }catch(err){
-      console.error('[V14.3 FIX3] map build failed, reverting to original map',err);
-      if(previousOpen)return previousOpen();
-      if(typeof toast==='function')toast('地圖載入失敗，請重新整理');
+      state.lastAnnounced=on;
     }
+    state.active=on;
   }
 
-  window.openWorldMap=buildMap;
-
-  const previousRender=typeof window.render==='function'?window.render:null;
-  if(previousRender){
-    window.render=function(){
-      const out=previousRender.apply(this,arguments);
-      setTimeout(updateCurrentScene,0);
-      return out;
-    };
-  }
-  const previousMove=typeof window.moveTo==='function'?window.moveTo:null;
-  if(previousMove){
-    window.moveTo=function(){
-      const out=previousMove.apply(this,arguments);
-      setTimeout(updateCurrentScene,0);
-      return out;
-    };
+  function monsterPools(){
+    const C=get('C');
+    const monsters=Array.isArray(C?.monsters)?C.monsters:[];
+    const regular=monsters.filter(m=>{
+      const s=String(m.spawn||'');
+      return s==='獸潮'||s.includes('黑雲/獸潮');
+    });
+    const bosses=monsters.filter(m=>String(m.spawn||'').includes('獸潮5%'));
+    return {regular,bosses};
   }
 
-  document.addEventListener('DOMContentLoaded',function(){
-    document.documentElement.dataset.v14Ui=VERSION;
-    const header=document.querySelector('.brand-tag');
-    if(header)header.textContent='V14.3 · WORLD MAP FIX3';
-    setTimeout(updateCurrentScene,300);
-  });
+  function selectTideMonster(){
+    const g=get('g');
+    const {regular,bosses}=monsterPools();
+    if(Math.random()<0.05&&bosses.length){
+      const ordered=bosses.slice().sort((a,b)=>Math.abs(Number(a.lv)-Number(g?.lv||1))-Math.abs(Number(b.lv)-Number(g?.lv||1)));
+      const nearest=ordered.slice(0,Math.min(2,ordered.length));
+      const boss=random(nearest)||random(bosses);
+      if(boss){notify('獸潮深處傳來王者威壓——'+boss.name+' 現身！','ld');return clone(boss)}
+    }
+    let pool=regular;
+    if(g&&regular.length){
+      const matched=regular.filter(m=>Math.abs(Number(m.lv)-Number(g.lv))<=3);
+      if(matched.length)pool=matched;
+    }
+    return clone(random(pool)||random(regular)||random((get('C')?.monsters||[]).filter(m=>!['活動王','古魔'].includes(m.cat))));
+  }
 
-  window.V143_FIX1={VERSION:VERSION,TERRAIN:TERRAIN,infoFor:infoFor,updateCurrentScene:updateCurrentScene,previousOpen:previousOpen};
+  function wrapEncounter(){
+    if(state.wrapped)return;
+    const oldRoll=get('rollEncounter');
+    const oldPick=get('pickMonster');
+    if(typeof oldRoll!=='function'||typeof oldPick!=='function')return;
+
+    setGlobal('pickMonster',function(z){
+      if(active())return selectTideMonster();
+      return oldPick.apply(this,arguments);
+    });
+
+    setGlobal('rollEncounter',function(source){
+      if(!active())return oldRoll.apply(this,arguments);
+      const g=get('g'),zoneAt=get('zoneAt'),coordOf=get('coordOf'),rnd=get('rnd'),startAiEncounter=get('startAiEncounter'),startFightMonster=get('startFightMonster');
+      const ai=get('ai')||[];
+      if(!g||typeof zoneAt!=='function'||typeof startFightMonster!=='function')return oldRoll.apply(this,arguments);
+      const z=zoneAt(g.pos.r,g.pos.c);
+      const safe=z&&String(z.type||'').includes('安全區');
+      if(safe)return;
+
+      // 保留原本真人／AI 修士遭遇邏輯，獸潮只改變妖獸部分。
+      const aiChance=z&&z.novice?.05:.22;
+      if(Math.random()<aiChance&&typeof startAiEncounter==='function'){
+        let cand=ai.filter(a=>a.alive&&a.coord===(typeof coordOf==='function'?coordOf(g.pos.r,g.pos.c):''));
+        if(!cand.length)cand=ai.filter(a=>a.alive&&Math.abs(Number(a.lv)-Number(g.lv))<=2);
+        if(cand.length)return startAiEncounter(typeof rnd==='function'?rnd(cand):random(cand));
+      }
+
+      // 原版為移動 25%、探索 42%；獸潮期間提高但不保證每次必遇，避免連續鎖死玩家。
+      const monsterChance=source==='move'?.50:.70;
+      if(Math.random()<monsterChance){
+        const m=selectTideMonster();
+        if(m)return startFightMonster(m);
+      }
+    });
+    state.wrapped=true;
+  }
+
+  window.V14BeastTide={
+    isActive:active,
+    getPools:()=>{const p=monsterPools();return {regular:p.regular.map(x=>x.id),bosses:p.bosses.map(x=>x.id)}}
+  };
+
+  function boot(){wrapEncounter();updateVisualState()}
+  const timer=setInterval(()=>{try{boot()}catch(e){console.warn('[V14 beast tide]',e)}},1000);
+  window.addEventListener('beforeunload',()=>clearInterval(timer));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

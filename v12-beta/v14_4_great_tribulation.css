@@ -1,0 +1,8 @@
+/* V14.4 FIX4C — 大天劫（古魔入侵） */
+#greatTribulationEffectBadge{display:none;margin:8px 12px;padding:10px 12px;border:1px solid rgba(190,72,92,.58);border-radius:12px;background:linear-gradient(135deg,rgba(48,12,28,.94),rgba(15,9,24,.96));color:#f4d9df;gap:8px;align-items:center;box-shadow:inset 0 0 24px rgba(124,29,56,.18)}
+.great-tribulation-active #greatTribulationEffectBadge{display:flex}
+#greatTribulationEffectBadge .tribulation-icon{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:50%;border:1px solid rgba(240,120,145,.62);color:#ffd4dd;background:rgba(98,18,43,.7);font-weight:800}
+#greatTribulationEffectBadge b{white-space:nowrap;color:#ffd7df}
+#greatTribulationEffectBadge span:last-child{font-size:12px;color:#cfaeb8}
+.great-tribulation-active .panel-title,.fighting-ancient-demon .fight-stage{border-color:rgba(164,51,78,.45)}
+@media(max-width:520px){#greatTribulationEffectBadge{margin:7px 8px;padding:9px 10px;align-items:flex-start;flex-wrap:wrap}#greatTribulationEffectBadge span:last-child{width:100%;padding-left:38px;margin-top:-8px}}
