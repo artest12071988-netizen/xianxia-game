@@ -34,3 +34,32 @@ body{background:radial-gradient(circle at 50% -10%,#153233 0,#07121a 32%,#030609
 .v14f-blueprint-grid .v14f-cell-copy{z-index:2}.v14f-blueprint-grid .v14f-cell-copy b{font-size:11px;text-shadow:0 2px 5px #000}.v14f-blueprint-grid .v14f-cell-copy small{font-size:9px}
 @media(max-width:700px){.v14f-blueprint-grid{grid-template-columns:repeat(5,1fr)!important}.v14f-blueprint-grid .v14f-cell{min-height:76px}.v14f-cell-icon{min-width:22px;height:22px;font-size:10px}}
 @media(max-width:390px){.v14f-blueprint-grid{grid-template-columns:repeat(4,1fr)!important}}
+
+
+/* V14.4 FIX4G｜嚴格遵守使用者提供的 10 欄 × 10 列配置。
+   不因螢幕寬度改成 5/4/3/2 欄；手機以橫向捲動觀看完整 10 欄。 */
+.v14f-map-sheet{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+.v14f-blueprint-grid{
+  display:grid!important;
+  grid-template-columns:repeat(10,minmax(72px,1fr))!important;
+  grid-template-rows:repeat(10,76px)!important;
+  gap:5px!important;
+  min-width:760px!important;
+  width:100%!important;
+}
+.v14f-blueprint-grid .v14f-cell{
+  min-height:76px!important;
+  height:76px!important;
+  border-radius:8px!important;
+}
+.v14f-blueprint-grid .v14f-cell-copy b{font-size:10px!important}
+.v14f-blueprint-grid .v14f-cell-copy small{font-size:8px!important}
+.v14f-blueprint-grid .v14f-cell-icon{min-width:20px!important;height:20px!important;font-size:9px!important;right:4px!important;top:4px!important}
+@media(max-width:700px){
+  .v14f-blueprint-grid{grid-template-columns:repeat(10,72px)!important;grid-template-rows:repeat(10,72px)!important;min-width:765px!important}
+  .v14f-blueprint-grid .v14f-cell{height:72px!important;min-height:72px!important}
+}
+@media(max-width:390px){
+  .v14f-blueprint-grid{grid-template-columns:repeat(10,70px)!important;grid-template-rows:repeat(10,70px)!important;min-width:745px!important}
+  .v14f-blueprint-grid .v14f-cell{height:70px!important;min-height:70px!important}
+}
