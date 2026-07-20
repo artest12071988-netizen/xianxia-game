@@ -1,19 +1,41 @@
-/* V14.5A mobile-first compact home UI. Presentation only. */
+/* V14.5A FIX2 — Celestial HUD: premium mobile density + unified world ticker. */
+:root{--v145a-gold:#d9bd75;--v145a-jade:#67d8ca;--v145a-ink:#061018;--v145a-panel:rgba(7,17,24,.94);--v145a-line:rgba(218,191,117,.22)}
+
+.v145a-world-ticker{display:none}
+.v145a-info-kicker{font-size:10px;letter-spacing:.18em;color:var(--jade);margin-bottom:4px}
+.v145a-info-sheet h3,.v145a-more-sheet h3{margin:0 0 12px}
+.v145a-info-list{display:grid;gap:7px}.v145a-info-row{display:grid;grid-template-columns:92px 1fr;gap:10px;align-items:start;padding:9px 10px;border:1px solid rgba(216,187,106,.14);border-radius:11px;background:rgba(4,10,15,.7)}.v145a-info-row span{color:var(--muted);font-size:11px}.v145a-info-row b{font-size:12px;color:#e6dfcf;font-weight:500;line-height:1.45}.v145a-info-subtitle{margin:14px 0 6px;color:var(--gold);font-size:12px}.v145a-tip-list{margin:0;padding-left:19px;color:#bcc5c8;font-size:12px;line-height:1.75}
+.v145a-more-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.v145a-more-item{appearance:none;border:1px solid rgba(216,187,106,.18);border-radius:13px;background:linear-gradient(155deg,rgba(17,30,40,.92),rgba(4,10,15,.96));padding:11px;color:#e6dfcf;text-align:left;display:grid;grid-template-columns:31px 1fr;grid-template-rows:auto auto;column-gap:9px;align-items:center}.v145a-more-item>span{grid-row:1/3;width:31px;height:31px;border-radius:10px;border:1px solid rgba(216,187,106,.32);display:grid;place-items:center;color:var(--gold);font-family:"Songti TC",serif;background:rgba(216,187,106,.05)}.v145a-more-item b{font-size:12px;font-weight:600}.v145a-more-item small{font-size:9px;color:var(--muted);margin-top:2px}.v145a-more-item:active{transform:translateY(1px);border-color:rgba(103,216,202,.5)}
+
 @media (max-width:820px){
-  #game .world-header{padding:8px 12px;min-height:auto}
-  #game .brand-name{font-size:24px}
-  #game .brand-tag{font-size:9px;letter-spacing:.11em}
+  #game{background:radial-gradient(circle at 50% 0,rgba(18,59,62,.12),transparent 36%),#03080d}
+  #game .world-header{padding:8px 12px;min-height:auto;margin-bottom:6px;border-radius:15px;background:linear-gradient(145deg,rgba(10,24,31,.98),rgba(4,10,15,.98));border:1px solid rgba(216,187,106,.24);box-shadow:inset 0 1px rgba(255,255,255,.025)}
+  #game .brand-name{font-size:24px;letter-spacing:.09em}
+  #game .brand-tag{font-size:8px;letter-spacing:.15em;color:#6e8791}
   #game .world-meta{display:none}
-  #game .status-ribbon{margin:7px 10px;padding:8px 10px;font-size:12px}
-  #game .dashboard{display:flex!important;flex-direction:column;gap:9px;padding:0 10px 86px}
-  #game .character-panel{order:1;width:100%;padding:11px!important}
+
+  /* Replace all stacked event cards with one compact, premium ticker. */
+  #game>.status-ribbon,#blackCloudEffectBadge,#beastTideEffectBadge,#greatTribulationEffectBadge{display:none!important}
+  .v145a-world-ticker{display:grid;grid-template-columns:30px minmax(0,1fr) 34px;align-items:center;width:calc(100% - 20px);height:38px;margin:0 10px 8px;padding:0 8px;border:1px solid rgba(103,216,202,.22);border-radius:13px;background:linear-gradient(90deg,rgba(12,42,46,.88),rgba(6,17,24,.96) 42%,rgba(6,12,18,.98));color:#c7d4d3;overflow:hidden;box-shadow:inset 0 1px rgba(255,255,255,.025),0 8px 20px rgba(0,0,0,.16);text-align:left}
+  .v145a-world-ticker[data-kind="danger"]{border-color:rgba(190,72,92,.44);background:linear-gradient(90deg,rgba(63,15,34,.88),rgba(10,13,21,.97))}
+  .v145a-world-ticker[data-kind="warn"]{border-color:rgba(202,129,58,.4);background:linear-gradient(90deg,rgba(64,34,14,.88),rgba(9,15,20,.97))}
+  .v145a-ticker-seal{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;border:1px solid rgba(216,187,106,.28);background:rgba(216,187,106,.06);color:var(--gold);font:13px "Songti TC",serif}
+  .v145a-ticker-window{position:relative;overflow:hidden;height:24px;display:flex;align-items:center;margin:0 5px;mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+  .v145a-ticker-track{display:inline-block;white-space:nowrap;font-size:11px;will-change:transform;padding-left:100%}
+  .v145a-ticker-track.v145a-running{animation:v145aTickerRun var(--v145a-run-duration,10s) linear forwards}
+  .v145a-ticker-open{justify-self:end;color:#83979e;font-size:9px;letter-spacing:.08em}
+  @keyframes v145aTickerRun{from{transform:translateX(0)}to{transform:translateX(calc(-100% - 24px))}}
+
+  #game .dashboard{display:flex!important;flex-direction:column;gap:8px;padding:0 10px 88px}
+  #game .card{background:linear-gradient(150deg,rgba(9,22,29,.97),rgba(3,9,14,.98));border-color:rgba(216,187,106,.2);box-shadow:inset 0 1px rgba(255,255,255,.02)}
+  #game .character-panel{order:1;width:100%;padding:11px!important;border-radius:17px}
   #game .world-panel{order:2;width:100%}
   #game .intel-panel{order:3;width:100%}
 
-  /* character summary: half-width bars + technique names beside them */
+  /* Character summary: half-width bars + technique names beside them. */
   #game .character-panel>.panel-head{margin-bottom:6px}
   #game .character-panel .avatar-wrap{display:none!important}
-  #game .v145a-character-core{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start}
+  #game .v145a-character-core{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
   #game .v145a-vitals{min-width:0}
   #game .v145a-identity{margin-bottom:5px}
   #game .avatar-name{font-size:20px!important;margin:0 0 3px!important;line-height:1.15}
@@ -21,62 +43,70 @@
   #game .realm-badge{font-size:11px!important;padding:4px 8px!important}
   #game .realm-line .small{font-size:11px!important}
   #game .meter{margin:5px 0!important}
-  #game .meter-head{font-size:11px!important;margin-bottom:2px!important}
-  #game .bar{height:6px!important}
-  #game .technique-dock-wrap{margin:0!important;min-width:0}
-  #game .technique-dock-wrap .panel-head{margin:0 0 5px!important}
+  #game .meter-head{font-size:10px!important;margin-bottom:2px!important}
+  #game .bar{height:5px!important;border-radius:999px;overflow:hidden;background:rgba(112,133,143,.12)}
+  #game .bar i{box-shadow:0 0 8px currentColor}
+  #game .technique-dock-wrap{margin:0!important;min-width:0;padding-top:0!important;border-top:1px solid rgba(216,187,106,.13)!important}
+  #game .technique-dock-wrap .panel-head{margin:6px 0 5px!important}
   #game .technique-dock-wrap .panel-head span{display:none}
   #game .technique-dock{display:block!important}
-  #game .technique-slot{position:relative;padding:8px 24px 8px 9px!important;min-height:34px!important;margin:0 0 5px!important;font-size:12px!important;line-height:1.35!important;cursor:pointer;border-radius:10px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-height:34px!important}
-  #game .technique-slot::after{content:'›';position:absolute;right:9px;top:6px;color:var(--gold);font-size:18px}
-  #game .technique-slot br,#game .technique-slot small{display:none!important}
+  #game .technique-slot{position:relative;padding:7px 23px 7px 9px!important;min-height:31px!important;margin:0 0 5px!important;font-size:11px!important;line-height:1.35!important;cursor:pointer;border-radius:10px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-height:31px!important;background:linear-gradient(90deg,rgba(100,71,25,.14),rgba(6,15,21,.55))!important}
+  #game .technique-slot::after{content:'›';position:absolute;right:9px;top:4px;color:var(--gold);font-size:17px}
+  #game .technique-slot br,#game .technique-slot small,#game .technique-slot span{display:none!important}
   #game .technique-slot.v145a-tech-expanded{white-space:normal!important;max-height:none!important}
-  #game .technique-slot.v145a-tech-expanded br,#game .technique-slot.v145a-tech-expanded small{display:initial!important}
+  #game .technique-slot.v145a-tech-expanded br,#game .technique-slot.v145a-tech-expanded small,#game .technique-slot.v145a-tech-expanded span{display:initial!important}
 
   #game .stat-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;margin-top:8px!important}
-  #game .stat-grid>div{padding:7px 6px!important;min-height:48px!important;border-radius:10px!important}
-  #game .stat-grid span{font-size:10px!important}
+  #game .stat-grid>div{padding:7px 6px!important;min-height:47px!important;border-radius:11px!important;background:linear-gradient(145deg,rgba(7,17,23,.92),rgba(2,8,12,.98));border-color:rgba(216,187,106,.15)!important}
+  #game .stat-grid span{font-size:9px!important}
   #game .stat-grid b{font-size:13px!important;margin-top:2px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #game .character-panel:not(.v145a-expanded) .stat-grid>div:nth-child(n+5){display:none!important}
-  #game .v145a-character-toggle{width:100%;margin-top:7px;min-height:36px!important;padding:6px 10px!important}
+  #game .v145a-character-toggle,#game .v145a-chat-toggle,#game .v145a-intel-toggle{width:100%;margin-top:7px;min-height:34px!important;padding:5px 10px!important;border-radius:11px!important;background:linear-gradient(180deg,rgba(21,35,48,.9),rgba(7,15,22,.94))!important;border-color:rgba(103,216,202,.16)!important;color:#d9dddc!important}
 
-  /* shorter region card */
-  #game .world-panel>.card.panel{padding:11px}
-  #game .world-scene{height:190px!important;min-height:190px!important;border-radius:16px}
-  #game .scene-content{padding:13px 15px!important}
-  #game .scene-zone{font-size:27px!important}
-  #game .scene-copy{font-size:11px!important;line-height:1.35!important;max-width:94%}
+  /* Shorter region card. */
+  #game .world-panel>.card.panel{padding:10px;border-radius:17px}
+  #game .world-scene{height:174px!important;min-height:174px!important;border-radius:15px;box-shadow:inset 0 0 0 1px rgba(216,187,106,.13)}
+  #game .scene-content{padding:12px 14px!important}
+  #game .scene-zone{font-size:25px!important}
+  #game .scene-copy{font-size:10px!important;line-height:1.35!important;max-width:94%}
 
-  /* 4 x 2 compact action grid */
+  /* Premium 4 x 2 action deck with clear hierarchy. */
   #game .action-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
-  #game .action-tile{min-height:61px!important;padding:6px 3px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;border-radius:12px}
-  #game .action-tile .rune{width:27px!important;height:27px!important;min-width:27px!important;font-size:15px!important}
-  #game .action-tile strong{font-size:11px!important;white-space:nowrap}
+  #game .action-tile{position:relative;min-height:60px!important;padding:7px 4px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;border-radius:13px!important;overflow:hidden;background:linear-gradient(155deg,rgba(15,28,37,.96),rgba(3,10,15,.98))!important;border:1px solid rgba(216,187,106,.17)!important;box-shadow:inset 0 1px rgba(255,255,255,.025),0 5px 12px rgba(0,0,0,.13);transition:transform .15s,border-color .15s,filter .15s}
+  #game .action-tile::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.025),transparent 48%);pointer-events:none}
+  #game .action-tile.v145a-primary-action{border-color:rgba(103,216,202,.25)!important;background:linear-gradient(155deg,rgba(12,42,45,.92),rgba(4,13,19,.98))!important}
+  #game .action-tile.v145a-secondary-action{opacity:.96}
+  #game .action-tile:active{transform:translateY(1px) scale(.985);filter:brightness(1.12);border-color:rgba(216,187,106,.45)!important}
+  #game .action-tile .rune{width:28px!important;height:28px!important;min-width:28px!important;font-size:14px!important;border-radius:9px;border-color:rgba(216,187,106,.28)!important;background:rgba(216,187,106,.05)}
+  #game .action-tile.v145a-primary-action .rune{border-color:rgba(103,216,202,.34)!important;color:#9de9df!important;background:rgba(103,216,202,.06)}
+  #game .action-tile strong{font-size:10px!important;white-space:nowrap;letter-spacing:.01em}
   #game .action-tile small{display:none!important}
 
-  /* compact event/chat */
+  /* Compact communication panels. */
   #game .comm-grid{display:block!important;margin-top:8px!important}
-  #game .comm-panel{padding:10px!important;margin-bottom:8px}
-  #game #log{height:78px!important;min-height:78px!important;max-height:78px!important;overflow:auto}
-  #game #worldChatDock:not(.v145a-expanded) .world-chat{max-height:100px!important;overflow:hidden!important}
+  #game .comm-panel{padding:10px!important;margin-bottom:8px;border-radius:15px}
+  #game #log{height:72px!important;min-height:72px!important;max-height:72px!important;overflow:auto}
+  #game #worldChatDock:not(.v145a-expanded) .world-chat{max-height:94px!important;overflow:hidden!important}
   #game #worldChatDock:not(.v145a-expanded) .chat-compose{display:none!important}
-  #game .v145a-chat-toggle,#game .v145a-intel-toggle{width:100%;margin-top:7px;min-height:36px!important;padding:6px 10px!important}
-  #game .intel-panel:not(.v145a-expanded) .intel-grid,
-  #game .intel-panel:not(.v145a-expanded) .ai-list,
-  #game .intel-panel:not(.v145a-expanded) .sense-feed,
-  #game .intel-panel:not(.v145a-expanded) .command-row,
-  #game .intel-panel:not(.v145a-expanded) .panel-head:not(:first-child){display:none!important}
+  #game .intel-panel:not(.v145a-expanded) .intel-grid,#game .intel-panel:not(.v145a-expanded) .ai-list,#game .intel-panel:not(.v145a-expanded) .sense-feed,#game .intel-panel:not(.v145a-expanded) .command-row,#game .intel-panel:not(.v145a-expanded) .panel-head:not(:first-child){display:none!important}
 
-  #game .v145a-hidden-auction-floater{display:none!important}
-  #game .mobile-nav{grid-template-columns:repeat(5,1fr)!important}
-  #game .mobile-nav button{font-size:10px!important;padding:6px 2px calc(7px + env(safe-area-inset-bottom))!important}
-  #game .mobile-nav button b{font-size:17px!important;margin-bottom:0!important}
+  /* Auction appears only near or during a session; it remains accessible in More. */
+  #auctionLaunch{display:none!important}
+  #auctionLaunch.v145a-auction-live:not([hidden]){display:block!important;position:fixed!important;right:12px!important;bottom:68px!important;z-index:42!important;padding:8px 12px!important;border-radius:999px!important;font-size:11px!important;background:linear-gradient(135deg,#4a3517,#17110a)!important;border:1px solid rgba(216,187,106,.45)!important;color:#f0d692!important;box-shadow:0 8px 24px rgba(0,0,0,.35)!important}
+
+  #game .mobile-nav{grid-template-columns:repeat(5,1fr)!important;background:linear-gradient(180deg,rgba(4,9,14,.97),rgba(1,5,9,.99))!important;border-top-color:rgba(216,187,106,.18)!important;box-shadow:0 -8px 24px rgba(0,0,0,.22)}
+  #game .mobile-nav button{font-size:9px!important;padding:6px 2px calc(7px + env(safe-area-inset-bottom))!important;color:#88979b!important}
+  #game .mobile-nav button b{font-size:17px!important;margin-bottom:0!important;color:var(--gold)!important}
   #game .mobile-nav button:nth-child(6){display:none!important}
 }
+
 @media (max-width:390px){
   #game .v145a-character-core{grid-template-columns:1fr 1fr;gap:7px}
   #game .action-grid{gap:5px}
-  #game .action-tile strong{font-size:10px!important}
-  #game .world-scene{height:178px!important;min-height:178px!important}
+  #game .action-tile strong{font-size:9px!important}
+  #game .world-scene{height:164px!important;min-height:164px!important}
   #game .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .v145a-world-ticker{width:calc(100% - 12px);margin-left:6px;margin-right:6px}
 }
+
+@media (prefers-reduced-motion:reduce){.v145a-ticker-track.v145a-running{animation:none!important;padding-left:0!important}.v145a-ticker-window{mask-image:none}}
