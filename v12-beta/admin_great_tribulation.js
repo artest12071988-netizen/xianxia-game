@@ -1,0 +1,10 @@
+(function(){'use strict';
+if(window.__AdminTribCycleLoaded)return;window.__AdminTribCycleLoaded=true;
+const q=s=>document.querySelector(s);const fmt=v=>v?new Date(v).toLocaleString('zh-TW'):'—';
+function panel(){let p=document.getElementById('tribCyclePanel');if(p)return p;const status=document.getElementById('tribStatus');const card=status?.closest('.card');if(!card)return null;p=document.createElement('div');p.id='tribCyclePanel';p.className='notice';p.style.marginTop='10px';p.innerHTML='<b>大天劫週期</b><div id="tribCycleReadout">讀取中</div><div class="row" style="margin-top:8px"><button class="btn red" id="tribCycleStart" type="button">啟動四小時古魔入侵</button><button class="btn" id="tribCycleEnd" type="button">仙人下凡・立即結束</button></div>';card.appendChild(p);p.querySelector('#tribCycleStart').addEventListener('click',()=>act('great_tribulation_start',{p_trigger:'manual'}));p.querySelector('#tribCycleEnd').addEventListener('click',()=>act('great_tribulation_end',{p_reason:'manual'}));return p;}
+async function act(fn,args){const {data,error}=await sb.rpc(fn,args);if(error)return toast('操作失敗：'+error.message);controls=Array.isArray(data)?data[0]:data;renderControls();render();addLog(fn==='great_tribulation_start'?'大天劫已啟動':'大天劫已結束');toast('已同步至全服');}
+function render(){panel();if(!controls)return;const e=document.getElementById('tribCycleReadout');if(!e)return;e.innerHTML='狀態：'+(controls.great_tribulation_active?'古魔入侵中':'未降臨')+'<br>開始：'+fmt(controls.great_tribulation_started_at)+'<br>結束：'+fmt(controls.great_tribulation_ends_at)+'<br>冷卻至：'+fmt(controls.great_tribulation_cooldown_until)+'<br>下次自動判定：'+fmt(controls.great_tribulation_next_auto_check_at);}
+const old=window.renderControls;window.renderControls=function(){if(typeof old==='function')old.apply(this,arguments);render();};
+setInterval(async()=>{if(!window.sb)return;const {data}=await sb.rpc('great_tribulation_tick');if(data){controls=Array.isArray(data)?data[0]:data;render();}},60000);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,1000));else setTimeout(render,1000);
+})();

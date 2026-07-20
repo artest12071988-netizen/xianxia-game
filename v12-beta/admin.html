@@ -8,6 +8,7 @@
 :root{--bg:#05080d;--panel:#101824;--panel2:#0a111b;--line:#263446;--gold:#d8b966;--jade:#56d8ce;--red:#ef6b64;--ink:#eee9dc;--muted:#8f9aaa}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:radial-gradient(circle at 50% 0,#17313a55,transparent 35%),var(--bg);color:var(--ink);font-family:"PingFang TC","Noto Sans TC",system-ui,sans-serif}button,input,textarea,select{font:inherit}.wrap{width:min(980px,100%);margin:auto;padding:14px}.head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.head h1{font-family:"Songti TC",serif;color:var(--gold);font-size:23px;margin:0}.head small{color:var(--muted)}.card{background:linear-gradient(150deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:12px;box-shadow:0 18px 55px #0007}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.field{display:grid;gap:6px}.field label{font-size:12px;color:var(--muted)}input,textarea,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:#08101a;color:var(--ink);font-size:16px}textarea{min-height:82px;resize:vertical}.btn{border:1px solid var(--line);border-radius:9px;background:#111c29;color:var(--ink);padding:12px;cursor:pointer;min-height:46px}.btn.gold{color:var(--gold);border-color:#8f713d}.btn.jade{color:var(--jade);border-color:#2d827d}.btn.red{color:var(--red);border-color:#8d3b37}.btn:disabled{opacity:.45}.row{display:flex;gap:8px;flex-wrap:wrap}.row .btn{flex:1}.status{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.status div{padding:10px;background:#070d15;border:1px solid var(--line);border-radius:9px}.status span{display:block;font-size:11px;color:var(--muted)}.status b{display:block;margin-top:4px;color:var(--gold)}.toggle{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #ffffff0d}.toggle:last-child{border-bottom:0}.pill{font-size:11px;border:1px solid var(--line);border-radius:99px;padding:4px 8px;color:var(--muted)}.pill.on{color:var(--jade);border-color:#2d827d}.notice{padding:10px;border-left:3px solid var(--gold);background:#6b51261f;color:#d3c6a4;font-size:12px;line-height:1.6}.hidden{display:none!important}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);padding:10px 16px;background:#152131;border:1px solid var(--line);border-radius:99px;opacity:0;pointer-events:none;transition:.2s;z-index:10;max-width:92%;text-align:center}.toast.on{opacity:1}.log{font-size:12px;line-height:1.7;color:var(--muted);max-height:180px;overflow:auto}.log p{margin:0 0 5px}.toplink{color:var(--jade);text-decoration:none;font-size:12px}@media(max-width:700px){.grid,.grid3{grid-template-columns:1fr}.status{grid-template-columns:1fr 1fr}.wrap{padding:8px}.head{align-items:flex-start}.head h1{font-size:20px}.row{display:grid;grid-template-columns:1fr 1fr}.row .btn{width:100%}.card{padding:12px}}
 </style>
+<link rel="stylesheet" href="admin_auction.css?v=20260720-fix4">
 </head>
 <body>
 <div class="wrap">
@@ -96,7 +97,17 @@
 <div class="field"><label>獎勵式廣告單元路徑</label><input id="adUnitId" placeholder="例如 /1234567/xianxia_rewarded"></div>
 </div>
 <div class="status" style="margin-top:10px"><div><span>估算本月收益</span><b id="adRevenue">0</b></div><div><span>目前模式</span><b id="adMode">未載入</b></div><div><span>元寶規則</span><b>200 × 5次</b></div><div><span>打坐規則</span><b>雙倍 × 3次</b></div></div>
-<div class="row" style="margin-top:10px"><button class="btn jade" onclick="saveAdConfig(true)">封測模擬模式</button><button class="btn gold" onclick="saveAdConfig(false)">切換正式收益模式</button><button class="btn red" onclick="disableAds()">暫停廣告</button></div></section><section class="card"><h2>世界循環維護</h2><p class="notice">世界修士死亡後1–5分鐘以新角色重新入場；普通妖獸1–3分鐘、妖王5–10分鐘、世界王30分鐘重生。</p><button class="btn jade" style="width:100%" onclick="runMaintenance()">立即執行世界維護</button></section><section class="card"><h2>最近操作</h2><div id="adminLog" class="log"></div></section>
+<div class="row" style="margin-top:10px"><button class="btn jade" onclick="saveAdConfig(true)">封測模擬模式</button><button class="btn gold" onclick="saveAdConfig(false)">切換正式收益模式</button><button class="btn red" onclick="disableAds()">暫停廣告</button></div></section><section class="card"><h2>世界循環維護</h2><p class="notice">世界修士死亡後1–5分鐘以新角色重新入場；普通妖獸1–3分鐘、妖王5–10分鐘、世界王30分鐘重生。</p><button class="btn jade" style="width:100%" onclick="runMaintenance()">立即執行世界維護</button></section><section class="card" id="auctionAdminCard">
+  <div class="head">
+    <div>
+      <h2 style="margin:0">萬寶拍賣後台</h2>
+      <small>官方投放、強制結標、拍賣與交易紀錄、參數設定</small>
+    </div>
+    <button class="btn" id="auctionAdminRefresh" type="button">重新整理</button>
+  </div>
+  <div class="auction-admin-tabs" id="auctionAdminTabs"></div>
+  <div id="auctionAdminBody"><div class="notice">登入管理員後載入拍賣控制台。</div></div>
+</section><section class="card"><h2>最近操作</h2><div id="adminLog" class="log"></div></section>
   </main>
 </div>
 <div id="toast" class="toast"></div>
@@ -134,8 +145,10 @@ function subscribe(){if(channel)sb.removeChannel(channel);channel=sb.channel('xi
 boot();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="admin_config.js?v=20260719-fix2-1"></script>
-<script src="admin_observatory.js?v=20260719-fix2-1"></script>
-<script src="admin_crafting.js?v=20260719-fix2-1"></script>
+<script src="admin_config.js?v=20260718-290"></script>
+<script src="admin_observatory.js?v=20260719-350"></script>
+<script src="admin_crafting.js?v=20260719-fix1-2"></script>
+<script src="admin_auction.js?v=20260720-fix4"></script>
+<script src="admin_great_tribulation.js?v=20260720-fix4d"></script>
 </body>
 </html>
