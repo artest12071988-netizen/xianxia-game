@@ -6,6 +6,13 @@
   let busy = false;
   let lastCheck = 0;
 
+  function getCloud() {
+    try {
+      if (typeof cloudState !== 'undefined' && cloudState) return cloudState;
+    } catch (_) {}
+    return window.cloudState || null;
+  }
+
   function getGame() {
     try {
       if (typeof g !== 'undefined' && g) return g;
@@ -39,7 +46,7 @@
   }
 
   async function check() {
-    const cs = window.cloudState;
+    const cs = getCloud();
     const game = getGame();
 
     if (busy || !cs?.enabled || !cs?.user || !cs?.client || !game) return;

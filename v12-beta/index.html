@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>修仙大逃殺 V12.6.4｜打坐與世界維護修正版</title>
+<title>修仙大逃殺 V13.5 FIX2｜最小安全整合修正版</title>
 <style>
 :root{
   --void:#020406;--ink:#eee8da;--muted:#8e99a9;--gold:#d7b96b;--gold2:#8d6b31;
@@ -110,6 +110,21 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 /* V12.6.4 meditation state */
 .meditation-boost-banner{margin-top:8px;padding:10px 12px;border:1px solid rgba(236,180,95,.55);border-radius:10px;background:linear-gradient(90deg,rgba(120,78,18,.28),rgba(17,28,38,.78));color:#f2d58a;font-size:12px;font-weight:700;line-height:1.6;box-shadow:0 0 22px rgba(236,180,95,.10)}
 .meditation-boost-banner[hidden]{display:none!important}.meditation-boost-banner b{color:#fff1b8;font-size:14px}
+
+/* V13.5 FIX2：只縮小手機版，不影響桌機版 */
+@media(max-width:680px){
+  #game{padding:5px 5px 66px}.world-header{height:46px;margin-bottom:6px}.brand-block{gap:8px}.brand-seal{width:30px;height:30px}.brand-name{font-size:15px}.brand-tag{font-size:8px}
+  .status-ribbon{padding:6px 8px;margin-bottom:7px;gap:6px}.panel{padding:9px;margin-bottom:7px}.panel-head{margin-bottom:7px}.panel-head strong{font-size:14px}
+  .avatar-wrap,.meridian-avatar{height:120px}.avatar-name{font-size:17px;margin:8px 0 2px}.realm-line{margin-bottom:7px}.meter{margin:6px 0}
+  .character-panel .stat-grid{gap:4px;margin-top:8px}.stat-grid>div{padding:6px 4px}.stat-grid b{font-size:11px}
+  .world-scene{height:165px}.scene-content{padding:11px}.scene-zone{font-size:21px}.scene-coord{font-size:9px;margin-top:2px}.scene-copy{font-size:10px;line-height:1.45;margin-top:4px}
+  .action-grid{gap:5px;margin-top:7px}.action-tile{min-height:48px;padding:7px 8px;gap:7px}.action-tile .rune{width:27px;height:27px;flex:0 0 27px}.action-tile strong{font-size:12px}
+  .log{height:120px;padding:7px;font-size:11px}.mobile-nav{padding:3px 2px}.mobile-nav button{font-size:9px;padding:2px}.mobile-nav b{font-size:14px;margin-bottom:0}
+  .ov{padding:7px}.sheet{padding:11px;max-height:96vh}.sheet h3{font-size:18px}.tabs{margin:9px 0 7px;gap:4px}.tabs button{min-width:0;padding:7px 5px;font-size:12px}
+  .list-row{gap:7px;padding:7px 0}.list-row .btn{padding:8px 9px;font-size:12px;max-width:45%}.grid{grid-template-columns:repeat(4,1fr);gap:3px}.cell{min-height:47px;padding:5px 2px;font-size:9px}
+  .world-chat{height:40vh}.world-chat.inline{height:30vh}.chat-line{font-size:10px;grid-template-columns:36px 62px 1fr;gap:4px}
+}
+@media(max-width:390px){.brand-tag{display:none}.scene-copy{max-height:31px;overflow:hidden}.action-tile{padding:6px}.grid{grid-template-columns:repeat(3,1fr)}}
 </style>
 <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" crossorigin="anonymous"></script>
 </head>
@@ -269,7 +284,7 @@ const SAVE_KEY='xianxia_v12_legacy_cache';
 
 async function boot(){
   try{
-    const r=await fetch('xianxia_config_V12.json?v=20260717-220',{cache:'no-store'});
+    const r=await fetch('xianxia_config_V12.json?v=20260719-fix2-1',{cache:'no-store'});
     if(!r.ok)throw new Error('config '+r.status);
     C=await r.json(); P=C.params; R=C.realms; IT=C.items;
     $('continueBtn').style.display=localStorage.getItem(SAVE_KEY)?'block':'none';
@@ -733,15 +748,15 @@ function confirmReset(){
 </script>
 <script src="v12_online.js?v=20260718-264"></script>
 <script src="v12_breakthrough.js?v=20260718-280"></script>
-<script src="v12_runtime_config.js?v=20260718-290"></script>
+<script src="v12_runtime_config.js?v=20260719-fix2-1"></script>
 <script>window.XIANXIA_V13_EXTERNAL_SCHEDULER=true;</script>
-<script src="v13_ai_brain.js?v=20260719-350"></script>
-<script src="v13_ambush.js?v=20260719-350"></script>
-<script src="v13_ai_observatory.js?v=20260719-350"></script>
+<script src="v13_ai_brain.js?v=20260719-fix2-1"></script>
+<script src="v13_ambush.js?v=20260719-fix2-1"></script>
+<script src="v13_ai_observatory.js?v=20260719-fix2-1"></script>
 <script src="rewarded_ads_config.js?v=20260719-350"></script>
 <script src="v13_rewarded_ads.js?v=20260719-350"></script>
-<script src="v13_world_orchestrator.js?v=20260719-350"></script>
-<script src="v13_5_world_expansion.js?v=20260719-fix1-1"></script>
-<script src="v13_5_craft_engine.js?v=20260719-fix1-2"></script>
+<script src="v13_world_orchestrator.js?v=20260719-fix2-1"></script>
+<script src="v13_5_world_expansion.js?v=20260719-fix2-1"></script>
+<script src="v13_5_craft_engine.js?v=20260719-fix2-1"></script>
 </body>
 </html>

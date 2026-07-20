@@ -11,7 +11,34 @@
   ];
 
   function h(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-  function clone(x){return JSON.parse(JSON.stringify(x))}
+  function clone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
+  function plainObject(x){return !!x&&typeof x==='object'&&!Array.isArray(x)}
+  function deepServerPriority(base,server){
+    if(server===undefined)return clone(base);
+    if(!plainObject(base)||!plainObject(server))return clone(server);
+    const out={};for(const k of new Set([...Object.keys(base),...Object.keys(server)]))out[k]=deepServerPriority(base[k],server[k]);return out;
+  }
+  function mergeKeyed(base,server,keyOf){
+    if(!Array.isArray(server))return clone(Array.isArray(base)?base:[]);
+    if(!Array.isArray(base))return clone(server);
+    const baseMap=new Map();for(const row of base){const key=keyOf(row);if(key!==null&&key!==undefined&&key!=='')baseMap.set(String(key),row)}
+    const seen=new Set(),out=[];
+    for(const row of server){const key=keyOf(row),normalized=key===null||key===undefined||key===''?null:String(key);out.push(normalized!==null&&baseMap.has(normalized)?deepServerPriority(baseMap.get(normalized),row):clone(row));if(normalized!==null)seen.add(normalized)}
+    for(const row of base){const key=keyOf(row),normalized=key===null||key===undefined||key===''?null:String(key);if(normalized===null||!seen.has(normalized))out.push(clone(row))}
+    return out;
+  }
+  function mergeV135Config(base,server){
+    if(!plainObject(server))return clone(base);
+    if(!plainObject(base))return clone(server);
+    const out=deepServerPriority(base,server),specs={realms:x=>x?.lv,monsters:x=>x?.id,zones:x=>x?.coord,shop:x=>x?.id,npcShop:x=>x?.id,paymentPackages:x=>x?.id,techniques:x=>x?.id,aiCultivators:x=>x?.id,heavenlyTreasures:x=>x?.itemId,craftingRecipes:x=>x?.id};
+    for(const [field,keyOf] of Object.entries(specs))out[field]=mergeKeyed(base[field],server[field],keyOf);
+    return out;
+  }
+  let staticConfigPromise=null;
+  function loadStaticV135(){
+    if(!staticConfigPromise)staticConfigPromise=fetch('xianxia_config_V12.json?v=20260719-fix2-1',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('靜態 Config '+r.status);return r.json()}).catch(e=>{console.warn('V13.5 static config fallback unavailable',e);return null});
+    return staticConfigPromise;
+  }
   function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
   function setDirty(v=true){state.dirty=v;const e=document.getElementById('configDirty');if(e)e.textContent=v?'尚未儲存':'已同步'}
   function injectStyles(){
@@ -99,13 +126,18 @@
   async function loadConfigAdmin(){
     injectCard();
     try{
-      const [{data:pub,error:pe},{data:vers,error:ve},{data:bc,error:be}]=await Promise.all([sb.rpc('get_published_game_config'),sb.rpc('admin_list_game_config_versions'),sb.rpc('get_breakthrough_config')]);
-      if(pe||ve)throw pe||ve;state.published=pub||null;state.versions=vers||[];state.breakCfg=be?null:bc;
+      const [base,{data:pub,error:pe},{data:vers,error:ve},{data:bc,error:be}]=await Promise.all([loadStaticV135(),sb.rpc('get_published_game_config'),sb.rpc('admin_list_game_config_versions'),sb.rpc('get_breakthrough_config')]);
+      if(pe||ve)throw pe||ve;
+      state.published=pub?{...pub,config:pub.config?mergeV135Config(base,pub.config):pub.config}:null;state.versions=vers||[];state.breakCfg=be?null:bc;
+      state.draft=null;state.draftId=null;state.draftVersion=0;
+      let rawDraft=null,compatAdded=false;
       const draftMeta=state.versions.find(v=>v.status==='draft');
-      if(draftMeta){const {data,error}=await sb.from('game_config_versions').select('id,version,config,notes').eq('id',draftMeta.id).single();if(!error&&data){state.draft=clone(data.config);state.draftId=data.id;state.draftVersion=data.version;document.getElementById('configNotes').value=data.notes||''}}
-      if(!state.draft&&pub?.config){state.draft=clone(pub.config);state.draftId=null;state.draftVersion=0}
-      if(!state.draft){const r=await fetch('xianxia_config_V12.json',{cache:'no-store'});state.draft=await r.json()}
-      state.dirty=false;renderStatus();renderEditor();renderBreakCfg();renderVersions();
+      if(draftMeta){const {data,error}=await sb.from('game_config_versions').select('id,version,config,notes').eq('id',draftMeta.id).single();if(!error&&data){rawDraft=clone(data.config);state.draft=mergeV135Config(base,data.config);state.draftId=data.id;state.draftVersion=data.version;document.getElementById('configNotes').value=data.notes||''}}
+      if(!state.draft&&pub?.config){rawDraft=clone(pub.config);state.draft=mergeV135Config(base,pub.config);state.draftId=null;state.draftVersion=0}
+      if(!state.draft){state.draft=clone(base);if(!state.draft){const r=await fetch('xianxia_config_V12.json?v=20260719-fix2-1',{cache:'no-store'});state.draft=await r.json()}}
+      if(rawDraft&&state.draft)compatAdded=JSON.stringify(rawDraft)!==JSON.stringify(state.draft);
+      state.dirty=compatAdded;renderStatus();renderEditor();renderBreakCfg();renderVersions();
+      window.dispatchEvent(new CustomEvent('xianxia:config-admin-ready',{detail:{draftVersion:state.draftVersion,compatAdded}}));
     }catch(e){document.getElementById('configEditor').innerHTML='<div class="notice">V12.9 後台尚未安裝或載入失敗：'+h(e.message||e)+'</div>'}
   }
 
@@ -169,7 +201,7 @@
   window.createConfigDraftV129=createDraft;window.saveConfigDraftV129=saveDraft;window.publishConfigDraftV129=publishDraft;window.rollbackConfigV129=rollback;window.deleteConfigDraftV129=deleteDraft;
   window.addConfigItemV129=addItem;window.deleteConfigItemV129=delItem;window.addConfigArrayRowV129=addArrayRow;window.deleteConfigArrayRowV129=delArrayRow;window.applyRawConfigV129=applyRaw;
   window.saveBreakthroughConfigV129=saveBreakCfg;window.exportConfigExcelV129=exportExcel;window.importConfigExcelV129=importExcel;
-  window.V129_CONFIG_ADMIN={state,setDirty,renderEditor,refresh:loadConfigAdmin};
+  window.V129_CONFIG_ADMIN={state,setDirty,renderEditor,refresh:loadConfigAdmin,mergeV135Config};
 
   injectCard();setTimeout(()=>{if(!document.getElementById('adminMain')?.classList.contains('hidden'))loadConfigAdmin()},800);
 })();

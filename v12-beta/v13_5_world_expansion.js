@@ -1,32 +1,39 @@
 'use strict';
 (() => {
-  const VERSION = 'V13.5-FIX1-WORLD-TREASURE-2';
+  const VERSION = 'V13.5-FIX2-WORLD-TREASURE-1';
   const REGION_TO_ITEM = Object.freeze({
     '萬木森域':'9501','赤砂荒漠':'9502','太古戰場':'9503','上古遺跡':'9504','崑崙仙山':'9505',
     '北天宮':'9506','玄霜冰原':'9507','滄溟外海':'9508','冰火島':'9509','陰陽海':'9510'
   });
 
+  function player() { return typeof g !== 'undefined' && g ? g : (window.g || null); }
+  function config() { return typeof C !== 'undefined' && C ? C : (window.C || null); }
+  function params() { return typeof P !== 'undefined' && P ? P : (window.P || {}); }
+  function items() { return typeof IT !== 'undefined' && IT ? IT : (window.IT || {}); }
+
   function ensureState() {
-    if (!window.g) return null;
-    g.worldStats = g.worldStats || {};
-    g.worldStats.heavenlyTreasure = g.worldStats.heavenlyTreasure || {
+    const p = player(); if (!p) return null;
+    p.worldStats = p.worldStats || {};
+    p.worldStats.heavenlyTreasure = p.worldStats.heavenlyTreasure || {
       discoveries: 0, captures: 0, failedCaptures: 0, aiCaptures: 0, byItem: {}
     };
-    g.aiTreasures = g.aiTreasures || {};
-    return g.worldStats.heavenlyTreasure;
+    p.aiTreasures = p.aiTreasures || {};
+    return p.worldStats.heavenlyTreasure;
   }
 
   function rates() {
+    const p = params();
     return {
-      discovery: Number(window.P?.heavenly_treasure_discovery_rate ?? 0.15),
-      capture: Number(window.P?.heavenly_treasure_capture_rate ?? 0.10),
-      ai: Number(window.P?.heavenly_treasure_ai_rate ?? 0.0015)
+      discovery: Number(p.heavenly_treasure_discovery_rate ?? 0.15),
+      capture: Number(p.heavenly_treasure_capture_rate ?? 0.10),
+      ai: Number(p.heavenly_treasure_ai_rate ?? 0.0015)
     };
   }
 
   function currentZone() {
-    if (!window.g || typeof window.zoneAt !== 'function') return null;
-    return zoneAt(g.pos.r, g.pos.c);
+    const p = player();
+    if (!p || typeof window.zoneAt !== 'function') return null;
+    return zoneAt(p.pos.r, p.pos.c);
   }
 
   function record(itemId, field) {
@@ -42,11 +49,11 @@
   function beforeExplore() {
     const z = currentZone();
     const itemId = z && REGION_TO_ITEM[z.name];
-    if (!itemId || !window.IT?.[itemId]) return false;
+    if (!itemId || !items()[itemId]) return false;
     const r = rates();
     if (Math.random() >= r.discovery) return false;
 
-    const item = IT[itemId];
+    const item = items()[itemId];
     record(itemId, 'discoveries');
     if (Math.random() < r.capture) {
       g.inv = g.inv || {};
@@ -65,15 +72,17 @@
   }
 
   function tickAiTreasures() {
-    if (!Array.isArray(window.ai) || !window.C?.zones) return;
+    const c = config();
+    if (typeof ai === 'undefined' || !Array.isArray(ai) || !Array.isArray(c?.zones)) return;
     const r = rates();
     for (const cultivator of ai) {
       if (!cultivator?.alive || cultivator.action !== '探索') continue;
-      const z = C.zones.find(x => x.coord === cultivator.coord);
+      const z = c.zones.find(x => x.coord === cultivator.coord);
       const itemId = z && REGION_TO_ITEM[z.name];
       if (!itemId || Math.random() >= r.ai) continue;
-      g.aiTreasures[cultivator.id] = g.aiTreasures[cultivator.id] || {};
-      g.aiTreasures[cultivator.id][itemId] = (g.aiTreasures[cultivator.id][itemId] || 0) + 1;
+      const p = player(); if (!p) return;
+      p.aiTreasures[cultivator.id] = p.aiTreasures[cultivator.id] || {};
+      p.aiTreasures[cultivator.id][itemId] = (p.aiTreasures[cultivator.id][itemId] || 0) + 1;
       record(itemId, 'aiCaptures');
     }
   }

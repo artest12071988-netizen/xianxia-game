@@ -10,8 +10,12 @@
     cycleCount: 0
   };
 
+  function cloud() {
+    try { return typeof cloudState !== 'undefined' && cloudState ? cloudState : (window.cloudState || null); }
+    catch (_) { return window.cloudState || null; }
+  }
   function ready() {
-    const cs = window.cloudState;
+    const cs = cloud();
     return !!(cs?.enabled && cs?.user && cs?.client);
   }
 

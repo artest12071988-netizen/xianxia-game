@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const VERSION='V13.5-FIX1-ADMIN-CRAFT-2';
+  const VERSION='V13.5-FIX2-ADMIN-CRAFT-1';
   const cardId='craftConfigCardV135';
   const categories=new Set(['alchemy','equipment','legendary']);
   const finite=v=>Number.isFinite(Number(v));
@@ -17,9 +17,9 @@
   function api(){return window.V129_CONFIG_ADMIN||null}
   function draft(){return api()?.state?.draft||null}
   function refresh(){
-    const d=draft();if(!d)return;
+    const d=draft(),consume=document.getElementById('craftConsume');if(!d||!consume)return false;
     const p=d.params||{};
-    document.getElementById('craftConsume').value=String(p.craft_consume_materials!==false);
+    consume.value=String(p.craft_consume_materials!==false);
     document.getElementById('craftEncounter').value=Number(p.master_craftsman_encounter_rate??.10);
     document.getElementById('craftWilling').value=Number(p.master_craftsman_initial_willingness_rate??.02);
     document.getElementById('craftIncrement').value=Number(p.master_craftsman_rejection_increment??.01);
@@ -28,6 +28,7 @@
     document.getElementById('craftEquipmentRate').value=Number(p.craft_equipment_default_success_rate??1);
     document.getElementById('craftLegendaryRate').value=Number(p.craft_legendary_default_success_rate??.35);
     document.getElementById('craftRecipes').value=JSON.stringify(d.craftingRecipes||[],null,2);
+    return true;
   }
   function validateRecipes(recipes,d){
     if(!Array.isArray(recipes))throw new Error('配方必須是陣列');
@@ -75,7 +76,9 @@
       api()?.setDirty?.(true);toast('煉造設定已驗證並套用至草稿，請再儲存並發布');
     }catch(e){toast('煉造設定錯誤：'+e.message)}
   }
-  window.V135_ADMIN_CRAFTING={version:VERSION,validateRecipes};
+  window.V135_ADMIN_CRAFTING={version:VERSION,validateRecipes,refresh};
   window.applyCraftConfigV135=apply;
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(inject,400));else setTimeout(inject,400);
+  window.addEventListener?.('xianxia:config-admin-ready',()=>{inject();refresh()});
+  function boot(){inject();let tries=0;const poll=()=>{if(refresh()||tries++>=40)return;setTimeout(poll,250)};poll()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,200));else setTimeout(boot,200);
 })();

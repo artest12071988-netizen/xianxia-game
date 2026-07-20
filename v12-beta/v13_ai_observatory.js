@@ -3,7 +3,7 @@
   const VERSION = 'V13.3-OBS-FIX1';
   const S = { timer: null, busy: false, lastResult: null, lastError: null };
 
-  function cloud() { return window.cloudState; }
+  function cloud() { try { return typeof cloudState !== 'undefined' && cloudState ? cloudState : (window.cloudState || null); } catch (_) { return window.cloudState || null; } }
 
   async function rpc(name, args = {}) {
     const cs = cloud();

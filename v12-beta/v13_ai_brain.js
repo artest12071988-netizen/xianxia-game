@@ -1,9 +1,10 @@
 'use strict';
 (() => {
   const state={timer:null,busy:false,lastRun:0};
+  function cloud(){try{return typeof cloudState!=='undefined'&&cloudState?cloudState:(window.cloudState||null)}catch{return window.cloudState||null}}
   async function tick(){
     if(state.busy) return;
-    const cs=window.cloudState;
+    const cs=cloud();
     if(!cs?.enabled||!cs?.user||!cs?.client) return;
     state.busy=true;
     try{

@@ -116,10 +116,12 @@
     } catch (error) { host.textContent = error?.message || String(error); }
   }
 
+  function adminSessionReady() { try { return typeof sessionUser !== 'undefined' && !!sessionUser; } catch (_) { return false; } }
+
   function boot() {
     ensureUI();
     const wait = setInterval(() => {
-      if (window.V13_AI_OBSERVATORY && window.cloudState?.user) {
+      if (window.V13_AI_OBSERVATORY && adminSessionReady()) {
         clearInterval(wait);
         setTimeout(load, 500);
       }

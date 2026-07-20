@@ -1,22 +1,25 @@
 'use strict';
 (() => {
-  const VERSION='V13.5-FIX1-CRAFT-2';
+  const VERSION='V13.5-FIX2-CRAFT-1';
   let activeTab='alchemy';
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const num=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
+  function player(){return typeof g!=='undefined'&&g?g:(window.g||null);}
+  function config(){return typeof C!=='undefined'&&C?C:(window.C||null);}
+  function params(){return typeof P!=='undefined'&&P?P:(window.P||{});}
+  function items(){return typeof IT!=='undefined'&&IT?IT:(window.IT||{});}
   function ensureState(){
-    if(!window.g)return null;
-    g.craftingStats=g.craftingStats||{attempts:0,successes:0,failures:0,byRecipe:{}};
-    g.masterCraftsman=g.masterCraftsman||{available:false,rejections:0,encounters:0,lastEncounterAt:0,lastSuccessAt:0};
-    return g.masterCraftsman;
+    const p=player();if(!p)return null;
+    p.craftingStats=p.craftingStats||{attempts:0,successes:0,failures:0,byRecipe:{}};
+    p.masterCraftsman=p.masterCraftsman||{available:false,rejections:0,encounters:0,lastEncounterAt:0,lastSuccessAt:0};
+    return p.masterCraftsman;
   }
-  function params(){return window.P||{};}
-  function recipes(){return Array.isArray(window.C?.craftingRecipes)?C.craftingRecipes.filter(x=>x&&x.enabled!==false):[];}
+  function recipes(){const c=config();return Array.isArray(c?.craftingRecipes)?c.craftingRecipes.filter(x=>x&&x.enabled!==false):[];}
   function recipe(id){return recipes().find(x=>x.id===id)||null;}
-  function itemName(id){return window.IT?.[String(id)]?.name||String(id);}
-  function itemCount(id){return num(g?.inv?.[String(id)],0);}
+  function itemName(id){return items()[String(id)]?.name||String(id);}
+  function itemCount(id){return num(player()?.inv?.[String(id)],0);}
   function ownsBlueprint(id){return !id||itemCount(id)>0;}
   function defaultRate(cat){
     const p=params();
@@ -33,13 +36,13 @@
     if(!r.id||typeof r.id!=='string')return {ok:false,msg:'配方 ID 錯誤'};
     if(!Number.isFinite(Number(r.stamina))||Number(r.stamina)<0)return {ok:false,msg:'精力設定錯誤'};
     if(r.successRate!==undefined&&(!Number.isFinite(Number(r.successRate))||Number(r.successRate)<0||Number(r.successRate)>1))return {ok:false,msg:'成功率設定錯誤'};
-    if(r.blueprint&&!window.IT?.[String(r.blueprint)])return {ok:false,msg:'圖譜設定不存在'};
+    if(r.blueprint&&!items()[String(r.blueprint)])return {ok:false,msg:'圖譜設定不存在'};
     if(!r.materials||typeof r.materials!=='object'||Array.isArray(r.materials))return {ok:false,msg:'材料設定錯誤'};
     for(const [mid,q] of Object.entries(r.materials)){
-      if(!window.IT?.[String(mid)]||!positiveInt(q))return {ok:false,msg:'材料設定錯誤'};
+      if(!items()[String(mid)]||!positiveInt(q))return {ok:false,msg:'材料設定錯誤'};
     }
     const outId=String(r.output?.itemId||'');
-    if(!outId||!window.IT?.[outId]||!positiveInt(r.output?.qty??1))return {ok:false,msg:'產物設定不存在'};
+    if(!outId||!items()[outId]||!positiveInt(r.output?.qty??1))return {ok:false,msg:'產物設定不存在'};
     if(typeof window.isEquipmentId==='function'&&window.isEquipmentId(outId)&&typeof window.newEquipment!=='function')return {ok:false,msg:'裝備生成函式不存在'};
     return {ok:true,msg:''};
   }
@@ -124,7 +127,7 @@
     return ['locked','未遇見','前往冰火島探索，才有機會遇見絕世工匠。'];
   }
   function openCrafting(tab='alchemy'){
-    activeTab=tab;ensureState();
+    activeTab=tab;if(!ensureState()){toast('角色資料尚未載入');return false;}
     const labels={alchemy:'煉丹',equipment:'煉器',legendary:'絕世工匠'};
     let h='<h3>萬法煉造</h3><div class="tabs">'+Object.keys(labels).map(k=>'<button class="'+(activeTab===k?'on':'')+'" onclick="openCrafting(\''+k+'\')">'+labels[k]+'</button>').join('')+'</div>';
     if(activeTab==='legendary'){
@@ -139,7 +142,7 @@
     h+='<div class="small">材料消耗：'+(consumes()?'開啟':'關閉（封測模式）')+'</div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">離開</button>';
     sheet(h);
   }
-  function currentZoneName(){try{return zoneAt(g.pos.r,g.pos.c)?.name||''}catch{return ''}}
+  function currentZoneName(){try{const p=player();return p?zoneAt(p.pos.r,p.pos.c)?.name||'':''}catch{return ''}}
   function tryMasterEncounter(){
     const s=ensureState();if(!s||s.available||currentZoneName()!=='冰火島')return false;
     if(Math.random()>=clamp(num(params().master_craftsman_encounter_rate,.10),0,1))return false;
