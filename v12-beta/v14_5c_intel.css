@@ -1,0 +1,15 @@
+/* V14.5C FIX1 — 探索情報介面 */
+.v145c-kicker{font-size:10px;letter-spacing:.22em;color:#78909b;margin-bottom:4px}
+.v145c-intel-summary{display:grid;grid-template-columns:auto 1fr;gap:2px 9px;align-items:end;padding:11px 13px;margin:10px 0 12px;border:1px solid rgba(215,185,107,.18);border-radius:12px;background:linear-gradient(135deg,rgba(25,35,46,.76),rgba(6,11,17,.88))}
+.v145c-intel-summary>b{grid-row:1/3;font:28px "Songti TC","Noto Serif TC",serif;color:var(--gold)}
+.v145c-intel-summary>span{font-size:13px;color:#d9d4c7}.v145c-intel-summary>small{font-size:10px;color:var(--muted)}
+.v145c-intel-list{display:grid;gap:9px}.v145c-intel-card{padding:12px;border:1px solid rgba(130,154,182,.18);border-radius:12px;background:linear-gradient(145deg,rgba(12,21,31,.92),rgba(5,9,14,.96))}
+.v145c-intel-card[data-status="arrived"]{border-color:rgba(85,217,207,.34)}
+.v145c-intel-top{display:flex;align-items:center;gap:9px}.v145c-intel-top>div{min-width:0;flex:1}.v145c-intel-top b{display:block;color:#e0c77d;font-size:14px}.v145c-intel-top small{display:block;margin-top:2px;color:var(--muted);font-size:10px}
+.v145c-intel-icon{width:32px;height:32px;display:grid;place-items:center;flex:0 0 32px;border:1px solid rgba(215,185,107,.35);border-radius:10px;color:var(--gold);font-family:"Songti TC",serif;background:rgba(215,185,107,.06)}
+.v145c-intel-card p{margin:9px 0;color:#c7cbd0;font-size:12px;line-height:1.65}.v145c-intel-target{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:9px;background:rgba(2,7,11,.54);font-size:11px}.v145c-intel-target span{color:var(--muted)}.v145c-intel-target b{color:var(--jade)}.v145c-intel-target em{margin-left:auto;color:#75d5ba;font-style:normal;font-size:10px}
+.v145c-intel-actions{display:flex;gap:7px;margin-top:9px}.v145c-intel-actions .btn{padding:8px 10px;font-size:11px}.v145c-intel-empty{padding:28px 16px;text-align:center;border:1px dashed rgba(130,154,182,.22);border-radius:12px;color:var(--muted);font-size:12px;line-height:1.7}
+.v14f-cell,.cell,[data-coord]{position:relative}.v145c-intel-marker{position:absolute;z-index:6;right:4px;top:4px;min-width:22px;height:22px;padding:0 5px;display:grid;place-items:center;border-radius:999px;border:1px solid rgba(241,209,115,.72);background:rgba(7,12,18,.9);color:#f1d173;font:bold 10px "Songti TC",serif;box-shadow:0 0 0 2px rgba(0,0,0,.35),0 0 14px rgba(241,209,115,.18);pointer-events:none}
+.v145c-intel-marker.focus{animation:v145cPulse 1.1s ease-in-out infinite;box-shadow:0 0 0 2px rgba(0,0,0,.35),0 0 20px rgba(85,217,207,.72);border-color:var(--jade);color:var(--jade)}
+@keyframes v145cPulse{50%{transform:scale(1.18)}}
+@media(max-width:520px){.v145c-intel-card{padding:10px}.v145c-intel-card p{font-size:11px}.v145c-intel-target{align-items:flex-start;flex-wrap:wrap}.v145c-intel-target em{width:100%;margin-left:0}.v145c-intel-actions .btn{flex:1}}
