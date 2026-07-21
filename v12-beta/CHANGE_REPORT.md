@@ -1,14 +1,16 @@
-# V14.6 ADMIN UI FIX2
+# V14.6 ADMIN UI FIX3
 
-## 修正
-- 修正 FIX1 將所有功能誤歸於同一頂層內容容器的問題。
-- 建立真正獨立的分類 pane。
-- 各功能卡片依標題搬入對應 pane。
-- 動態載入的拍賣、數值、煉造與 AI 模組仍會自動分類。
+## 目標
+將道具與配方管理簡化為「儲存修改」與「發布正式版」。
 
-## 保留
-- 原始 HTML 欄位 ID
-- onclick 事件
-- Supabase/RPC
-- 原始外部腳本引用
-- 所有管理功能與資料流程
+## 修改
+- 隱藏「建立草稿／儲存草稿／發布草稿／套用全部到草稿」等工程流程按鈕。
+- 道具儲存自動建立或更新 Config 草稿。
+- 配方儲存自動執行配方驗證與套用，再更新 Config 草稿。
+- 發布自動依序執行套用、驗證、儲存、發布。
+- 保留版本紀錄、回復、Excel、完整 JSON 與所有既有 RPC。
+
+## 靜態驗證
+- admin_professional_ui.js：JavaScript 語法 PASS。
+- admin_crafting.js：JavaScript 語法 PASS。
+- 原 admin.html 欄位 ID 數量維持 44。

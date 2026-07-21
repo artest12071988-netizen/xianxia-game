@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const VERSION='V14.5B-FIX1-ADMIN-CRAFT-VISUAL-1';
+  const VERSION='V14.6-ADMIN-CRAFT-SIMPLE-FLOW-FIX3';
   const cardId='craftConfigCardV145B';
   const categories=['alchemy','equipment','legendary'];
   const categoryLabel={alchemy:'煉丹',equipment:'煉器',legendary:'絕世鍛造'};
@@ -129,7 +129,7 @@
   }
   function validateRows(){return validateRecipeRows(rows,draft())}
   function apply(){
-    const d=draft();if(!d)return toastMsg('請先載入或建立 Config 草稿');
+    const d=draft();if(!d){toastMsg('請先載入或建立 Config 草稿');return false;}
     try{
       const recipes=validateRows(),p=d.params||(d.params={});
       p.craft_consume_materials=document.getElementById('craftConsume').value==='true';
@@ -141,8 +141,8 @@
       p.craft_alchemy_default_success_rate=rate(document.getElementById('craftAlchemyRate').value,'煉丹預設成功率');
       p.craft_equipment_default_success_rate=rate(document.getElementById('craftEquipmentRate').value,'煉器預設成功率');
       p.craft_legendary_default_success_rate=rate(document.getElementById('craftLegendaryRate').value,'絕世鍛造預設成功率');
-      d.craftingRecipes=recipes;rows=recipes.map(normalizeRecipe);localDirty=false;draftStamp=stampOf(d);api()?.setDirty?.(true);toastMsg('已套用至 Config 草稿；請再儲存草稿並發布');render();
-    }catch(e){toastMsg('煉造設定錯誤：'+e.message)}
+      d.craftingRecipes=recipes;rows=recipes.map(normalizeRecipe);localDirty=false;draftStamp=stampOf(d);api()?.setDirty?.(true);toastMsg('煉造設定已套用');render();return true;
+    }catch(e){toastMsg('煉造設定錯誤：'+e.message);return false;}
   }
   function handleClick(e){
     const b=e.target.closest('[data-action]');if(!b)return;const action=b.dataset.action,i=Number(b.dataset.row),j=Number(b.dataset.mat);

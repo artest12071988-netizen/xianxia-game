@@ -121,3 +121,101 @@ function init(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
+
+/* V14.6 ADMIN UI FIX3｜道具與配方簡化工作流
+   僅包裝既有套用、儲存、發布函式；不改 Config/RPC/資料結構。 */
+(function(){
+'use strict';
+const SIMPLE_ATTR='data-simple-workflow-ready';
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+const text=n=>(n?.textContent||'').replace(/\s+/g,' ').trim();
+function toastSafe(message){
+  if(typeof window.toast==='function')window.toast(message);
+  else alert(message);
+}
+function busy(button,on,label){
+  if(!button)return;
+  if(on){button.dataset.oldText=button.textContent;button.disabled=true;button.textContent=label||'處理中…';}
+  else{button.disabled=false;button.textContent=button.dataset.oldText||button.textContent;}
+}
+function findButton(root,patterns){
+  return Array.from(root?.querySelectorAll('button')||[]).find(b=>patterns.some(p=>p.test(text(b))));
+}
+function hideLegacyButtons(card,type){
+  const patterns=type==='config'
+    ? [/從目前正式版建立草稿/,/^儲存草稿$/,/^發布草稿$/]
+    : [/套用全部到草稿/,/套用至目前草稿/,/^儲存草稿$/,/^發布草稿$/];
+  Array.from(card.querySelectorAll('button')).forEach(b=>{
+    if(patterns.some(p=>p.test(text(b)))){
+      b.classList.add('admin-ui-legacy-workflow');
+      b.setAttribute('aria-hidden','true');
+      b.tabIndex=-1;
+    }
+  });
+}
+function applyCraftChanges(card){
+  if(typeof window.applyCraftConfigV135==='function'){
+    const result=window.applyCraftConfigV135();
+    if(result===false)throw new Error('配方內容尚未通過驗證');
+    return true;
+  }
+  const apply=findButton(card,[/套用全部到草稿/,/套用至目前草稿/]);
+  if(apply){apply.click();return true;}
+  return true;
+}
+async function saveConfig(){
+  if(typeof window.saveConfigDraftV129!=='function')throw new Error('遊戲數值儲存功能尚未載入');
+  const ok=await window.saveConfigDraftV129();
+  if(ok===false)throw new Error('資料驗證未通過，請查看畫面提示');
+  return true;
+}
+async function publishConfig(){
+  await saveConfig();
+  await delay(80);
+  if(typeof window.publishConfigDraftV129!=='function')throw new Error('發布功能尚未載入');
+  await window.publishConfigDraftV129();
+}
+function makeBar(card,type){
+  if(card.hasAttribute(SIMPLE_ATTR))return;
+  card.setAttribute(SIMPLE_ATTR,'1');
+  hideLegacyButtons(card,type);
+  const bar=document.createElement('div');
+  bar.className='admin-ui-simple-workflow';
+  bar.innerHTML='<div class="admin-ui-simple-copy"><b>修改完成後只要兩步</b><span>先儲存確認內容，再發布到正式遊戲。</span></div><div class="admin-ui-simple-actions"><button type="button" class="btn jade" data-simple-save>儲存修改</button><button type="button" class="btn gold" data-simple-publish>發布正式版</button></div>';
+  const heading=card.querySelector(':scope > h2, :scope > .head');
+  if(heading)heading.insertAdjacentElement('afterend',bar);else card.prepend(bar);
+  const saveBtn=bar.querySelector('[data-simple-save]');
+  const pubBtn=bar.querySelector('[data-simple-publish]');
+  saveBtn.addEventListener('click',async()=>{
+    busy(saveBtn,true,'儲存中…');
+    try{
+      if(type==='craft')applyCraftChanges(card);
+      await delay(60);
+      await saveConfig();
+      toastSafe('修改已儲存，尚未發布到遊戲');
+    }catch(e){toastSafe('儲存失敗：'+(e?.message||e));}
+    finally{busy(saveBtn,false);}
+  });
+  pubBtn.addEventListener('click',async()=>{
+    if(!confirm('確定將目前修改發布到正式遊戲？'))return;
+    busy(pubBtn,true,'發布中…');
+    try{
+      if(type==='craft')applyCraftChanges(card);
+      await delay(60);
+      await publishConfig();
+    }catch(e){toastSafe('發布失敗：'+(e?.message||e));}
+    finally{busy(pubBtn,false);}
+  });
+}
+function enhance(){
+  document.querySelectorAll('#adminMain section.card').forEach(card=>{
+    const t=text(card.querySelector(':scope > h2, :scope > .head h2'));
+    if(/遊戲數值營運後台/.test(t))makeBar(card,'config');
+    if(/萬法煉造與合成控制台|V13\.5 煉造系統|絕世神匠|萬法譜/.test(t))makeBar(card,'craft');
+  });
+}
+let pending=false;
+function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;enhance();});}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{enhance();new MutationObserver(schedule).observe(document.getElementById('adminMain')||document.body,{childList:true,subtree:true});});
+else{enhance();new MutationObserver(schedule).observe(document.getElementById('adminMain')||document.body,{childList:true,subtree:true});}
+})();

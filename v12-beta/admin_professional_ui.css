@@ -156,3 +156,10 @@ body.admin-ui-ready #adminMain .status div{padding:9px 10px}
 .admin-ui-pane[data-group="auction"]>.card{grid-column:1/-1}
 .admin-ui-managed[data-ui-search-hidden="true"]{display:none!important}
 @media(max-width:1180px){.admin-ui-pane{grid-template-columns:minmax(0,1fr)}}
+
+/* FIX3｜簡化道具／配方發布流程 */
+.admin-ui-legacy-workflow{display:none!important}
+.admin-ui-simple-workflow{position:sticky;top:12px;z-index:25;display:flex;align-items:center;justify-content:space-between;gap:14px;margin:12px 0 16px;padding:13px 14px;border:1px solid rgba(86,216,206,.48);border-radius:12px;background:rgba(7,17,27,.96);box-shadow:0 12px 30px rgba(0,0,0,.32);backdrop-filter:blur(10px)}
+.admin-ui-simple-copy{display:grid;gap:3px}.admin-ui-simple-copy b{color:var(--jade,#56d8ce);font-size:15px}.admin-ui-simple-copy span{color:var(--muted,#8f9aaa);font-size:12px}
+.admin-ui-simple-actions{display:flex;gap:8px;min-width:300px}.admin-ui-simple-actions .btn{flex:1;white-space:nowrap}
+@media(max-width:700px){.admin-ui-simple-workflow{top:6px;display:grid}.admin-ui-simple-actions{min-width:0;width:100%}.admin-ui-simple-actions .btn{min-height:50px}}
