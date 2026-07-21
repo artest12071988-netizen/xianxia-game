@@ -1,0 +1,22 @@
+#v145dMaintenanceGate{
+  position:fixed;inset:0;z-index:2147483647;display:none;place-items:center;
+  padding:22px;background:
+    radial-gradient(circle at 50% 18%,rgba(56,137,133,.18),transparent 34%),
+    rgba(2,6,10,.985);color:#eee9dc;font-family:"PingFang TC","Noto Sans TC",system-ui,sans-serif;
+}
+#v145dMaintenanceGate.on{display:grid}
+#v145dMaintenanceGate .maintenance-shell{
+  width:min(520px,100%);padding:26px 22px;border:1px solid rgba(216,185,102,.42);
+  border-radius:22px;background:linear-gradient(155deg,rgba(17,29,39,.98),rgba(6,12,19,.98));
+  box-shadow:0 28px 90px rgba(0,0,0,.72);text-align:center;
+}
+#v145dMaintenanceGate .maintenance-seal{
+  width:72px;height:72px;margin:0 auto 14px;display:grid;place-items:center;border-radius:50%;
+  border:1px solid rgba(216,185,102,.6);color:#d8b966;font-family:"Songti TC",serif;font-size:30px;
+  background:radial-gradient(circle,rgba(216,185,102,.11),transparent 66%);
+}
+#v145dMaintenanceGate h2{margin:0 0 10px;color:#d8b966;font-family:"Songti TC",serif;font-weight:500}
+#v145dMaintenanceGate p{margin:8px 0;color:#c8c3b6;line-height:1.75}
+#v145dMaintenanceGate .maintenance-progress{margin-top:16px;padding:11px 13px;border:1px solid rgba(86,216,206,.22);border-radius:12px;background:rgba(5,13,20,.7);color:#78d7ce;font-size:13px}
+#v145dMaintenanceGate .maintenance-revision{margin-top:10px;color:#7f8b99;font-size:12px}
+body.v145d-maintenance-locked{overflow:hidden!important;touch-action:none!important}
