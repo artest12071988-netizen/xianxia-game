@@ -35,8 +35,30 @@
       const b=document.createElement('button');b.type='button';b.className='v145a-more-item';b.dataset.v145bCodex='1';b.innerHTML='<span>譜</span><b>萬法譜</b><small>查看公開合成配方</small>';b.addEventListener('click',()=>{get('closeOv')?.();setTimeout(()=>openCodex('all'),80)});grid.appendChild(b);
     });
   }
-  function ensureFinalEncounterHook(){window.V135_CRAFT_ENGINE?.installEncounterHook?.();window.V135_CRAFT_ENGINE?.updateNpcPresence?.()}
-  function boot(){injectMoreMenu();ensureFinalEncounterHook();const observer=new MutationObserver(()=>{injectMoreMenu();ensureFinalEncounterHook()});observer.observe(document.body,{childList:true,subtree:true});setTimeout(ensureFinalEncounterHook,300);setTimeout(ensureFinalEncounterHook,1200);setInterval(()=>{injectMoreMenu();ensureFinalEncounterHook()},2500)}
+  function gameReady(){
+    const game=document.getElementById('game');
+    return !!(game && !game.classList.contains('hide') && window.V135_CRAFT_ENGINE);
+  }
+  let refreshTimer=0;
+  function ensureFinalEncounterHook(){
+    if(!gameReady())return;
+    window.V135_CRAFT_ENGINE?.installEncounterHook?.();
+    window.V135_CRAFT_ENGINE?.updateNpcPresence?.();
+  }
+  function safeRefresh(){
+    if(!gameReady())return;
+    injectMoreMenu();
+    ensureFinalEncounterHook();
+  }
+  function boot(){
+    // FIX4H: 移除全頁 MutationObserver。它會因神匠按鈕與黑雲地圖標記的
+    // DOM 變動互相觸發，造成登入後高頻同步執行與頁面假死。
+    safeRefresh();
+    setTimeout(safeRefresh,500);
+    setTimeout(safeRefresh,1600);
+    clearInterval(refreshTimer);
+    refreshTimer=setInterval(safeRefresh,5000);
+  }
   window.openRecipeCodexV145B=openCodex;window.V145B_CRAFTING_CODEX={version:VERSION,recipes,open:openCodex,injectMoreMenu,ensureFinalEncounterHook};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

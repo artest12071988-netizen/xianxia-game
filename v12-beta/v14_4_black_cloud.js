@@ -178,7 +178,10 @@
   }
   function boot(){
     wrapCombatFunctions();wrapNavigationFunctions();updateState();
-    if(!state.observer){state.observer=new MutationObserver(()=>{markMapCells();lockMapButtons()});state.observer.observe(document.body,{childList:true,subtree:true})}
+    // FIX4H: 不再監看整個 document.body。原本的全頁 MutationObserver
+    // 會與萬法譜／神匠的 DOM 更新互相喚醒，登入後造成主執行緒長時間忙碌。
+    // 既有 1 秒安全輪詢已足以更新黑雲格標記與移動鎖定。
+    if(state.observer){try{state.observer.disconnect()}catch(_){ }state.observer=null}
   }
   const timer=setInterval(()=>{try{boot()}catch(e){console.warn('[V14 black cloud]',e)}},1000);
   window.addEventListener('beforeunload',()=>clearInterval(timer));
