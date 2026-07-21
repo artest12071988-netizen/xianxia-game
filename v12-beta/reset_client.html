@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>修仙大逃殺－瀏覽器資料重置</title>
+<style>
+  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#07111f;color:#eef3ff;margin:0;min-height:100vh;display:grid;place-items:center}
+  main{width:min(92vw,520px);background:#101b2c;border:1px solid #31415c;border-radius:18px;padding:24px;box-sizing:border-box}
+  h1{font-size:1.25rem;margin:0 0 12px}
+  p{line-height:1.6;color:#c9d4e7}
+  button{width:100%;border:0;border-radius:12px;padding:14px 16px;font-size:1rem;font-weight:700;background:#d8b66a;color:#17120a;cursor:pointer}
+  #status{margin-top:14px;white-space:pre-wrap;color:#d9e4f7}
+  small{display:block;margin-top:12px;color:#93a4bd}
+</style>
+</head>
+<body>
+<main>
+  <h1>瀏覽器資料重置</h1>
+  <p>此工具只清除此瀏覽器對本遊戲的本機快取、離線資料與 Service Worker，不會刪除 Supabase 雲端角色存檔。</p>
+  <button id="resetBtn" type="button">清除本機資料並重新進入遊戲</button>
+  <div id="status" aria-live="polite"></div>
+  <small>完成後會自動返回遊戲入口。</small>
+</main>
+<script>
+(async function(){
+  const btn = document.getElementById('resetBtn');
+  const status = document.getElementById('status');
+
+  async function resetClientData(){
+    btn.disabled = true;
+    status.textContent = '正在清除本機資料…';
+
+    try { localStorage.clear(); } catch (e) {}
+    try { sessionStorage.clear(); } catch (e) {}
+
+    if ('caches' in window) {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      } catch (e) {}
+    }
+
+    if ('serviceWorker' in navigator) {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      } catch (e) {}
+    }
+
+    if (window.indexedDB && indexedDB.databases) {
+      try {
+        const dbs = await indexedDB.databases();
+        await Promise.all((dbs || []).filter(db => db && db.name).map(db => new Promise(resolve => {
+          const req = indexedDB.deleteDatabase(db.name);
+          req.onsuccess = req.onerror = req.onblocked = () => resolve();
+        })));
+      } catch (e) {}
+    }
+
+    status.textContent = '清除完成，正在重新進入遊戲…';
+    const target = './?clientReset=' + Date.now();
+    setTimeout(() => location.replace(target), 800);
+  }
+
+  btn.addEventListener('click', resetClientData);
+})();
+</script>
+</body>
+</html>
