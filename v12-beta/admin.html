@@ -52,7 +52,7 @@
       <section class="card">
         <h2>世界天災</h2>
         <div class="toggle"><span>大天劫</span><span id="tribPill" class="pill">關閉</span></div>
-        <div class="row"><button class="btn red" onclick="setControls({great_tribulation_active:true})">降下大天劫</button><button class="btn" onclick="setControls({great_tribulation_active:false})">結束天劫</button></div>
+        <div class="row"><button class="btn red" onclick="adminStartGreatTribulation(false)">降下大天劫</button><button class="btn" onclick="adminEndGreatTribulation(true)">結束天劫</button></div>
         <div class="toggle"><span>獸潮</span><span id="beastPill" class="pill">關閉</span></div>
         <div class="row"><button class="btn red" onclick="setControls({beast_tide_active:true})">發動獸潮</button><button class="btn" onclick="setControls({beast_tide_active:false})">結束獸潮</button></div>
       </section>
@@ -147,9 +147,9 @@ boot();
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="admin_config.js?v=20260718-290"></script>
 <script src="admin_observatory.js?v=20260719-350"></script>
-<script src="admin_crafting.js?v=20260721-v145b-fix1"></script>
+<script src="admin_crafting.js?v=20260719-fix1-2"></script>
 <script src="admin_auction.js?v=20260720-fix4"></script>
-<script src="admin_great_tribulation.js?v=20260720-fix4d"></script>
+<script src="admin_great_tribulation.js?v=20260721-stage1-fixed"></script>
 <script src="admin_maintenance.js?v=20260721-v145d-1"></script>
 </body>
 </html>
