@@ -3,938 +3,782 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>修仙大逃殺 V10｜Xianxia Engine V1 Alpha V8</title>
+<title>修仙大逃殺 V13.5 FIX2｜最小安全整合修正版</title>
 <style>
-
 :root{
-  --void:#030507;--ink:#eee7d8;--muted:#919aab;--gold:#d8bb6a;--gold2:#8d6b31;
-  --jade:#55d9cf;--jade2:#1e8f91;--red:#ed655c;--amber:#eeb45e;--blue:#597fae;
-  --panel:rgba(8,13,21,.91);--panel2:rgba(14,22,34,.95);--line:rgba(173,193,218,.19);
-  --shadow:0 22px 70px rgba(0,0,0,.48)
+  --void:#020406;--ink:#eee8da;--muted:#8e99a9;--gold:#d7b96b;--gold2:#8d6b31;
+  --jade:#55d9cf;--jade2:#207e82;--red:#ee665e;--amber:#ecb45f;--blue:#5c83af;
+  --panel:rgba(9,14,22,.94);--panel2:rgba(15,23,35,.96);--line:rgba(174,194,218,.18);
+  --shadow:0 24px 80px rgba(0,0,0,.52)
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;background:#020304;color:var(--ink);font-family:"PingFang TC","Noto Sans TC",system-ui,sans-serif}
 body{background:
- radial-gradient(circle at 48% -12%,rgba(50,111,119,.23),transparent 35%),
- radial-gradient(circle at 8% 42%,rgba(129,92,38,.10),transparent 29%),
- linear-gradient(160deg,#020304 0%,#071019 48%,#020304 100%);background-attachment:fixed}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.2;background-image:
- linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);background-size:42px 42px}
-button,input{font:inherit}.small{font-size:12px;color:var(--muted)}
-#app{width:min(1240px,100%);min-height:100vh;margin:auto;position:relative;overflow:hidden;background:
- linear-gradient(180deg,rgba(4,8,12,.87),rgba(3,5,8,.96));box-shadow:0 0 100px rgba(0,0,0,.74)}
-#app:after{content:"仙";position:fixed;right:-30px;bottom:-90px;font:500 340px/1 "Songti TC","Noto Serif TC",serif;color:rgba(193,149,64,.024);pointer-events:none}
-.scr{display:none;position:relative;z-index:1}.scr.on{display:block}.title{font-family:"Songti TC","Noto Serif TC",serif;color:var(--gold);letter-spacing:.18em}
+ radial-gradient(circle at 50% -15%,rgba(48,110,120,.24),transparent 35%),
+ radial-gradient(circle at 8% 45%,rgba(131,91,37,.11),transparent 28%),
+ linear-gradient(160deg,#020304,#07101a 48%,#020304);background-attachment:fixed}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:
+ linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);background-size:42px 42px}
+button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
+#app{width:min(1240px,100%);min-height:100vh;margin:auto;position:relative;background:linear-gradient(180deg,rgba(4,8,12,.87),rgba(3,5,8,.97));box-shadow:0 0 100px rgba(0,0,0,.76)}
+.scr{display:none;position:relative;z-index:1}.scr.on{display:block}
+.title{font-family:"Songti TC","Noto Serif TC",serif;color:var(--gold);letter-spacing:.16em}
 .btn{border:1px solid rgba(126,151,180,.28);background:linear-gradient(180deg,rgba(22,34,49,.96),rgba(8,14,22,.98));color:var(--ink);border-radius:10px;padding:11px 14px;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.035),0 8px 22px rgba(0,0,0,.18);transition:.16s}
-.btn:hover{border-color:rgba(216,187,106,.48);transform:translateY(-1px)}.btn:active{transform:translateY(1px)}.btn.gold{color:var(--gold);border-color:rgba(216,187,106,.48)}.btn.jade{color:var(--jade);border-color:rgba(85,217,207,.43)}.btn.red{color:#ff8077;border-color:rgba(237,101,92,.48)}
-.row{display:flex;gap:8px}.row .btn{flex:1}.card{background:linear-gradient(145deg,rgba(13,20,31,.95),rgba(5,10,16,.94));border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.btn:hover{border-color:rgba(216,187,106,.5);transform:translateY(-1px)}.btn:active{transform:translateY(1px)}
+.btn.gold{color:var(--gold);border-color:rgba(216,187,106,.48)}.btn.jade{color:var(--jade);border-color:rgba(85,217,207,.42)}.btn.red{color:#ff8178;border-color:rgba(237,101,92,.48)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}.row{display:flex;gap:8px}.row .btn{flex:1}
+.card{background:linear-gradient(145deg,rgba(13,20,31,.96),rgba(5,10,16,.95));border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
 .kv{display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:13px}.kv b{color:var(--gold)}
-.bar{height:9px;border-radius:9px;background:#111924;overflow:hidden;border:1px solid rgba(255,255,255,.03)}.bar>i{display:block;height:100%;border-radius:inherit;transition:width .28s}.hpf{background:linear-gradient(90deg,#74302c,#ef665c);box-shadow:0 0 13px rgba(239,102,92,.38)}.mpf{background:linear-gradient(90deg,#1b6170,#55d9cf);box-shadow:0 0 13px rgba(85,217,207,.35)}.xpf{background:linear-gradient(90deg,#745b28,#e5c86e);box-shadow:0 0 13px rgba(216,187,106,.34)}.enemy-hpf{background:linear-gradient(90deg,#4a2133,#bd3f55)}
-.log{height:183px;overflow:auto;background:rgba(1,4,7,.7);border:1px solid rgba(151,174,201,.15);border-radius:9px;padding:11px;font-size:12.5px;line-height:1.75}.log p{margin:0 0 5px}.lg{color:#77d89c}.ld{color:var(--red)}.la{color:var(--amber)}
-.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:999px;background:#172233;color:var(--muted);margin-left:5px}.qi{display:block;margin:auto}.qiflow{animation:flow 1.7s linear infinite}@keyframes flow{to{stroke-dashoffset:-140}}
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#121c29;border:1px solid var(--line);padding:10px 18px;border-radius:999px;opacity:0;transition:.25s;z-index:50;box-shadow:var(--shadow)}.toast.on{opacity:1}
-.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.78);backdrop-filter:blur(7px);z-index:30;padding:20px}.ov.on{display:flex}.sheet{width:min(760px,100%);max-height:90vh;overflow:auto;background:linear-gradient(160deg,#111b29,#050a10);border:1px solid rgba(216,187,106,.28);border-radius:15px;padding:20px;box-shadow:0 30px 90px rgba(0,0,0,.7)}.sheet h3{margin:0 0 6px;font-family:"Songti TC","Noto Serif TC",serif;color:var(--gold);font-size:21px;letter-spacing:.08em}.sheet-title-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}.seal-mark{width:47px;height:47px;border:1px solid rgba(216,187,106,.54);display:grid;place-items:center;color:var(--gold);font-family:"Songti TC",serif;font-size:23px;transform:rotate(3deg);box-shadow:inset 0 0 0 3px rgba(216,187,106,.05)}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.cell{padding:11px 5px;border:1px solid var(--line);border-radius:9px;background:#101a27;color:var(--ink);text-align:center;cursor:pointer}.cell.me{border-color:var(--gold);color:var(--gold)}.cell.void{opacity:.56}.tabs{display:flex;gap:8px;margin-bottom:10px}.tabs button{flex:1;padding:9px;background:#101925;border:1px solid var(--line);color:var(--muted);border-radius:8px}.tabs button.on{color:var(--gold);border-color:var(--gold2)}
+.bar{height:9px;border-radius:9px;background:#111924;overflow:hidden;border:1px solid rgba(255,255,255,.03)}.bar>i{display:block;height:100%;border-radius:inherit;transition:width .28s}
+.hpf{background:linear-gradient(90deg,#74302c,#ef665c)}.mpf{background:linear-gradient(90deg,#1b6170,#55d9cf)}.xpf{background:linear-gradient(90deg,#745b28,#e5c86e)}.enemy-hpf{background:linear-gradient(90deg,#4a2133,#bd3f55)}
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:999px;background:#172233;color:var(--muted);margin-left:5px}
+.log{height:210px;overflow:auto;background:rgba(1,4,7,.72);border:1px solid rgba(151,174,201,.15);border-radius:9px;padding:11px;font-size:12.5px;line-height:1.72}.log p{margin:0 0 5px}.lg{color:#77d89c}.ld{color:var(--red)}.la{color:var(--amber)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#121c29;border:1px solid var(--line);padding:10px 18px;border-radius:999px;opacity:0;transition:.25s;z-index:60;box-shadow:var(--shadow);max-width:90%;text-align:center}.toast.on{opacity:1}
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.79);backdrop-filter:blur(7px);z-index:40;padding:20px}.ov.on{display:flex}
+.sheet{width:min(820px,100%);max-height:92vh;overflow:auto;background:linear-gradient(160deg,#111b29,#050a10);border:1px solid rgba(216,187,106,.28);border-radius:15px;padding:20px;box-shadow:0 30px 90px rgba(0,0,0,.7)}
+.sheet h3{margin:0 0 6px;font-family:"Songti TC","Noto Serif TC",serif;color:var(--gold);font-size:21px;letter-spacing:.08em}
+.tabs{display:flex;gap:7px;margin:14px 0 10px;flex-wrap:wrap}.tabs button{flex:1;min-width:92px;padding:9px;background:#101925;border:1px solid var(--line);color:var(--muted);border-radius:8px}.tabs button.on{color:var(--gold);border-color:var(--gold2)}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.cell{appearance:none;width:100%;padding:9px 4px;border:1px solid var(--line);border-radius:8px;background:#101a27;color:var(--ink);text-align:center;cursor:pointer;font:inherit;font-size:11px;line-height:1.35;min-height:58px}
+.cell:hover:not(:disabled):not(.me){border-color:var(--jade);transform:translateY(-1px)}.cell.me{border-color:var(--gold);color:var(--gold);cursor:default}.cell.block,.cell:disabled{opacity:.33;cursor:not-allowed;transform:none}.cell .ai{color:var(--jade);font-size:9px}
+.list-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:9px 0}.list-row:last-child{border-bottom:none}
+.list-row .grow{flex:1;min-width:0}.list-row strong{display:block}.list-row small{display:block;color:var(--muted);margin-top:3px}
+.pill{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid var(--line);font-size:10px;color:var(--muted)}
+.money{display:flex;gap:10px;flex-wrap:wrap}.money>div{flex:1;min-width:120px;padding:10px;border:1px solid var(--line);background:rgba(2,7,11,.55);border-radius:10px}.money span{display:block;font-size:10px;color:var(--muted)}.money b{font-size:18px;color:var(--gold)}
+.form{display:grid;gap:10px}.form input,.form select{width:100%;padding:12px;background:#0b131e;border:1px solid var(--line);color:var(--ink);border-radius:9px}
+.notice{padding:10px 12px;border-left:3px solid var(--amber);background:rgba(114,78,26,.13);font-size:12px;color:#d6c5a3;line-height:1.65}
+.qi{display:block;margin:auto}.qiflow{animation:flow 1.7s linear infinite}@keyframes flow{to{stroke-dashoffset:-140}}
+@keyframes breathe{0%,100%{filter:drop-shadow(0 0 2px rgba(85,217,207,.2));transform:scale(1)}50%{filter:drop-shadow(0 0 16px rgba(85,217,207,.72));transform:scale(1.035)}}
+.meditating .avatar-wrap{animation:breathe 2.4s ease-in-out infinite}.meditating .pulse{box-shadow:0 0 22px var(--jade)}
+@keyframes strike{0%{transform:translateX(0)}45%{transform:translateX(24px)}100%{transform:translateX(0)}}@keyframes hit{0%,100%{transform:translateX(0)}30%{transform:translateX(-8px)}60%{transform:translateX(7px)}}
+.strike{animation:strike .3s}.hit{animation:hit .28s}
+.damage-pop{position:absolute;top:25%;left:50%;transform:translateX(-50%);font-weight:800;color:#ffd07b;text-shadow:0 2px 10px #000;font-size:24px;animation:pop .7s forwards}@keyframes pop{to{transform:translate(-50%,-35px);opacity:0}}
+#intro,#create{min-height:100vh;display:none;place-items:center;padding:30px}.scr#intro.on,.scr#create.on{display:grid}
+.intro-shell,.create-shell{width:min(580px,100%);text-align:center}.intro-seal{width:96px;height:96px;border:1px solid rgba(216,187,106,.53);margin:0 auto 24px;display:grid;place-items:center;font:42px "Songti TC",serif;color:var(--gold);transform:rotate(-3deg);box-shadow:inset 0 0 0 6px rgba(216,187,106,.035),0 0 45px rgba(216,187,106,.08)}
+.intro-title{font:500 clamp(36px,7vw,62px)/1.1 "Songti TC","Noto Serif TC",serif;color:#e8d398;letter-spacing:.15em;margin-right:-.15em}.intro-sub{letter-spacing:.28em;font-size:11px;color:#79939e;margin-top:10px}
+.intro-copy{margin:34px auto 24px;padding:26px;border-top:1px solid rgba(216,187,106,.22);border-bottom:1px solid rgba(216,187,106,.22);line-height:2;color:#bfc5c7;background:linear-gradient(90deg,transparent,rgba(30,47,57,.22),transparent)}
+.intro-copy b{display:block;color:var(--gold);font:22px "Songti TC",serif;margin:12px 0}.intro-actions{display:grid;gap:9px;width:min(330px,100%);margin:auto}
+.create-shell input{width:100%;margin:20px 0 10px;padding:15px;border:1px solid rgba(216,187,106,.28);border-radius:8px;background:rgba(8,13,20,.9);color:var(--ink);font-size:18px;text-align:center;outline:none}
+#game{padding:16px 20px 30px}.world-header{height:68px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(216,187,106,.21);margin-bottom:12px}
+.brand-block{display:flex;align-items:center;gap:14px}.brand-seal{width:38px;height:38px;display:grid;place-items:center;border:1px solid rgba(216,187,106,.54);color:var(--gold);font-family:"Songti TC",serif}
+.brand-name{font:23px "Songti TC","Noto Serif TC",serif;color:var(--gold);letter-spacing:.13em}.brand-tag{font-size:10px;letter-spacing:.16em;color:#6f8790;margin-top:3px}
+.world-meta{display:flex;gap:20px;text-align:right}.world-meta span{display:block;font-size:10px;color:var(--muted)}.world-meta b{display:block;margin-top:3px;font-size:13px;color:#d8d7ce}
+.status-ribbon{display:flex;align-items:center;gap:10px;padding:9px 13px;margin-bottom:12px;border:1px solid rgba(85,217,207,.18);background:linear-gradient(90deg,rgba(25,79,77,.2),rgba(8,14,21,.35),transparent);font-size:12px;color:#9ebeb9}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--jade);box-shadow:0 0 14px var(--jade)}
+.dashboard{display:grid;grid-template-columns:250px minmax(0,1fr) 285px;gap:12px}.panel{padding:14px}.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}.panel-head strong{font:16px "Songti TC",serif;color:var(--gold);letter-spacing:.1em}.panel-head span{font-size:9px;color:var(--muted)}
+.avatar-wrap{height:184px;position:relative;display:grid;place-items:center;overflow:hidden;border:1px solid rgba(85,217,207,.13);background:radial-gradient(circle at 50% 42%,rgba(85,217,207,.11),transparent 52%),linear-gradient(180deg,#101c29,#060b11)}
+.avatar-name{margin:14px 0 3px;font:22px "Songti TC",serif;color:#e8dfcd}.realm-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.realm-badge{padding:3px 9px;border:1px solid rgba(216,187,106,.28);border-radius:999px;color:var(--gold);font-size:11px}
+.meter{margin:9px 0}.meter-head{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}.meter-head b{color:#cbcfcf;font-weight:500}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:13px}.stat-grid>div{padding:9px;background:rgba(3,8,13,.55);border:1px solid rgba(152,178,207,.13)}.stat-grid span{display:block;font-size:9px;color:var(--muted);margin-bottom:3px}.stat-grid b{font-size:13px}
+.world-scene{height:295px;position:relative;overflow:hidden;border-radius:12px;border:1px solid rgba(216,187,106,.22);background:linear-gradient(180deg,#172e3a,#152634 42%,#08111a)}
+.stars{position:absolute;inset:0;background-image:radial-gradient(circle,#dbe9df 0 1px,transparent 1.5px);background-size:83px 67px;opacity:.28}.moon{position:absolute;right:12%;top:14%;width:45px;height:45px;border-radius:50%;background:#eadca7;box-shadow:0 0 34px rgba(234,220,167,.34)}
+.mountain{position:absolute;left:-5%;right:-5%;bottom:0;height:54%;background:linear-gradient(145deg,transparent 36%,#0c1720 37% 56%,transparent 57%),linear-gradient(215deg,transparent 36%,#0a131b 37% 62%,transparent 63%);opacity:.95}
+.scene-content{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:18px;background:linear-gradient(180deg,transparent 40%,rgba(3,7,11,.83))}
+.scene-zone{font:29px "Songti TC",serif;color:#ead9a5}.scene-coord{font-size:11px;color:var(--jade);letter-spacing:.16em;margin-top:4px}.scene-copy{font-size:12px;color:#aeb9bd;line-height:1.7;margin-top:8px;max-width:520px}
+.action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.action-tile{display:flex;align-items:center;text-align:left;gap:10px;min-height:64px}.action-tile .rune{width:34px;height:34px;border:1px solid rgba(216,187,106,.29);display:grid;place-items:center;color:var(--gold);font-family:"Songti TC",serif}.action-tile strong{display:block}.action-tile small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.intel-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.intel-grid>div{padding:10px;background:rgba(3,8,13,.55);border:1px solid rgba(152,178,207,.13)}.intel-grid span{display:block;font-size:9px;color:var(--muted)}.intel-grid b{display:block;margin-top:3px;font-size:12px}
+.ai-list{max-height:212px;overflow:auto;margin-top:10px}.ai-item{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:11px}.ai-item:last-child{border-bottom:none}.ai-item b{font-weight:500}.ai-item span{color:var(--muted)}.sense-feed{max-height:150px;overflow:auto;margin-top:8px;padding:8px;border:1px solid rgba(82,195,187,.18);border-radius:8px;background:rgba(4,10,16,.48)}.sense-event{padding:6px 2px;border-bottom:1px solid rgba(123,142,158,.12);font-size:11px;line-height:1.5;color:#aebbc7}.sense-event:last-child{border-bottom:none}.sense-event time{color:var(--jade);margin-right:6px}.sense-event.alert{color:#e2c26d}.sense-event.danger{color:#ef8178}.sense-empty{font-size:11px;color:var(--muted);padding:4px 2px}
+.command-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.command-row .btn{font-size:12px;padding:9px}
+.mobile-nav{display:none}
+.fight-stage{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:20px 0}.fighter{padding:14px;border:1px solid var(--line);background:rgba(2,7,11,.56);text-align:center;border-radius:12px;position:relative}.fighter .sigil{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;margin:0 auto 10px;border:1px solid rgba(216,187,106,.3);font:28px "Songti TC",serif;color:var(--gold)}.fighter.enemy .sigil{color:#ff8278;border-color:rgba(238,102,94,.36)}
+.tutorial-card{padding:4px}.tutorial-step{font-size:11px;color:var(--jade);letter-spacing:.12em}.tutorial-card p{line-height:1.85;color:#c9c8bd}.tutorial-dots{display:flex;gap:5px;margin:12px 0}.tutorial-dots i{width:26px;height:3px;background:#263346}.tutorial-dots i.on{background:var(--gold)}
+@media(max-width:960px){#game{padding:12px}.dashboard{grid-template-columns:220px minmax(0,1fr)}.intel-panel{grid-column:1/-1}.ai-list{max-height:120px}.world-meta{display:none}}
+@media(max-width:680px){#game{padding:8px 8px 78px}.world-header{height:58px}.brand-name{font-size:18px}.dashboard{display:block}.panel{margin-bottom:9px}.avatar-wrap{height:135px}.character-panel .stat-grid{grid-template-columns:repeat(4,1fr)}.world-scene{height:230px}.action-grid{grid-template-columns:1fr 1fr}.action-tile small{display:none}.intel-panel{display:none}.log{height:165px}.mobile-nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(5,9,14,.97);border-top:1px solid rgba(216,187,106,.2);padding:6px 4px}.mobile-nav button{background:none;border:0;color:var(--muted);font-size:10px;padding:4px}.mobile-nav b{display:block;font:17px "Songti TC",serif;color:var(--gold);margin-bottom:2px}.grid{grid-template-columns:repeat(3,1fr)}.fight-stage{gap:8px}.fighter{padding:9px}.fighter .sigil{width:52px;height:52px}.tabs{display:grid;grid-template-columns:1fr 1fr}.row{flex-wrap:wrap}}
 
-/* Intro */
-#intro,#create{min-height:100vh;display:none;place-items:center;padding:30px}.scr#intro.on,.scr#create.on{display:grid}.intro-shell,.create-shell{width:min(560px,100%);text-align:center;position:relative}.intro-seal{width:96px;height:96px;border:1px solid rgba(216,187,106,.53);margin:0 auto 24px;display:grid;place-items:center;font:42px "Songti TC",serif;color:var(--gold);transform:rotate(-3deg);box-shadow:inset 0 0 0 6px rgba(216,187,106,.035),0 0 45px rgba(216,187,106,.08)}.intro-title{font:500 clamp(36px,7vw,62px)/1.1 "Songti TC","Noto Serif TC",serif;color:#e8d398;letter-spacing:.15em;margin-right:-.15em}.intro-sub{letter-spacing:.34em;font-size:11px;color:#79939e;margin-top:10px}.intro-copy{margin:34px auto 26px;padding:28px 26px;border-top:1px solid rgba(216,187,106,.22);border-bottom:1px solid rgba(216,187,106,.22);line-height:2;color:#bfc5c7;background:linear-gradient(90deg,transparent,rgba(30,47,57,.22),transparent)}.intro-copy b{display:block;color:var(--gold);font:22px "Songti TC",serif;margin:12px 0}.intro-start{width:min(320px,100%);font-size:16px;letter-spacing:.12em}.create-shell input{width:100%;margin:20px 0 10px;padding:15px;border:1px solid rgba(216,187,106,.28);border-radius:8px;background:rgba(8,13,20,.9);color:var(--ink);font-size:18px;text-align:center;outline:none}.create-shell input:focus{border-color:var(--gold)}
-
-/* Dashboard */
-#game{padding:18px 20px 26px}.world-header{height:68px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(216,187,106,.21);margin-bottom:12px}.brand-block{display:flex;align-items:center;gap:14px}.brand-seal{width:38px;height:38px;display:grid;place-items:center;border:1px solid rgba(216,187,106,.54);color:var(--gold);font-family:"Songti TC",serif}.brand-name{font:23px "Songti TC","Noto Serif TC",serif;color:var(--gold);letter-spacing:.15em}.brand-tag{font-size:10px;letter-spacing:.22em;color:#6f8790;margin-top:3px}.world-meta{display:flex;gap:22px;text-align:right}.world-meta span{display:block;font-size:10px;color:var(--muted);letter-spacing:.1em}.world-meta b{display:block;margin-top:3px;font-size:13px;color:#d8d7ce;font-weight:500}.status-ribbon{display:flex;align-items:center;gap:10px;padding:9px 13px;margin-bottom:12px;border:1px solid rgba(85,217,207,.18);background:linear-gradient(90deg,rgba(25,79,77,.2),rgba(8,14,21,.35),transparent);font-size:12px;color:#9ebeb9}.pulse{width:7px;height:7px;border-radius:50%;background:var(--jade);box-shadow:0 0 14px var(--jade)}
-.dashboard-grid{display:grid;grid-template-columns:250px minmax(0,1fr) 280px;gap:12px}.panel{padding:14px;margin:0}.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}.panel-head strong{font:16px "Songti TC",serif;color:var(--gold);letter-spacing:.12em}.panel-head span{font-size:9px;color:var(--muted);letter-spacing:.12em}
-.character-panel{min-height:545px}.avatar-wrap{height:188px;position:relative;display:grid;place-items:center;overflow:hidden;border:1px solid rgba(85,217,207,.13);background:radial-gradient(circle at 50% 42%,rgba(85,217,207,.11),transparent 52%),linear-gradient(180deg,#101c29,#060b11)}.avatar-wrap:before,.avatar-wrap:after{content:"";position:absolute;border:1px solid rgba(85,217,207,.11);border-radius:50%}.avatar-wrap:before{width:132px;height:132px}.avatar-wrap:after{width:162px;height:162px}.avatar-name{margin:14px 0 3px;font:22px "Songti TC",serif;color:#e8dfcd}.realm-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.realm-badge{padding:3px 9px;border:1px solid rgba(216,187,106,.28);border-radius:999px;color:var(--gold);font-size:11px}.state-line{font-size:11px}.meter{margin:9px 0}.meter-head{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}.meter-head b{color:#cbcfcf;font-weight:500}.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:13px}.stat-grid>div{padding:9px;background:rgba(3,8,13,.55);border:1px solid rgba(152,178,207,.13)}.stat-grid span{display:block;font-size:9px;color:var(--muted);margin-bottom:3px}.stat-grid b{font-size:13px}
-.world-panel{min-width:0}.world-scene{height:315px;position:relative;overflow:hidden;border-radius:12px;border:1px solid rgba(216,187,106,.22);background:linear-gradient(180deg,#172e3a 0%,#152634 42%,#08111a 100%)}.stars{position:absolute;inset:0;background-image:radial-gradient(circle,#dbe9df 0 1px,transparent 1.5px);background-size:83px 67px;opacity:.28}.moon{position:absolute;right:12%;top:14%;width:45px;height:45px;border-radius:50%;background:#eadca7;box-shadow:0 0 34px rgba(234,220,167,.34)}.mountain{position:absolute;bottom:54px;width:75%;height:170px;background:#101d26;clip-path:polygon(0 100%,22% 42%,35% 72%,53% 21%,69% 60%,84% 34%,100% 100%)}.mountain.m2{right:-12%;bottom:42px;transform:scale(.86);background:#0c1820;opacity:.94}.mountain.m1{left:-9%}.mist{position:absolute;left:-12%;right:-12%;height:38px;border-radius:50%;background:rgba(185,212,205,.13);filter:blur(12px)}.mist.a{bottom:65px}.mist.b{bottom:27px;left:15%;opacity:.65}.temple{position:absolute;left:22%;bottom:60px;width:72px;height:64px}.temple:before{content:"";position:absolute;left:13px;bottom:0;width:46px;height:37px;background:#11171a;border:1px solid #6d5d3b}.temple:after{content:"";position:absolute;left:0;top:8px;width:72px;height:20px;background:#14191a;clip-path:polygon(0 70%,42% 0,58% 0,100% 70%,77% 63%,50% 28%,23% 63%);border-bottom:2px solid #876d3a}.scene-glyph{position:absolute;right:8%;bottom:25px;width:118px;height:118px;display:grid;place-items:center;border:1px solid rgba(216,187,106,.33);border-radius:50%;font:58px "Songti TC",serif;color:rgba(216,187,106,.78);background:rgba(4,8,11,.48);box-shadow:inset 0 0 28px rgba(216,187,106,.06),0 0 45px rgba(0,0,0,.38)}.scene-glyph.safe{color:#77d7c8;border-color:rgba(85,217,207,.35)}.scene-glyph.danger{color:#e67867;border-color:rgba(237,101,92,.4)}.scene-glyph.market{color:#e3c36e}.scene-glyph.spirit{color:#74c5db}.scene-top{position:absolute;left:16px;right:16px;top:14px;display:flex;justify-content:space-between}.zone-chip{padding:5px 9px;border:1px solid rgba(255,255,255,.13);background:rgba(3,7,10,.52);font-size:10px;color:#b6c0c2}.scene-caption{position:absolute;left:17px;bottom:15px;z-index:2}.scene-caption small{display:block;color:#8ea0a2;letter-spacing:.18em;font-size:9px}.scene-caption h2{margin:3px 0 0;font:29px "Songti TC",serif;letter-spacing:.08em}.primary-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}.action-tile{min-height:82px;display:flex;align-items:center;gap:11px;text-align:left;padding:12px}.action-tile .rune{width:39px;height:39px;display:grid;place-items:center;border:1px solid rgba(216,187,106,.3);font:20px "Songti TC",serif;color:var(--gold)}.action-tile strong{display:block;font-size:14px}.action-tile small{font-size:10px;color:var(--muted)}.field-brief{display:grid;grid-template-columns:1.5fr .8fr .8fr;gap:7px;margin-top:9px}.field-brief>div{min-height:92px;padding:12px;border:1px solid rgba(146,172,200,.14);background:linear-gradient(145deg,rgba(12,21,30,.88),rgba(5,10,15,.88))}.field-brief span{display:block;font-size:9px;letter-spacing:.12em;color:var(--muted);margin-bottom:8px}.field-brief strong,.field-brief b{font-size:12px;line-height:1.65;font-weight:500}.brief-main{border-left:2px solid var(--gold)!important}.brief-main strong{color:#d6cfbf}.brief-item b{color:#aebfc0}
-.command-panel{min-height:545px}.command-list{display:grid;grid-template-columns:1fr 1fr;gap:7px}.command{min-height:73px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:10px}.command b{font:20px "Songti TC",serif;color:var(--gold);line-height:1}.command strong{font-size:12px;margin-top:7px}.command small{font-size:9px;color:var(--muted)}.command.breakthrough{grid-column:1/-1;display:none;flex-direction:row;align-items:center;gap:12px;border-color:rgba(216,187,106,.46)}.threat-box{margin-top:10px;padding:12px;border-left:2px solid var(--jade);background:rgba(17,47,48,.22)}.threat-box strong{display:block;color:#b9d8d3;font-size:13px}.threat-box p{margin:5px 0 0;font-size:10px;line-height:1.6;color:var(--muted)}.mini-map-wrap{margin-top:11px}.mini-map{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;padding:6px;background:rgba(2,5,8,.68);border:1px solid rgba(154,178,204,.15)}.mini-cell{aspect-ratio:1;border:1px solid rgba(139,164,190,.07);background:#0b141d;color:transparent;padding:0;font-size:9px;cursor:pointer}.mini-cell.zone{color:#8295a0;background:#111d27}.mini-cell.safe{color:#59c6bb}.mini-cell.spirit{color:#62aaca}.mini-cell.danger{color:#db6b61}.mini-cell.market{color:#d9b965}.mini-cell.me{color:#081015;background:var(--gold);border-color:#fff1b3;font-weight:800;box-shadow:0 0 12px rgba(216,187,106,.45)}
-.bottom-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(250px,1fr);gap:12px;margin-top:12px}.log-panel,.intel-panel{padding:14px}.intel-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.intel-grid>div{padding:10px;background:rgba(3,7,11,.54);border:1px solid rgba(147,174,202,.12)}.intel-grid span{display:block;font-size:9px;color:var(--muted);margin-bottom:4px}.intel-grid b{font-size:13px;color:#d9d6cb}.panel-list{margin-top:11px}.panel-list p{display:flex;justify-content:space-between;border-bottom:1px solid rgba(156,181,207,.1);padding:7px 0;margin:0;font-size:11px}.panel-list span{color:var(--muted)}.panel-list b{font-weight:500}.mobile-nav{display:none}
-
-/* Map and fight */
-.map-coordinate-head{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-left:0;margin-bottom:3px}.map-coordinate-head span{text-align:center;font-size:9px;color:var(--muted)}.world-map-full{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;aspect-ratio:1;margin-bottom:12px}.map-cell{position:relative;border:1px solid rgba(140,165,191,.13);background:#09121a;color:#4d5c63;padding:0;cursor:pointer}.map-cell.zone{background:#101b24;color:#91a1a8}.map-cell.safe{color:#58cec0}.map-cell.spirit{color:#6bb7d0}.map-cell.danger{color:#e36e64}.map-cell.market{color:#dfbe61}.map-cell.me{background:var(--gold);color:#071016;border-color:#fff1b0}.map-cell b{font:16px "Songti TC",serif}.map-row{position:absolute;left:2px;top:1px;font-size:7px;opacity:.6}.map-legend{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 14px;font-size:10px;color:var(--muted)}.map-legend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;background:#71818a}.map-legend i.safe{background:#58cec0}.map-legend i.spirit{background:#6bb7d0}.map-legend i.danger{background:#e36e64}.map-legend i.market{background:#dfbe61}.notice{padding:10px;border:1px solid rgba(216,187,106,.18);background:rgba(216,187,106,.05);font-size:11px;line-height:1.65}.safe-notice{border-color:rgba(85,217,207,.22);background:rgba(85,217,207,.06)}.danger-notice{border-color:rgba(237,101,92,.25);background:rgba(237,101,92,.06)}
-.fight-title{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid rgba(216,187,106,.18);font:18px "Songti TC",serif;color:var(--gold)}.fight-title b{font:11px system-ui;color:var(--muted)}.fight-stage{display:grid;grid-template-columns:1fr 90px 1fr;align-items:center;padding:24px 0}.fighter{text-align:center}.fighter .combat-avatar{width:94px;height:112px;margin:auto;display:grid;place-items:center;border:1px solid rgba(216,187,106,.25);background:radial-gradient(circle,rgba(85,217,207,.1),transparent 60%),#0a121b;font:46px "Songti TC",serif;color:#d9c377}.fighter.enemy .combat-avatar{background:radial-gradient(circle,rgba(237,101,92,.13),transparent 60%),#130b10;color:#e87569;border-color:rgba(237,101,92,.3)}.fighter strong{display:block;margin-top:9px;font:18px "Songti TC",serif}.fighter span{display:block;margin-top:3px;font-size:10px;color:var(--muted)}.versus{display:flex;align-items:center;gap:8px;color:var(--red)}.versus i{height:1px;flex:1;background:rgba(237,101,92,.35)}.versus b{width:38px;height:38px;display:grid;place-items:center;border:1px solid rgba(237,101,92,.46);border-radius:50%;font:20px "Songti TC",serif}.combat-bars{display:grid;grid-template-columns:1fr 1fr;gap:13px}.combat-log{margin:15px 0;padding:12px;min-height:48px;background:rgba(2,5,8,.62);border-left:2px solid var(--gold);font-size:12px;line-height:1.65}.combat-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.combat-actions .btn span{display:inline-grid;place-items:center;width:26px;height:26px;border:1px solid currentColor;margin-right:8px;font-family:"Songti TC",serif}
-
-@media(max-width:960px){
- #app{width:100%}#game{padding:12px 12px 84px}.world-header{height:auto;padding:7px 2px 13px}.brand-name{font-size:19px}.world-meta{gap:10px}.world-meta>div:first-child{display:none}.dashboard-grid{grid-template-columns:1fr}.character-panel{min-height:auto}.avatar-wrap{height:150px}.character-panel .stat-grid{grid-template-columns:repeat(4,1fr)}.world-panel{order:-1}.world-scene{height:275px}.command-panel{min-height:auto}.command-list{grid-template-columns:repeat(4,1fr)}.command.breakthrough{grid-column:auto;flex-direction:column}.mini-map-wrap{display:none}.bottom-grid{grid-template-columns:1fr}.intel-panel{display:none}.mobile-nav{position:fixed;left:0;right:0;bottom:0;height:66px;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(5,10,16,.96);border-top:1px solid rgba(216,187,106,.2);backdrop-filter:blur(10px);z-index:18}.mobile-nav button{border:0;background:transparent;color:var(--muted);font-size:10px}.mobile-nav button b{display:block;font:19px "Songti TC",serif;color:#c7b879;margin-bottom:3px}.ov{align-items:flex-end;padding:0}.sheet{width:100%;max-height:88vh;border-radius:18px 18px 0 0;border-left:0;border-right:0;border-bottom:0}.fight-stage{grid-template-columns:1fr 55px 1fr}.fighter .combat-avatar{width:75px;height:90px}.combat-bars{grid-template-columns:1fr}.world-map-full{gap:2px}.map-cell b{font-size:13px}}
-@media(max-width:600px){
- .world-meta{display:none}.brand-tag{display:none}.status-ribbon{font-size:10px}.world-scene{height:220px}.scene-glyph{width:82px;height:82px;font-size:39px}.scene-caption h2{font-size:24px}.primary-actions{grid-template-columns:repeat(3,1fr)}.action-tile{display:block;text-align:center;min-height:79px;padding:9px 4px}.action-tile .rune{margin:auto auto 5px;width:32px;height:32px;font-size:16px}.action-tile small{display:none}.field-brief{grid-template-columns:1fr 1fr}.brief-main{grid-column:1/-1;min-height:auto!important}.field-brief>div{min-height:72px}.character-panel .stat-grid{grid-template-columns:1fr 1fr}.command-list{grid-template-columns:repeat(3,1fr)}.command{align-items:center;text-align:center}.log{height:160px}.fight-stage{padding:17px 0}.fighter strong{font-size:14px}.fighter span{font-size:9px}}
+/* V12 online closed beta additions */
+#auth{min-height:100vh;place-items:center;padding:30px}.scr#auth.on{display:grid}.auth-form{margin-top:20px}.auth-shell{width:min(520px,100%)}
+.status-ribbon{flex-wrap:wrap}.status-ribbon #worldStatus{flex:1}.chat-quick{border:0;background:none;color:var(--jade);cursor:pointer;font-weight:700}.cloud-badge{font-size:10px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}.cloud-badge[data-state="ok"]{color:#77d89c;border-color:rgba(119,216,156,.4)}.cloud-badge[data-state="busy"]{color:var(--jade)}.cloud-badge[data-state="warn"]{color:var(--amber);border-color:rgba(236,180,95,.5)}.cloud-badge[data-state="bad"]{color:var(--red);border-color:rgba(238,102,94,.5)}
+.meridian-avatar{height:260px;background:#03060a}.meridian-avatar img{width:100%;height:100%;object-fit:cover;object-position:50% 45%;filter:saturate(.85) brightness(.72);transition:filter .5s,transform 2s}.meridian-avatar img.active{filter:saturate(1.2) brightness(.95) drop-shadow(0 0 14px rgba(85,217,207,.45));transform:scale(1.025)}
+.qi-stream{position:absolute;inset:0;pointer-events:none;opacity:.12;transition:opacity .5s}.qi-stream.active{opacity:1}.qi-stream i{position:absolute;left:50%;bottom:8%;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle,#fff 0,#55d9cf 35%,transparent 72%);box-shadow:0 0 14px #55d9cf;animation:qiRise 2.4s linear infinite}.qi-stream i:nth-child(2){left:48%;animation-delay:-.45s}.qi-stream i:nth-child(3){left:52%;animation-delay:-.9s}.qi-stream i:nth-child(4){left:46%;animation-delay:-1.35s}.qi-stream i:nth-child(5){left:54%;animation-delay:-1.8s}.qi-stream i:nth-child(6){left:50%;animation-delay:-2.1s;animation-direction:reverse;background:radial-gradient(circle,#fff 0,#d7b96b 35%,transparent 72%);box-shadow:0 0 14px #d7b96b}@keyframes qiRise{0%{transform:translate(-50%,0) scale(.55);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translate(-50%,-220px) scale(1.2);opacity:0}}
+.ai-click{cursor:pointer;border-radius:8px;padding-left:6px;padding-right:6px}.ai-click:hover{background:rgba(85,217,207,.08)}.ai-dialogue{display:flex;gap:14px;align-items:center;margin:12px 0;padding:12px;border:1px solid var(--line);background:rgba(2,7,11,.55);border-radius:12px}.ai-dialogue img{width:92px;height:92px;object-fit:cover;border-radius:10px;border:1px solid rgba(216,187,106,.25)}.ai-dialogue p{margin:6px 0;line-height:1.65}
+.fight-portrait{width:112px;height:112px;object-fit:cover;border-radius:14px;border:1px solid rgba(216,187,106,.28);margin:0 auto 10px;display:block;background:#050a10}.fighter.enemy .fight-portrait{border-color:rgba(238,102,94,.36)}.fight-line{min-height:40px;line-height:1.7}.fight-speech{position:absolute;left:50%;top:-8px;transform:translate(-50%,-14px) scale(.9);opacity:0;z-index:5;max-width:90%;padding:7px 11px;border-radius:13px;background:#f2e8d2;color:#18130e;font-weight:800;font-size:13px;box-shadow:0 10px 30px #000;white-space:nowrap;transition:.18s}.fight-speech:after{content:"";position:absolute;left:50%;bottom:-7px;border:7px solid transparent;border-top-color:#f2e8d2;border-bottom:0}.fight-speech.show{opacity:1;transform:translate(-50%,-25px) scale(1)}.fight-speech.crit{background:#6d1420;color:#ffd98c;border:1px solid #ff806b;font-size:15px}.fight-speech.crit:after{border-top-color:#6d1420}.fight-speech.block{background:#17313a;color:#8df3e8;border:1px solid #55d9cf}.fight-speech.block:after{border-top-color:#17313a}.fight-speech.hit{background:#37232a;color:#ffb0a8}.fight-speech.hit:after{border-top-color:#37232a}.damage-pop.crit{color:#ff816d;font-size:28px}.damage-pop.blocked{color:#74e9dd;font-size:18px}.fog-bar i{background:repeating-linear-gradient(135deg,#1b2430,#1b2430 8px,#0b1017 8px,#0b1017 16px);animation:fogShift 1.2s linear infinite}@keyframes fogShift{to{background-position:24px 0}}
+.world-chat{height:330px;overflow:auto;border:1px solid var(--line);background:#03070c;border-radius:10px;padding:10px}.chat-status{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin:8px 0}.chat-line{display:grid;grid-template-columns:48px 110px 1fr;gap:7px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}.chat-line span{color:#687786}.chat-line b{color:var(--jade);overflow:hidden;text-overflow:ellipsis}.chat-line.ai b{color:var(--amber)}.chat-line.system b{color:var(--red)}.chat-line p{margin:0;word-break:break-word}.chat-compose{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:9px}.chat-compose input{padding:11px;background:#0b131e;border:1px solid var(--line);color:var(--ink);border-radius:9px}
+.qty-box{display:flex;gap:4px;margin-top:7px;align-items:center}.qty-box button{min-width:32px;height:30px;border:1px solid var(--line);background:#101925;color:var(--ink);border-radius:6px;cursor:pointer}.qty-box button.max{width:auto;padding:0 8px;color:var(--gold)}.qty-box input{width:58px;height:30px;text-align:center;background:#07101a;color:var(--ink);border:1px solid var(--line);border-radius:6px}.shop-rich{align-items:flex-start}.shop-rich small{line-height:1.55}
+.monster-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.monster-card{display:flex;gap:9px;align-items:center;padding:8px;border:1px solid var(--line);background:rgba(2,7,11,.55);border-radius:10px}.monster-card img{width:78px;height:78px;object-fit:cover;border-radius:8px}.monster-card strong,.monster-card span,.monster-card small{display:block}.monster-card span{font-size:10px;color:var(--amber);margin:3px 0}.monster-card small{font-size:10px;color:var(--muted);line-height:1.5}.form textarea{width:100%;min-height:150px;padding:12px;background:#0b131e;border:1px solid var(--line);color:var(--ink);border-radius:9px;resize:vertical}
+@media(max-width:680px){.meridian-avatar{height:190px}.fight-portrait{width:78px;height:78px}.fight-speech{font-size:11px;max-width:150px;white-space:normal}.world-chat{height:55vh}.chat-line{grid-template-columns:42px 72px 1fr}.monster-grid{grid-template-columns:1fr}.status-ribbon{font-size:10px}.cloud-badge{width:100%;text-align:center}.chat-quick{margin-left:auto}}
 
 
-/* V5：手機單畫面、底部五鍵保留 */
-@media(max-width:600px){
-  html,body,#app{height:100%;overflow:hidden}
-  #game{height:100dvh;padding:7px 8px 67px;overflow:hidden;display:flex;flex-direction:column}
-  .world-header{height:42px;min-height:42px;padding:2px 0 7px;margin-bottom:5px}
-  .brand-seal{width:29px;height:29px}.brand-name{font-size:16px}.status-ribbon{display:none}
-  .dashboard-grid{display:flex;flex-direction:column;gap:6px;min-height:0}
-  .world-panel{order:-2}
-  .world-scene{height:142px;border-radius:10px}
-  .moon{width:30px;height:30px}.mountain{height:105px;bottom:28px}.temple{transform:scale(.72);transform-origin:left bottom;bottom:32px}
-  .scene-glyph{width:62px;height:62px;font-size:30px;bottom:14px}
-  .scene-caption{bottom:9px}.scene-caption h2{font-size:20px}.scene-caption small{display:none}
-  .primary-actions{margin-top:5px;gap:5px}
-  .action-tile{min-height:48px;padding:5px 2px;border-radius:9px}
-  .action-tile .rune{width:25px;height:25px;font-size:14px;margin-bottom:2px}
-  .action-tile strong{font-size:11px}.field-brief{display:none}
-  .character-panel{order:-1;padding:8px 10px;min-height:0}
-  .character-panel .panel-head,.avatar-wrap,.avatar-name,.realm-line{display:none}
-  .character-panel .meter{margin:4px 0}
-  .character-panel .meter-head{margin-bottom:2px}
-  .character-panel .stat-grid{grid-template-columns:repeat(4,1fr);gap:4px;margin-top:5px}
-  .character-panel .stat-grid>div{padding:5px 4px;text-align:center}
-  .character-panel .stat-grid span{font-size:8px}.character-panel .stat-grid b{font-size:10px}
-  .command-panel{display:none}
-  .bottom-grid{display:block;margin-top:6px;min-height:0;flex:1}
-  .log-panel{height:100%;padding:8px 10px;display:flex;flex-direction:column}
-  .log-panel .panel-head{margin-bottom:5px}.log-panel .panel-head strong{font-size:13px}
-  .log{height:auto!important;min-height:0;flex:1;padding:7px;font-size:10.5px;line-height:1.45}
-  .mobile-nav{height:61px;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -8px 24px rgba(0,0,0,.45)}
-  .mobile-nav button{position:relative;font-size:9px}
-  .mobile-nav button:active{background:rgba(216,187,106,.08)}
-  .mobile-nav button b{font-size:18px}
-  .sheet{max-height:82vh}
+/* V12.1 permanent-death/world patch */
+.comm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.comm-panel{min-width:0}.world-chat.inline{height:210px}.technique-dock-wrap{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.panel-head.compact{margin-bottom:7px}.technique-dock{display:grid;gap:6px}.technique-slot{padding:8px 9px;border:1px solid rgba(216,187,106,.24);border-radius:8px;background:linear-gradient(90deg,rgba(91,64,23,.18),rgba(8,14,21,.42));font-size:11px;line-height:1.45}.technique-slot b{display:block;color:var(--gold);font-size:12px}.technique-slot span{display:block;color:var(--muted);margin-top:2px}.technique-slot.empty{color:#667381;border-style:dashed;background:rgba(5,10,16,.35)}.grave-lock{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 35%,rgba(92,15,23,.22),rgba(0,0,0,.95));display:grid;place-items:center;padding:20px}.grave-card{width:min(560px,100%);padding:28px;border:1px solid rgba(238,102,94,.42);border-radius:16px;background:#090b10;box-shadow:0 30px 100px #000;text-align:center}.grave-card h2{font:32px "Songti TC",serif;color:var(--red);letter-spacing:.14em}.chat-line.cultivator b,.chat-line.ai b{color:var(--amber)}
+@media(max-width:960px){.comm-grid{grid-template-columns:1fr}.world-chat.inline{height:180px}}
+
+
+/* V12.2 聯機、活動與手機傳音 */
+.world-event-btn[hidden]{display:none!important}.human-item b{color:#8be5ff!important}.safe-zone-timer{color:var(--amber);font-weight:700}.world-alert{color:#ffd27d}.chat-compose button{touch-action:manipulation}.chat-compose input{font-size:16px}.pvp-card{display:grid;gap:10px}.pvp-bars{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pvp-bars>div{padding:10px;border:1px solid var(--line);border-radius:9px;background:#050a11}.pvp-bars span{display:block;color:var(--muted);font-size:11px}.pvp-bars b{display:block;margin-top:4px;color:var(--gold)}
+@media(max-width:680px){.mobile-nav{grid-template-columns:repeat(6,1fr)}.chat-compose{grid-template-columns:1fr;position:sticky;bottom:0;background:#07101a;padding-top:7px;z-index:2}.chat-compose .btn{width:100%;min-height:46px}.world-chat.inline{height:38vh}.comm-panel{margin-bottom:10px}.sheet{padding:15px}.pvp-bars{grid-template-columns:1fr}.world-event-btn{grid-column:1/-1}}
+
+/* V12.6.4 meditation state */
+.meditation-boost-banner{margin-top:8px;padding:10px 12px;border:1px solid rgba(236,180,95,.55);border-radius:10px;background:linear-gradient(90deg,rgba(120,78,18,.28),rgba(17,28,38,.78));color:#f2d58a;font-size:12px;font-weight:700;line-height:1.6;box-shadow:0 0 22px rgba(236,180,95,.10)}
+.meditation-boost-banner[hidden]{display:none!important}.meditation-boost-banner b{color:#fff1b8;font-size:14px}
+
+/* V13.5 FIX2：只縮小手機版，不影響桌機版 */
+@media(max-width:680px){
+  #game{padding:5px 5px 66px}.world-header{height:46px;margin-bottom:6px}.brand-block{gap:8px}.brand-seal{width:30px;height:30px}.brand-name{font-size:15px}.brand-tag{font-size:8px}
+  .status-ribbon{padding:6px 8px;margin-bottom:7px;gap:6px}.panel{padding:9px;margin-bottom:7px}.panel-head{margin-bottom:7px}.panel-head strong{font-size:14px}
+  .avatar-wrap,.meridian-avatar{height:120px}.avatar-name{font-size:17px;margin:8px 0 2px}.realm-line{margin-bottom:7px}.meter{margin:6px 0}
+  .character-panel .stat-grid{gap:4px;margin-top:8px}.stat-grid>div{padding:6px 4px}.stat-grid b{font-size:11px}
+  .world-scene{height:165px}.scene-content{padding:11px}.scene-zone{font-size:21px}.scene-coord{font-size:9px;margin-top:2px}.scene-copy{font-size:10px;line-height:1.45;margin-top:4px}
+  .action-grid{gap:5px;margin-top:7px}.action-tile{min-height:48px;padding:7px 8px;gap:7px}.action-tile .rune{width:27px;height:27px;flex:0 0 27px}.action-tile strong{font-size:12px}
+  .log{height:120px;padding:7px;font-size:11px}.mobile-nav{padding:3px 2px}.mobile-nav button{font-size:9px;padding:2px}.mobile-nav b{font-size:14px;margin-bottom:0}
+  .ov{padding:7px}.sheet{padding:11px;max-height:96vh}.sheet h3{font-size:18px}.tabs{margin:9px 0 7px;gap:4px}.tabs button{min-width:0;padding:7px 5px;font-size:12px}
+  .list-row{gap:7px;padding:7px 0}.list-row .btn{padding:8px 9px;font-size:12px;max-width:45%}.grid{grid-template-columns:repeat(4,1fr);gap:3px}.cell{min-height:47px;padding:5px 2px;font-size:9px}
+  .world-chat{height:40vh}.world-chat.inline{height:30vh}.chat-line{font-size:10px;grid-template-columns:36px 62px 1fr;gap:4px}
 }
-
-
-@media(max-width:600px) and (max-height:760px){
-  .world-scene{height:118px!important}
-  .character-panel{padding:6px 9px!important}
-  .primary-actions{margin-top:3px!important}
-  .action-tile{min-height:42px!important}
-  .log-panel .panel-head{display:none}
-}
-
-/* V7 */
-.world-scene{isolation:isolate}.meditation-stage{position:absolute;inset:0;z-index:1;pointer-events:none}.meditator{position:absolute;left:50%;bottom:34px;width:72px;height:74px;transform:translateX(-50%)}.meditator .head{position:absolute;left:27px;top:2px;width:18px;height:18px;border-radius:50%;background:#171d23;border:1px solid rgba(216,187,106,.45);box-shadow:0 0 12px rgba(216,187,106,.13)}.meditator .body{position:absolute;left:19px;top:19px;width:34px;height:34px;border-radius:48% 48% 30% 30%;background:linear-gradient(180deg,#1d2933,#0c1218);border:1px solid rgba(85,217,207,.25)}.meditator .legs{position:absolute;left:5px;top:44px;width:62px;height:22px;border:4px solid #18232d;border-top:0;border-radius:0 0 50% 50%}.aura-ring{position:absolute;left:50%;bottom:24px;border:1px solid rgba(85,217,207,.35);border-radius:50%;transform:translateX(-50%);animation:auraPulse 3.2s ease-in-out infinite}.aura-ring.r1{width:105px;height:38px}.aura-ring.r2{width:148px;height:54px;animation-delay:1.1s;opacity:.55}.qi-orb{position:absolute;width:5px;height:5px;border-radius:50%;background:#7ce7df;box-shadow:0 0 9px #55d9cf;animation:qiRise 4.2s linear infinite}.qi-orb.o1{left:37%;bottom:23px}.qi-orb.o2{left:58%;bottom:20px;animation-delay:1.2s}.qi-orb.o3{left:46%;bottom:14px;animation-delay:2.1s}.qi-orb.o4{left:67%;bottom:28px;animation-delay:.6s}@keyframes auraPulse{0%,100%{transform:translateX(-50%) scale(.86);opacity:.2}50%{transform:translateX(-50%) scale(1.08);opacity:.65}}@keyframes qiRise{0%{transform:translateY(0) scale(.5);opacity:0}20%{opacity:.8}100%{transform:translateY(-118px) translateX(18px) scale(1.3);opacity:0}}.break-main,.cure-main{display:none;width:100%;margin-top:7px}.break-main{border-color:rgba(216,187,106,.58);background:linear-gradient(90deg,rgba(116,73,23,.35),rgba(20,31,43,.94),rgba(116,73,23,.35))}.cure-main{border-color:rgba(237,101,92,.52);color:#ff928b}.break-phenomenon{position:relative;min-height:280px;overflow:hidden;text-align:center;padding:28px 12px;background:radial-gradient(circle at 50% 55%,rgba(216,187,106,.18),transparent 42%),#050912}.break-phenomenon:before{content:"";position:absolute;inset:-30%;background:conic-gradient(from 0deg,transparent,rgba(85,217,207,.16),transparent,rgba(216,187,106,.16),transparent);animation:spinPhen 2.4s linear infinite}.break-phenomenon .meditate-icon{position:relative;z-index:2;font:62px "Songti TC",serif;color:var(--gold);margin-top:36px}.break-phenomenon .break-copy{position:relative;z-index:2;color:#dcd5c3;line-height:1.8}.break-phenomenon.thunder{animation:flashPhen .7s ease-in-out infinite alternate}@keyframes spinPhen{to{transform:rotate(360deg)}}@keyframes flashPhen{to{box-shadow:inset 0 0 80px rgba(89,127,174,.22)}}.monster-avatar-svg{width:94px;height:112px;display:block;margin:auto}.fighter.enemy .combat-avatar{overflow:hidden;padding:6px}.qty-box{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center;margin:10px 0}.qty-box input{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#09121a;color:var(--ink);text-align:center;font-size:16px}.sense-strip{margin:8px 0;padding:9px 11px;border:1px solid rgba(85,217,207,.2);background:rgba(85,217,207,.05);font-size:11px;color:#a9c8c4}.world-alert{border-left:3px solid var(--amber);background:rgba(238,180,94,.08);padding:10px;margin:8px 0;font-size:12px;line-height:1.65}@media(max-width:600px){.world-scene{height:162px!important}.meditator{bottom:25px;transform:translateX(-50%) scale(.82)}.aura-ring{bottom:19px}.aura-ring.r1{width:92px}.aura-ring.r2{width:126px}.scene-caption{z-index:3}.scene-glyph{z-index:2;opacity:.75}.break-main,.cure-main{min-height:42px;margin-top:4px}}
-
-
-/* V8 UI 2.0 Phase 1 */
-.world-ai-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(85,217,207,.25);background:rgba(5,14,20,.72);color:#b9ddd8;border-radius:999px;padding:5px 9px;font-size:10px;cursor:pointer}
-.world-ai-pill i{width:6px;height:6px;border-radius:50%;background:#55d9cf;box-shadow:0 0 10px #55d9cf;animation:aiPulse 1.8s infinite}
-@keyframes aiPulse{50%{opacity:.35}}
-.ai-world-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
-.ai-card{position:relative;padding:11px;border:1px solid rgba(216,187,106,.17);background:linear-gradient(145deg,rgba(19,31,42,.96),rgba(7,13,19,.96));border-radius:12px;overflow:hidden}
-.ai-card:after{content:"";position:absolute;inset:auto -20px -36px auto;width:80px;height:80px;border:1px solid rgba(216,187,106,.12);border-radius:50%}
-.ai-card strong{display:block;color:#e4cf91}.ai-card small{color:#879ba5}.ai-card em{font-style:normal;color:#74d5cc;font-size:10px}
-.world-feed{max-height:220px;overflow:auto;border:1px solid rgba(216,187,106,.14);background:#071018;border-radius:10px;padding:8px}
-.world-feed p{margin:0;padding:7px 4px;border-bottom:1px dashed rgba(255,255,255,.07);font-size:11px;line-height:1.5}
-.meditation-overlay{position:fixed;inset:0;z-index:9999;display:none;flex-direction:column;background:
- radial-gradient(circle at 50% 38%,rgba(68,118,134,.22),transparent 29%),
- linear-gradient(180deg,#06101a 0%,#0b1822 48%,#03070b 100%);overflow:hidden}
-.meditation-overlay.on{display:flex}
-.meditation-sky{position:absolute;inset:0;overflow:hidden}
-.moon-v8{position:absolute;right:12%;top:9%;width:84px;height:84px;border-radius:50%;background:#e6e2ca;box-shadow:0 0 40px rgba(230,226,202,.3)}
-.moon-v8:after{content:"";position:absolute;width:84px;height:84px;border-radius:50%;left:22px;top:-8px;background:#07111b}
-.mountain-v8{position:absolute;left:-12%;right:-12%;bottom:22%;height:38%;background:linear-gradient(145deg,transparent 35%,#0c1c25 36% 64%,transparent 65%);opacity:.8}
-.meditation-center{position:relative;z-index:3;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:60px}
-.meditation-avatar{position:relative;width:220px;height:220px}
-.meditation-avatar .body-v8{position:absolute;left:76px;top:58px;width:68px;height:92px;border-radius:45% 45% 28% 28%;background:linear-gradient(180deg,#253a49,#0c151d);border:1px solid rgba(216,187,106,.4)}
-.meditation-avatar .head-v8{position:absolute;left:94px;top:28px;width:34px;height:34px;border-radius:50%;background:#17232c;border:1px solid rgba(216,187,106,.45)}
-.meditation-avatar .legs-v8{position:absolute;left:43px;top:134px;width:134px;height:48px;border:10px solid #172733;border-top:0;border-radius:0 0 50% 50%}
-.meditation-avatar .ring-v8{position:absolute;left:50%;top:50%;border:1px solid rgba(85,217,207,.45);border-radius:50%;transform:translate(-50%,-50%);animation:medRing 3s infinite}
-.meditation-avatar .ring-v8.r1{width:180px;height:180px}.meditation-avatar .ring-v8.r2{width:220px;height:220px;animation-delay:1s;opacity:.45}.meditation-avatar .ring-v8.r3{width:270px;height:270px;animation-delay:2s;opacity:.25}
-@keyframes medRing{0%,100%{transform:translate(-50%,-50%) scale(.82);opacity:.12}50%{transform:translate(-50%,-50%) scale(1.08);opacity:.7}}
-.breath-v8{position:absolute;width:6px;height:6px;border-radius:50%;background:#6ce2d8;box-shadow:0 0 12px #6ce2d8;animation:breathRise 4s linear infinite}
-.breath-v8.b1{left:35%;top:65%}.breath-v8.b2{left:61%;top:68%;animation-delay:1.2s}.breath-v8.b3{left:48%;top:73%;animation-delay:2.4s}.breath-v8.b4{left:70%;top:61%;animation-delay:.5s}
-@keyframes breathRise{0%{opacity:0;transform:translateY(20px) scale(.5)}20%{opacity:1}100%{opacity:0;transform:translateY(-170px) translateX(20px) scale(1.5)}}
-.meditation-title{color:#e1cd92;letter-spacing:.28em;font-family:serif;font-size:25px;margin:8px 0 4px}
-.meditation-sub{color:#8fb1b2;font-size:12px}
-.meditation-stats{position:relative;z-index:4;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(520px,92%);margin:0 auto 14px}
-.meditation-stats div{border:1px solid rgba(216,187,106,.18);background:rgba(5,13,18,.72);border-radius:10px;padding:10px;text-align:center}
-.meditation-stats span{display:block;color:#80959e;font-size:10px}.meditation-stats b{color:#e9d9a7;font-size:15px}
-.meditation-controls{position:relative;z-index:4;display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(520px,92%);margin:0 auto 22px}
-.meditation-controls button{min-height:52px}
-.meditation-running .meditation-avatar{filter:drop-shadow(0 0 22px rgba(85,217,207,.18))}
-.meditation-running #medStart{opacity:.45;pointer-events:none}
-.meditation-notice{position:relative;z-index:4;text-align:center;color:#8ca5aa;font-size:11px;margin-bottom:8px}
-@media(max-width:600px){.world-ai-pill{padding:4px 7px}.ai-world-grid{grid-template-columns:1fr}.moon-v8{width:62px;height:62px}.moon-v8:after{width:62px;height:62px}.meditation-avatar{transform:scale(.82);margin:-18px 0}.meditation-title{font-size:21px}}
-
-
-/* V10 功法、雙貨幣、戰鬥動畫 */
-.currency-strip{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.currency-chip{padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(216,187,106,.06)}
-.tech-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tech-card{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(255,255,255,.025)}.tech-card h4{margin:0 0 4px;color:var(--gold)}
-.combat-avatar.attack-lunge{animation:v10Lunge .38s ease}.fighter.enemy.hit-shake{animation:v10Shake .32s ease}.damage-pop{position:absolute;left:50%;top:28%;transform:translate(-50%,-50%);font-size:28px;font-weight:900;color:#f7d26c;text-shadow:0 2px 8px #000;pointer-events:none;animation:v10Pop .55s ease forwards}.damage-pop.crit{font-size:34px;color:#ff6b55}
-@keyframes v10Lunge{0%,100%{transform:translateX(0)}45%{transform:translateX(28px)}}@keyframes v10Shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}55%{transform:translateX(8px)}}@keyframes v10Pop{0%{opacity:0;transform:translate(-50%,0) scale(.7)}35%{opacity:1;transform:translate(-50%,-22px) scale(1.1)}100%{opacity:0;transform:translate(-50%,-48px) scale(.9)}}
-.meditation-overlay:not(.meditation-running) .qi-orb,.meditation-overlay:not(.meditation-running) .ring-v8{animation-play-state:paused;opacity:0}.meditation-overlay.meditation-starting .meditation-avatar{animation:v10Begin 1.1s ease}.meditation-overlay.meditation-running .qi-orb{transition:opacity .8s;opacity:1}@keyframes v10Begin{0%{transform:scale(.92);filter:brightness(.6)}50%{transform:scale(1.03);filter:brightness(1.15)}100%{transform:scale(1)}}
-@media(max-width:600px){.tech-grid{grid-template-columns:1fr}}
+@media(max-width:390px){.brand-tag{display:none}.scene-copy{max-height:31px;overflow:hidden}.action-tile{padding:6px}.grid{grid-template-columns:repeat(3,1fr)}}
 </style>
-
-<link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#070a12">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="修仙大逃殺">
-<link rel="apple-touch-icon" href="./icons/icon-192.png">
-
+<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="v14_3_fix1_ui_map.css?v=20260720-fix4g">
+<link rel="stylesheet" href="v14_2_auction.css?v=20260720-142">
+<link rel="stylesheet" href="v14_3_artifact.css?v=20260720-143">
+<link rel="stylesheet" href="v14_4_black_cloud.css?v=20260720-fix4a">
+<link rel="stylesheet" href="v14_4_beast_tide.css?v=20260720-fix4b">
+<link rel="stylesheet" href="v14_4_great_tribulation.css?v=20260720-fix4c">
+<link rel="stylesheet" href="v14_5a_compact_ui_recovery.css?v=20260721-v145a-fix4-login-safe">
+<link rel="stylesheet" href="v14_5c_intel.css?v=20260721-v145c-fix1">
+<link rel="stylesheet" href="v14_5b_crafting_codex.css?v=20260721-v145b-fix1">
+<link rel="stylesheet" href="v14_5d_maintenance_gate.css?v=20260721-v145d-1">
 </head>
 <body>
-
 <div id="app">
-  <div id="intro" class="scr on">
-    <div class="intro-shell">
-      <div class="intro-seal">仙</div>
-      <div class="intro-title">修仙大逃殺 <span class="tag">V8 Alpha</span></div>
-      <div class="intro-sub">SURVIVAL · CULTIVATION · ASCENSION</div>
-      <div class="intro-copy">
-        天地不仁，浮島無主。數百修士被投入仙門遺棄的試煉之地。<br>
-        黑雲壓境，獸潮四起，修為與壽元皆可一夕歸零。
-        <b>活下去，成為唯一登仙之人。</b>
+<section id="intro" class="scr on">
+  <div class="intro-shell">
+    <div class="intro-seal">仙</div>
+    <div class="intro-title">修仙大逃殺</div>
+    <div class="intro-sub">SURVIVAL · CULTIVATION · ASCENSION</div>
+    <div class="intro-copy">
+      天地不仁，浮島無主。百餘名修士被投入仙門遺棄的試煉之地。<br>
+      黑雲壓境，獸潮四起，修為與壽元皆可一夕歸零。
+      <b>活下去，成為唯一登仙之人。</b>
+    </div>
+    <div class="intro-actions">
+      <button class="btn gold" onclick="enterBeta()">登入封測世界</button>
+      <button class="btn jade" id="continueBtn" style="display:none" onclick="continueGame()">進入現存道體</button>
+      <button class="btn" onclick="openVersion()">查看 V12 更新</button>
+    </div>
+  </div>
+</section>
+
+<section id="create" class="scr">
+  <div class="create-shell">
+    <div class="intro-seal">道</div>
+    <div class="title" style="font-size:28px">踏入仙途</div>
+    <p class="small">為此世道體留下道號。首次凝聚道體免費。</p>
+    <input id="nm" maxlength="8" placeholder="輸入道號">
+    <button class="btn gold" style="width:100%" onclick="startGame()">凝聚道體 · 建立雲端角色</button>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="show('intro')">返回</button>
+  </div>
+</section>
+
+<section id="auth" class="scr">
+  <div class="create-shell auth-shell">
+    <div class="intro-seal">雲</div>
+    <div class="title" style="font-size:28px">封測帳號</div>
+    <p class="small">使用 Email 與密碼登入。存檔以伺服器為準；角色死亡即永久身隕，不能復活或回朔，只能建立新道體。</p>
+    <div class="form auth-form">
+      <input id="authEmail" type="email" autocomplete="email" placeholder="Email">
+      <input id="authPassword" type="password" autocomplete="current-password" placeholder="密碼（至少6碼）">
+      <div class="row"><button class="btn gold" onclick="doBetaAuth('login')">登入</button><button class="btn jade" onclick="doBetaAuth('signup')">建立帳號</button></div>
+      <button class="btn" onclick="show('intro')">返回</button>
+    </div>
+  </div>
+</section>
+
+<section id="game" class="scr">
+  <header class="world-header">
+    <div class="brand-block"><div class="brand-seal">仙</div><div><div class="brand-name">修仙大逃殺</div><div class="brand-tag">V12.6.4 · MEDITATION HOTFIX</div></div></div>
+    <div class="world-meta"><div><span>世界時辰</span><b id="worldClock">--:--</b></div><div><span>全域修士氣息</span><b id="activeAi">150</b></div><div><span>封測模式</span><b id="cloudModeText">ONLINE CBT</b></div><div><span>資料版本</span><b>ENGINE V12.6.4</b></div></div>
+  </header>
+  <div class="status-ribbon"><i class="pulse"></i><span id="worldStatus">天地氣機穩定，青牛谷護道結界運作中。</span><span class="cloud-badge" id="cloudSyncBadge" data-state="busy">連線準備中</span></div>
+
+  <main class="dashboard">
+    <aside class="card panel character-panel">
+      <div class="panel-head"><strong>道體命盤</strong><span>CHARACTER</span></div>
+      <div class="avatar-wrap meridian-avatar" id="avatarWrap"><img id="meditationPortrait" src="assets/meditation_meridians.webp?v=20260717-121" alt="打坐經脈運行圖"><div class="qi-stream" id="qiStream"><i></i><i></i><i></i><i></i><i></i><i></i></div><div id="qibox" hidden></div></div>
+      <div class="avatar-name" id="pname">無名散修</div>
+      <div class="realm-line"><span class="realm-badge" id="prealm">練氣一層</span><span class="small" id="qistate">氣息通暢</span></div>
+
+      <div class="meter"><div class="meter-head"><span>體力</span><b id="hpText">0 / 0</b></div><div class="bar"><i id="hpb" class="hpf"></i></div></div>
+      <div class="meter"><div class="meter-head"><span>精力／法力</span><b id="mpText">0 / 0</b></div><div class="bar"><i id="mpb" class="mpf"></i></div></div>
+      <div class="meter"><div class="meter-head"><span>修為</span><b id="xpText">0 / 0</b></div><div class="bar"><i id="xpb" class="xpf"></i></div></div>
+
+      <div class="stat-grid">
+        <div><span>攻擊</span><b id="atk">0</b></div><div><span>防禦</span><b id="def">0</b></div>
+        <div><span>靈石</span><b id="ls">0</b></div><div><span>商城元寶</span><b id="yb">0</b></div>
+        <div><span>武器</span><b id="wp">空手</b></div><div><span>防具</span><b id="armor">無</b></div>
+        <div><span>神識範圍</span><b id="sense">同格</b></div><div><span>御風距離</span><b id="flight">1 格</b></div>
       </div>
-      <button class="btn gold intro-start" onclick="show('create')">凝神入世</button>
-    </div>
-  </div>
+      <div class="technique-dock-wrap">
+        <div class="panel-head compact"><strong>常駐功法</strong><span>TECHNIQUES</span></div>
+        <div class="technique-dock" id="techniqueDock">
+          <div class="technique-slot empty">尚未研習</div>
+          <div class="technique-slot empty">尚未研習</div>
+          <div class="technique-slot empty">尚未研習</div>
+        </div>
+      </div>
+    </aside>
 
-  <div id="create" class="scr">
-    <div class="create-shell">
-      <div class="intro-seal">道</div>
-      <div class="title" style="font-size:28px">踏入仙途</div>
-      <p class="small">為此世道體留下道號。首次凝聚道體免費。</p>
-      <input id="nm" maxlength="6" placeholder="輸入道號">
-      <button class="btn gold" style="width:100%" onclick="startGame()">凝聚道體 · 前往青牛谷</button>
-      <button class="btn" style="width:100%;margin-top:8px" onclick="show('intro')">返回</button>
-    </div>
-  </div>
-
-  <div id="game" class="scr">
-    <header class="world-header">
-      <div class="brand-block"><div class="brand-seal">仙</div><div><div class="brand-name">修仙大逃殺</div><div class="brand-tag">浮島求生試煉 · 天道無情</div></div></div>
-      <div class="world-meta"><div><span>所在區域</span><b id="topLoc">青牛谷 · A-1</b></div><div><span>天象</span><b id="worldClock">浮島時刻 --:--</b></div><div><span>靈石</span><b><i style="font-style:normal;color:var(--gold)" id="ls">0</i> 枚</b></div></div>
-    </header>
-    <div class="status-ribbon"><i class="pulse"></i><span>天機監測：浮島結界仍在運作，黑雲與獸潮尚未形成。</span></div>
-
-    <main class="dashboard-grid">
-      <aside class="card panel character-panel">
-        <div class="panel-head"><strong>道體狀態</strong><span>CULTIVATOR</span></div>
-        <div class="avatar-wrap"><div id="qibox"></div></div>
-        <div id="pname" class="avatar-name"></div>
-        <div class="realm-line"><span id="prealm" class="realm-badge"></span><span id="qistate" class="state-line"></span></div>
-        <div class="meter"><div class="meter-head"><span>氣血</span><b id="hpText">0 / 0</b></div><div class="bar"><i id="hpb" class="hpf"></i></div></div>
-        <div class="meter"><div class="meter-head"><span>精力</span><b id="mpText">0 / 0</b></div><div class="bar"><i id="mpb" class="mpf"></i></div></div>
-        <div class="meter"><div class="meter-head"><span>修為</span><b id="xpText">0 / 0</b></div><div class="bar"><i id="xpb" class="xpf"></i></div></div>
-        <div class="stat-grid"><div><span>攻擊</span><b id="atk">0</b></div><div><span>防禦</span><b id="def">0</b></div><div><span>武器</span><b id="wp">空手</b></div><div><span>等級</span><b id="lvText">Lv1</b></div></div>
-      </aside>
-
-      <section class="world-panel">
+    <section class="world-panel">
+      <div class="card panel">
+        <div class="panel-head"><strong>當前地域</strong><span>WORLD DOMAIN</span></div>
         <div class="world-scene">
-          <div class="stars"></div><div class="moon"></div><div class="mountain m1"></div><div class="mountain m2"></div><div class="mist a"></div><div class="mist b"></div><div class="temple"></div>
-          <div class="scene-top"><span class="zone-chip" id="zoneType">新手村</span><span class="zone-chip">座標 <b id="coordText">A-1</b></span></div>
-          <div class="meditation-stage"><div class="aura-ring r1"></div><div class="aura-ring r2"></div><i class="qi-orb o1"></i><i class="qi-orb o2"></i><i class="qi-orb o3"></i><i class="qi-orb o4"></i><div class="meditator"><i class="head"></i><i class="body"></i><i class="legs"></i></div></div><div id="sceneGlyph" class="scene-glyph safe">谷</div>
-          <div class="scene-caption"><small>CURRENT DOMAIN</small><h2 id="loc">青牛谷</h2></div>
+          <div class="stars"></div><div class="moon"></div><div class="mountain"></div>
+          <div class="scene-content"><div class="scene-zone" id="sceneZone">青牛谷</div><div class="scene-coord" id="sceneCoord">A-1 · 新手村</div><div class="scene-copy" id="sceneCopy">新手結界壓制高階妖魔，適合累積第一桶修為。</div></div>
         </div>
-        <div class="primary-actions">
-          <button class="btn action-tile jade" onclick="openMove()"><span class="rune">御</span><span><strong>移動</strong><small>御風前往鄰近區域</small></span></button>
-          <button class="btn action-tile gold" onclick="explore()"><span class="rune">探</span><span><strong>探索</strong><small>搜尋法器、丹藥與機緣</small></span></button>
-          <button class="btn action-tile" onclick="openMeditation()"><span class="rune">息</span><span><strong>打坐</strong><small>吐納靈氣、恢復道體</small></span></button>
+        <div class="action-grid">
+          <button class="btn action-tile jade" onclick="openWorldMap()"><span class="rune">圖</span><span><strong>御風移動</strong><small>從地圖選擇目的地</small></span></button>
+          <button class="btn action-tile" onclick="explore()"><span class="rune">探</span><span><strong>探索</strong><small>搜尋資源與遭遇</small></span></button>
+          <button class="btn action-tile" id="meditateBtn" onclick="meditationButtonClick()"><span class="rune">息</span><span><strong id="meditateText">開始打坐</strong><small id="meditateSub">持續吐納並可離線結算</small></span></button>
+          <button class="btn action-tile" onclick="openBag()"><span class="rune">囊</span><span><strong>行囊裝備</strong><small>道具、裝備、獨立強化</small></span></button>
+          <button class="btn action-tile gold" onclick="openShop()"><span class="rune">坊</span><span><strong>商城坊市</strong><small>元寶訂單、功法與NPC交易</small></span></button>
+          <button class="btn action-tile" id="brkBtn" onclick="openBreak()"><span class="rune">破</span><span><strong>境界突破</strong><small>築基、結丹、元嬰</small></span></button>
+          <button class="btn action-tile gold world-event-btn" id="eventRealmBtn" hidden onclick="openEventRealm()"><span class="rune">境</span><span><strong id="eventRealmName">活動秘境</strong><small>管理員限時開放</small></span></button>
         </div>
-<button id="breakMain" class="btn gold break-main" onclick="openBreak()">引動天地靈氣 · 境界突破</button><button id="cureMain" class="btn red cure-main" onclick="recoverQiDeviation()">調息歸元 · 消耗 50 精力解除走火入魔</button>
-        <div class="field-brief">
-          <div class="brief-main"><span>當前判斷</span><strong id="zoneAdvice">先在青牛谷補足丹藥與修為，再離開護道結界。</strong></div>
-          <div class="brief-item"><span>可能遭遇</span><b id="zoneEncounter">灰狼、山豬</b></div>
-          <div class="brief-item"><span>可得機緣</span><b id="zoneLoot">回體丹、回精丹、靈草</b></div>
+        <div id="meditationBoostBanner" class="meditation-boost-banner" hidden></div>
+      </div>
+      <div class="comm-grid" style="margin-top:12px">
+        <div class="card panel comm-panel">
+          <div class="panel-head"><strong>天機紀錄</strong><span>EVENT LOG</span></div>
+          <div class="log" id="log"></div>
         </div>
-      </section>
-
-      <aside class="card panel command-panel">
-        <div class="panel-head"><strong>仙途指令</strong><span>COMMAND</span></div>
-        <div class="command-list">
-          <button class="btn command" onclick="openBag()"><b>囊</b><strong>行囊</strong><small>丹藥與法器</small></button>
-          <button class="btn command" onclick="openShop()"><b>坊</b><strong>坊市</strong><small>購買修行物資</small></button>
-          <button class="btn command" onclick="openWorldMap()"><b>圖</b><strong>地圖</strong><small>查看浮島全域</small></button>
-          <button class="btn command" onclick="openStatusPanel()"><b>身</b><strong>道體</strong><small>傷勢與異常</small></button>
-          <button class="btn command" onclick="explore()"><b>緣</b><strong>尋機</strong><small>立即探索此地</small></button>
-          <button class="btn command" onclick="openMeditation()"><b>煉</b><strong>修煉</strong><small>吐納增進修為</small></button>
-          <button class="btn command breakthrough" id="brkBtn" onclick="openBreak()"><b>破</b><span><strong>境界突破</strong><small>引動天雷，逆天改命</small></span></button>
+        <div class="card panel comm-panel" id="worldChatDock">
+          <div class="panel-head"><strong>全服傳音</strong><span id="worldPopulationText">世界連線中</span></div>
+          <div class="world-chat inline" id="worldChatInlineList"><div class="small">正在接收世界傳音……</div></div>
+          <form class="chat-compose" id="worldChatInlineForm"><input id="worldChatInlineInput" maxlength="160" enterkeyhint="send" autocomplete="off" placeholder="持有傳訊玉符後輸入傳音…"><button type="submit" class="btn gold">傳音</button></form>
         </div>
-        <div class="threat-box"><strong id="threatTitle">護道結界穩定</strong><p id="threatText">新手區域受結界庇護。</p></div>
-        <div class="mini-map-wrap"><div class="panel-head" style="margin-top:13px"><strong>浮島縮圖</strong><span>10 × 10</span></div><div id="miniMap" class="mini-map"></div></div>
-      </aside>
-    </main>
-
-    <section class="bottom-grid">
-      <div class="card log-panel"><div class="panel-head"><strong>天機紀錄</strong><span>REAL-TIME LOG</span></div><div id="log" class="log"></div></div>
-      <div class="card intel-panel"><div class="panel-head"><strong>區域情報</strong><span>DOMAIN INTEL</span></div><div class="intel-grid"><div><span>靈氣濃度</span><b id="zoneLing">2 階</b></div><div><span>恢復效率</span><b id="zoneRecover">×1.1</b></div><div><span>打坐收益</span><b id="zoneMeditate">12 修為</b></div><div><span>護道狀態</span><b id="worldState">穩定</b></div></div><div class="panel-list"><p><span>移動消耗</span><b>10 精力</b></p><p><span>探索消耗</span><b>5 精力</b></p><p><span>御風距離</span><b>依境界提升</b></p></div></div>
+      </div>
     </section>
 
-    <nav class="mobile-nav"><button onclick="openWorldMap()"><b>圖</b>地圖</button><button onclick="openBag()"><b>囊</b>行囊</button><button onclick="explore()"><b>探</b>探索</button><button onclick="openMeditation()"><b>息</b>打坐</button><button onclick="openShop()"><b>坊</b>坊市</button></nav>
-  </div>
-</div>
+    <aside class="card panel intel-panel">
+      <div class="panel-head"><strong>區域情報</strong><span>DOMAIN INTEL</span></div>
+      <div class="intel-grid">
+        <div><span>靈氣濃度</span><b id="zoneLing">2 階</b></div>
+        <div><span>恢復效率</span><b id="zoneRecover">×1.1</b></div>
+        <div><span>打坐速度</span><b id="zoneMeditate">2 秒 / EXP</b></div>
+        <div><span>附近修士</span><b id="nearbyCount">0 人</b></div>
+      </div>
+      <div class="panel-head" style="margin-top:15px"><strong>神識感應</strong><span>CULTIVATORS</span></div>
+      <div class="ai-list" id="aiList"></div>
+      <div class="panel-head compact" style="margin-top:12px"><strong>附近動靜</strong><span>LIVE SENSE</span></div>
+      <div class="sense-feed" id="senseFeed"><div class="sense-empty">神識正在辨識周遭氣機……</div></div>
+      <div class="command-row">
+        <button class="btn" onclick="openTutorial(0)">新手教學</button>
+        
+        <button class="btn" onclick="openMonsterDex()">妖獸圖鑑</button>
+        <button class="btn" onclick="openCloudStatus()">雲端狀態</button>
+        <button class="btn gold" onclick="openFeedback()">問題回報</button>
+        <button class="btn red" onclick="confirmReset()">放棄道體</button>
+      </div>
+    </aside>
+  </main>
 
-<div class="meditation-overlay" id="meditationOverlay">
-  <div class="meditation-sky"><div class="moon-v8"></div><div class="mountain-v8"></div></div>
-  <div class="meditation-center">
-    <div class="meditation-avatar">
-      <i class="ring-v8 r1"></i><i class="ring-v8 r2"></i><i class="ring-v8 r3"></i>
-      <i class="breath-v8 b1"></i><i class="breath-v8 b2"></i><i class="breath-v8 b3"></i><i class="breath-v8 b4"></i>
-      <i class="head-v8"></i><i class="body-v8"></i><i class="legs-v8"></i>
-    </div>
-    <div class="meditation-title">吐 納 歸 元</div>
-    <div class="meditation-sub" id="medZoneText">青牛谷 · 護道結界</div>
-  </div>
-  <div class="meditation-notice" id="medStatusText">尚未開始打坐</div>
-  <div class="meditation-stats">
-    <div><span>本次體力</span><b id="medHpGain">+0</b></div>
-    <div><span>本次精力</span><b id="medMpGain">+0</b></div>
-    <div><span>本次修為</span><b id="medXpGain">+0</b></div>
-  </div>
-  <div class="meditation-controls">
-    <button id="medStart" class="btn jade" onclick="startMeditation()">開始打坐</button>
-    <button class="btn red" onclick="stopMeditation(true)">停止打坐</button>
-  </div>
+  <nav class="mobile-nav">
+    <button onclick="openWorldMap()"><b>圖</b>地圖</button>
+    <button onclick="openBag()"><b>囊</b>行囊</button>
+    <button onclick="explore()"><b>探</b>探索</button>
+    <button onclick="meditationButtonClick()"><b>息</b>打坐</button>
+    <button onclick="openShop()"><b>坊</b>坊市</button>
+    <button onclick="openWorldChat()"><b>音</b>傳音</button>
+  </nav>
+</section>
 </div>
 
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
 <div class="toast" id="toast"></div>
 
-<script src="./config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="online_config.js?v=20260717-250"></script>
 <script>
-const C = window.CONFIG, P = C.params, R = C.realms, IT = C.items, MSG = C.msg;
-// 新手坊市補齊基礎裝備與強化材料。
-[
-  {id:2001,name:'長劍',price:80},
-  {id:3001,name:'護體法袍',price:60},
-  {id:3101,name:'玄鐵甲',price:260},
-  {id:8301,name:'庚精',price:120}
-].forEach(x=>{if(!C.shop.some(s=>Number(s.id)===x.id))C.shop.push(x);});
 const $ = id => document.getElementById(id);
-let g;
+let C, P, R, IT, g=null, ai=[], fight=null, shopTab='yuanbao', tickTimer=null, aiTimer=null, tutorialIndex=0, corpse=null;
+const SAVE_KEY='xianxia_v12_legacy_cache';
+
+async function boot(){
+  try{
+    const r=await fetch('xianxia_config_V12.json?v=20260719-fix2-1',{cache:'no-store'});
+    if(!r.ok)throw new Error('config '+r.status);
+    C=await r.json(); P=C.params; R=C.realms; IT=C.items;
+    $('continueBtn').style.display=localStorage.getItem(SAVE_KEY)?'block':'none';
+  }catch(e){
+    document.body.innerHTML='<div style="padding:30px;color:#eee;font-family:sans-serif"><h2>設定檔載入失敗</h2><p>請使用「01_只點這個_本機預覽_V12.bat」啟動，不要直接雙擊 HTML。</p><pre>'+String(e)+'</pre></div>';
+  }
+}
+boot();
 
 function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$(id).classList.add('on')}
-function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1800)}
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2100)}
 function closeOv(){$('ov').classList.remove('on')}
 function sheet(html){$('sheet').innerHTML=html;$('ov').classList.add('on')}
 function rnd(a){return a[Math.floor(Math.random()*a.length)]}
-function log(t,cls){const l=$('log');const p=document.createElement('p');if(cls)p.className=cls;p.innerHTML=t;l.appendChild(p);l.scrollTop=l.scrollHeight}
-function fmtMsg(key,vars){let s=MSG[key]||key;for(const k in vars)s=s.replaceAll('{'+k+'}',vars[k]);return s}
-
-const BIG_MOVE={"練氣期":1,"築基期":2,"結丹期":3,"元嬰期":4};
-function realmOf(lv){return R[lv-1]}
-function learnedTech(id){return (g&&g.techniques||[]).find(x=>x.id===id)}
-function techDef(id){return (C.techniques||[]).find(x=>x.id===id)}
-function techLevel(id){const x=learnedTech(id);return x?Math.max(1,Math.min(3,x.level||1)):0}
-function techEffect(id){const d=techDef(id),lv=techLevel(id);return d&&lv?d.levels[lv-1]||{}:{}}
-function blackCloudActive(){return !!(g&&g.blackCloud)}
-function techEnabled(id){const d=techDef(id);return !!d&&(!blackCloudActive()||d.type==='body')}
-function effectiveCritRate(){const e=techEnabled('lightning_breath')?techEffect('lightning_breath'):{};return Math.min(.95,Number(P.base_crit_rate||.08)+Number(e.critRate||0))}
-function meditationMultiplier(){return techEnabled('dust')&&learnedTech('dust')?2:1}
-function expMultiplier(){return learnedTech('rebirth')&&techEnabled('rebirth')?.3:1}
-function applyTechniqueStats(){if(!g)return;const r=realmOf(g.lv),body=learnedTech('golden_dragon')?techEffect('golden_dragon'):{};g.hpMax=Math.round(r.hp*(1+Number(body.hp||0)));if(g.hp>g.hpMax)g.hp=g.hpMax;}
-
-
-const SENSE=C.senseProfiles||{};
-function senseProfile(){return SENSE[g.big]||{same:0,one:0,two:0,ambush:0,move:BIG_MOVE[g.big]||1};}
-function isBreakLevel(){return g&&(g.lv===5||g.lv===10||g.lv===15);}
-function canBreakNow(){const r=realmOf(g.lv);return isBreakLevel()&&g.exp>=r.expCum&&!!C.breakthrough[g.lv];}
-function currentZone(){return zoneAt(g.pos.r,g.pos.c);}
-function directionText(){return rnd(['北方','東北方','東方','東南方','南方','西南方','西方','西北方']);}
-function emitNearbyPhenomenon(level,concealed){if(concealed)return;const v=(C.breakthroughVisuals||{})[String(level)]||{effect:'天地異象',range:1};const z=currentZone(),place=z?z.name:'附近荒野';log('【附近異象】'+directionText()+'的'+place+'出現'+v.effect+'，似乎有人正在突破。','la');toast('附近天地異象：似有修士突破');}
-function maybeSenseWorldEvent(){if(Math.random()>.08)return;const sp=senseProfile(),d=sp.two>0?2:(sp.one>0?1:0);const detail=d===0?'遠處靈氣略有波動':(d===1?directionText()+'一格外靈氣紊亂':directionText()+'約兩格外出現異象');log('【神識感應】'+detail+'，但尚無法確認源頭。','la');}
-
-
-let aiWorld=[],aiWorldTimer=null,worldFeed=[];
-let meditationTimers=[],meditationSession=null;
-
-function parseAICoord(coord){const p=coordRC(coord);return {r:p.r,c:p.c};}
-function initAIWorld(){
-  aiWorld=(C.aiPlayers||[]).slice(0,Number(P.ai_player_count||50)).map(a=>({
-    ...a,pos:parseAICoord(a.coord||'A-1'),exp:0,hp:100,mp:50,state:'修煉中',lastAction:'初入浮島',lingshi:300,inv:{'1001':2,'1002':2},weapon:null,armor:null,techniques:[]
-  }));
-  if(aiWorldTimer)clearInterval(aiWorldTimer);
-  aiWorldTimer=setInterval(aiWorldTick,Number(P.ai_tick_interval_sec||8)*1000);
-  updateAIIndicator();
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function log(t,cls=''){if(!$('log'))return;const p=document.createElement('p');if(cls)p.className=cls;p.innerHTML=t;$('log').appendChild(p);$('log').scrollTop=$('log').scrollHeight}
+function realmOf(lv){return R[Math.max(0,Math.min(R.length-1,lv-1))]}
+function coordRC(c){return {r:c.charCodeAt(0)-65,c:parseInt(c.split('-')[1],10)-1}}
+function coordOf(r,c){return String.fromCharCode(65+r)+'-'+(c+1)}
+function zoneAt(r,c){return C.zones.find(z=>{const p=coordRC(z.coord);return p.r===r&&p.c===c})}
+function bigMove(big){return ({'練氣期':1,'築基期':2,'結丹期':3,'元嬰期':4})[big]||1}
+function senseRange(big){return ({'練氣期':0,'築基期':1,'結丹期':2,'元嬰期':2})[big]||0}
+function senseText(big){return ({'練氣期':'同格','築基期':'周邊1格','結丹期':'周邊2格','元嬰期':'周邊2格·高感知'})[big]||'同格'}
+function isEquipmentId(id){const it=IT[String(id)];return !!it&&(it.cat==='法器'||it.cat==='防具')}
+function newEquipment(itemId,enhance=0){
+  const it=IT[String(itemId)];
+  return {uid:'eq_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),itemId:String(itemId),name:it.name,type:it.type||it.cat,cat:it.cat,enhance,equipped:false};
 }
-function updateAIIndicator(){const e=$('aiOnline');if(e)e.textContent=aiWorld.length;}
-function pushWorldFeed(text,cls){
-  worldFeed.unshift({time:new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}),text,cls:cls||''});
-  worldFeed=worldFeed.slice(0,24);
-}
-function aiMoveOne(ai){
-  const step=BIG_MOVE[ai.big]||1;
-  ai.pos.r=Math.max(0,Math.min(9,ai.pos.r+Math.floor(Math.random()*3)-1));
-  ai.pos.c=Math.max(0,Math.min(9,ai.pos.c+Math.floor(Math.random()*3)-1));
-  ai.state='御風移動';
-  const z=zoneAt(ai.pos.r,ai.pos.c);ai.lastAction='前往 '+(z?z.name:'無名荒野');
-}
-function aiWorldTick(){
-  if(!aiWorld.length)return;
-  const ai=rnd(aiWorld), roll=Math.random(), z=zoneAt(ai.pos.r,ai.pos.c);
-  if(roll<.30){ai.state='打坐吐納';ai.exp+=z&&z.novice?4:1;ai.lastAction='在 '+(z?z.name:'荒野')+' 打坐';}
-  else if(roll<.55){aiMoveOne(ai);}
-  else if(roll<.75){ai.state='探索機緣';ai.lastAction='搜尋附近靈物';}
-  else if(roll<.90){ai.state='獵殺妖獸';ai.lastAction='與妖獸交戰';}
-  else{
-    ai.state='感應天地';
-    ai.lastAction='察覺遠方靈氣異動';
-    if(Math.random()<.28)pushWorldFeed(directionText()+'傳來靈氣波動，'+ai.name+'似乎正前往查看。','la');
-  }
-  // AI練氣5層偶爾突破；未遮蔽時進入世界訊息。
-  if(ai.lv===5&&ai.exp>=20&&Math.random()<.18){
-    const concealed=ai.conceal==='高'||(ai.conceal==='中'&&Math.random()<.55);
-    if(Math.random()<.30){
-      ai.lv=6;ai.big='築基期';ai.exp=0;ai.state='穩固境界';
-      if(!concealed)pushWorldFeed((z?z.name:'附近荒野')+'上空靈氣成旋，'+ai.name+'已成功築基。','lg');
-    }else{
-      ai.state='走火入魔';ai.lastAction='突破失敗，正在調息';
-      if(!concealed)pushWorldFeed((z?z.name:'附近荒野')+'天地異象突然潰散，似有修士突破失敗。','ld');
-    }
-  }
-}
-function nearbyAI(){
-  const sp=senseProfile();
-  return aiWorld.filter(a=>{
-    const d=Math.max(Math.abs(a.pos.r-g.pos.r),Math.abs(a.pos.c-g.pos.c));
-    const chance=d===0?sp.same:d===1?sp.one:d===2?sp.two:0;
-    return chance>0&&Math.random()<chance;
+function initAi(){
+  return C.aiCultivators.map((a,i)=>{
+    const r=realmOf(a.lv);
+    const gear=[];
+    if(i%3===0)gear.push({...newEquipment(2001,i%7===0?1:0),equipped:true});
+    if(i%5===0)gear.push({...newEquipment(3001,0),equipped:true});
+    return {...a,hp:r.hp,hpMax:r.hp,mp:r.mp,mpMax:r.mp,alive:true,gear,lingshi:20+(i%10)*12,action:'打坐'};
   });
 }
-function openAIWorld(){
-  const seen=nearbyAI();
-  let h='<div class="sheet-title-row"><div><h3>浮島修士情報</h3><p class="small">世界中共有 '+aiWorld.length+' 名AI修士持續行動；神識只會顯示你能察覺的人。</p></div><span class="seal-mark">眾</span></div>';
-  h+='<div class="sense-strip">目前境界：'+g.big+'｜同格 '+Math.round(senseProfile().same*100)+'%｜1格 '+Math.round(senseProfile().one*100)+'%｜2格 '+Math.round(senseProfile().two*100)+'%</div>';
-  h+='<h4>神識範圍內</h4><div class="ai-world-grid">';
-  if(!seen.length)h+='<div class="notice">附近暫無可辨識的修士氣息。</div>';
-  seen.slice(0,8).forEach(a=>{const z=zoneAt(a.pos.r,a.pos.c);h+='<div class="ai-card"><strong>'+a.name+'</strong><small>'+a.big+' · Lv'+a.lv+'</small><br><em>'+a.type+'</em><p>'+a.state+'｜'+(z?z.name:'荒野')+'</p></div>';});
-  h+='</div><h4>世界動態</h4><div class="world-feed">';
-  if(!worldFeed.length)h+='<p>天地暫時平靜，尚無重大動靜。</p>';
-  worldFeed.forEach(x=>h+='<p class="'+x.cls+'">['+x.time+'] '+x.text+'</p>');
-  h+='</div><button class="btn" onclick="closeOv()">關閉</button>';sheet(h);
+function freshGame(name){
+  const r0=realmOf(1),st=coordRC('A-1');
+  return {
+    name,lv:1,big:'練氣期',exp:0,hp:r0.hp,hpMax:r0.hp,mp:P.start_stamina,mpMax:P.start_stamina,
+    pos:st,lingshi:0,yuanbao:0,boundStone:0,inv:{'1001':3,'1002':3},equipment:[],weaponUid:null,armorUid:null,
+    injury:null,status:[],techniques:[],meditating:false,meditateSec:0,tutorialDone:false,createdAt:Date.now(),
+    lastSavedAt:Date.now(),orders:[],purchaseLimits:{},dead:false
+  };
 }
-function openMeditation(){
-  const z=currentZone();
-  $('meditationOverlay').classList.add('on');
-  $('medZoneText').textContent=(z?z.name:'無名荒野')+(z&&z.novice?' · 新手修煉加速':' · 天地靈氣');
-  $('medStatusText').textContent=meditationSession?'打坐運行中……':'尚未開始打坐';
-  document.body.style.overflow='hidden';
-}
-function updateMeditationStats(){
-  if(!meditationSession)return;
-  $('medHpGain').textContent='+'+meditationSession.hp;
-  $('medMpGain').textContent='+'+meditationSession.mp;
-  $('medXpGain').textContent='+'+meditationSession.xp;
-}
-function startMeditation(){
-  if(meditationSession)return;
-  const z=currentZone();
-  meditationSession={start:Date.now(),hp:0,mp:0,xp:0};
-  $('meditationOverlay').classList.add('meditation-starting');
-  $('medStatusText').textContent='凝神盤坐，正在引氣入體……';
-  setTimeout(()=>{$('meditationOverlay').classList.remove('meditation-starting');$('meditationOverlay').classList.add('meditation-running');$('medStatusText').textContent='氣息循環中，停止前將持續吐納……';},900);
-    const hpMs=Number(P.meditate_hp_interval_sec||10)*1000;
-  const mpMs=Number(P.meditate_mp_interval_sec||4)*1000;
-  const xpMs=Number(z&&z.novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec||20)*1000;
-  meditationTimers=[
-    setInterval(()=>{const before=g.hp;g.hp=Math.min(g.hpMax,g.hp+Number(P.meditate_hp_gain||1)*meditationMultiplier());meditationSession.hp+=Math.round(g.hp-before);updateMeditationStats();render();},hpMs),
-    setInterval(()=>{const before=g.mp;g.mp=Math.min(g.mpMax,g.mp+Number(P.meditate_mp_gain||1)*meditationMultiplier());meditationSession.mp+=Math.round(g.mp-before);updateMeditationStats();render();},mpMs),
-    setInterval(()=>{const v=meditationMultiplier();gainExp(v);meditationSession.xp+=v;updateMeditationStats();},xpMs)
-  ];
-  log('開始持續打坐吐納。','lg');
-}
-function stopMeditation(closeView){
-  meditationTimers.forEach(clearInterval);meditationTimers=[];
-  if(meditationSession){
-    log('停止打坐：體力 +'+meditationSession.hp+'、精力 +'+meditationSession.mp+'、修為 +'+meditationSession.xp+'。','lg');
-  }
-  meditationSession=null;
-  $('meditationOverlay').classList.remove('meditation-running','meditation-starting');
-  $('medStatusText').textContent='尚未開始打坐';
-  if(closeView){$('meditationOverlay').classList.remove('on');document.body.style.overflow='';}
-  render();
-}
-function meditate(){openMeditation();}
-
-function coordRC(c){return {r:c.charCodeAt(0)-65, c:parseInt(c.split('-')[1])-1}}
-function zoneAt(r,c){return C.zones.find(z=>{const p=coordRC(z.coord);return p.r===r&&p.c===c})}
-
 function startGame(){
-  const nm=$('nm').value.trim()||"無名散修";
-  const st=coordRC("A-1"), r0=realmOf(1);
-  g={name:nm,lv:1,exp:0,hp:r0.hp,hpMax:r0.hp,mp:P.start_stamina||300,mpMax:P.start_stamina||300,
-     pos:{r:st.r,c:st.c},big:"練氣期",weapon:null,armor:null,enhance:{weapon:0,armor:0},injury:null,status:[],lingshi:600,yuanbao:100,techniques:[],blackCloud:false,inv:{"1001":3,"1002":3,"8301":12}};
-  show('game');
-  log('你睜眼，發現自己身處 <b>青牛谷</b>，頸上靈環冰冷。','la');
-  initAIWorld();pushWorldFeed(aiWorld.length+'名修士已散入浮島，各自尋道。','la');
-  render();
+  if(!C)return;
+  const nm=$('nm').value.trim()||'無名散修';
+  g=freshGame(nm);ai=initAi();show('game');startLoops();
+  log('你在 <b>青牛谷</b> 凝聚道體。護道結界正在壓制高階妖魔。','la');
+  log('所有移動必須從地圖選擇；先打坐、探索，再決定何時離開新手村。');
+  saveGame(false);render();setTimeout(()=>openTutorial(0),450);
 }
-
-function enhanceBonus(slot){
-  const lv=(g.enhance&&g.enhance[slot])||0;
-  const base=slot==='weapon'&&g.weapon?(IT[g.weapon.id].val||0):slot==='armor'&&g.armor?(IT[g.armor.id].val||0):0;
-  let total=0;
-  for(let i=0;i<lv;i++){const r=(C.enhancementRules||[]).find(x=>x.current===i);total+=base*((r&&r.bonusRate)||0);}
-  return Math.round(total);
+function continueGame(){
+  try{
+    const data=JSON.parse(localStorage.getItem(SAVE_KEY));
+    g=data.g;ai=data.ai&&data.ai.length?data.ai:initAi();
+    normalizeSave();applyOffline(data.savedAt||g.lastSavedAt||Date.now());
+    show('game');startLoops();render();log('現存道體已載入。','lg');
+  }catch(e){localStorage.removeItem(SAVE_KEY);toast('舊存檔無法讀取，已清除');$('continueBtn').style.display='none'}
 }
-function pAtk(){let a=realmOf(g.lv).atk;if(g.weapon){let w=(IT[g.weapon.id].val||0)+enhanceBonus('weapon');if(g.weapon.type==='飛劍'&&techEnabled('green_sword'))w*=1+Number(techEffect('green_sword').flyingSwordDamage||0);a+=w;}if(g.secretState&&g.secretState.activeTurns>0)a*=2;return Math.round(a)}
-function pDef(){let d=realmOf(g.lv).def;if(g.armor)d+=(IT[g.armor.id].val||0)+enhanceBonus('armor');if(techEnabled('golden_dragon'))d*=1+Number(techEffect('golden_dragon').def||0);if(techEnabled('gentleman'))d*=1+Number(techEffect('gentleman').defenseCoeff||0);return Math.round(d)}
-function wMult(){return g.weapon?g.weapon.mult:1.0}
-function qiState(){if(g.status.includes('走火入魔'))return['逆行','var(--red)'];if(g.injury||g.status.includes('中毒'))return['紊亂','var(--amber)'];return['通暢','var(--jade)']}
-
-function qiSvg(color){return `<svg class="qi" width="70" height="86" viewBox="0 0 120 150" style="color:${color}">
+function normalizeSave(){
+  g.inv=g.inv||{};g.equipment=g.equipment||[];g.techniques=g.techniques||[];g.orders=g.orders||[];g.purchaseLimits=g.purchaseLimits||{};
+  g.yuanbao=g.yuanbao||0;g.lingshi=g.lingshi||0;g.boundStone=g.boundStone||0;g.meditating=!!g.meditating;g.meditateSec=g.meditateSec||0;g.worldStats=g.worldStats||{};g.aiTreasures=g.aiTreasures||{};
+}
+function saveGame(showToast=false){
+  if(!g)return;g.lastSavedAt=Date.now();
+  localStorage.setItem(SAVE_KEY,JSON.stringify({savedAt:Date.now(),g,ai}));
+  $('continueBtn').style.display='block';if(showToast)toast('存檔完成');
+}
+function applyOffline(savedAt){
+  const elapsed=Math.max(0,Math.floor((Date.now()-savedAt)/1000));
+  if(!g.meditating||elapsed<2)return;
+  const cap=P.offline_meditate_cap_hours*3600,sec=Math.min(elapsed,cap),z=zoneAt(g.pos.r,g.pos.c),novice=!!(z&&z.novice);
+  const expInterval=novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec;
+  let exp=Math.floor(sec/expInterval),hp=Math.floor(sec/P.meditate_hp_interval_sec)*P.meditate_hp_gain,mp=Math.floor(sec/P.meditate_mp_interval_sec)*P.meditate_mp_gain;
+  if(g.techniques.includes('dust')){exp*=2;hp*=2;mp*=2}
+  g.hp=clamp(g.hp+hp,0,g.hpMax);g.mp=clamp(g.mp+mp,0,g.mpMax);gainExp(exp,false);
+  setTimeout(()=>sheet('<h3>離線打坐結算</h3><div class="money"><div><span>離線時間</span><b>'+formatDuration(sec)+'</b></div><div><span>修為</span><b>+'+exp+'</b></div><div><span>體力</span><b>+'+hp+'</b></div><div><span>精力</span><b>+'+mp+'</b></div></div><p class="small">最多結算 '+P.offline_meditate_cap_hours+' 小時；望塵訣已計入加成。</p><button class="btn gold" onclick="closeOv()">收下</button>'),300);
+}
+function formatDuration(sec){const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return (h?h+'時 ':'')+(m?m+'分 ':'')+s+'秒'}
+function startLoops(){
+  clearInterval(tickTimer);clearInterval(aiTimer);
+  tickTimer=setInterval(()=>{updateClock();tickMeditation();if(Date.now()%5000<1000)saveGame(false)},1000);
+  aiTimer=setInterval(tickAiWorld,5000);updateClock();
+}
+function updateClock(){const d=new Date();$('worldClock').textContent=d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false})}
+function tickMeditation(){
+  if(!g||!g.meditating||fight)return;
+  g.meditateSec++;
+  const z=zoneAt(g.pos.r,g.pos.c),novice=!!(z&&z.novice),mult=g.techniques.includes('dust')?2:1;
+  const expInterval=novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec;
+  let changed=false;
+  if(g.meditateSec%expInterval===0){gainExp(1*mult,false);changed=true}
+  if(g.meditateSec%P.meditate_hp_interval_sec===0){g.hp=clamp(g.hp+P.meditate_hp_gain*mult,0,g.hpMax);changed=true}
+  if(g.meditateSec%P.meditate_mp_interval_sec===0){g.mp=clamp(g.mp+P.meditate_mp_gain*mult,0,g.mpMax);changed=true}
+  if(changed)render();
+}
+function tickAiWorld(){
+  if(!ai.length)return;
+  const alive=ai.filter(a=>a.alive);
+  for(let n=0;n<Math.max(8,Math.floor(alive.length/8));n++){
+    const a=rnd(alive);if(!a)continue;
+    const roll=Math.random();
+    if(roll<.38){a.action='打坐';if(a.lv<5&&Math.random()<.12){a.lv++;const r=realmOf(a.lv);a.hp=a.hpMax=r.hp;a.mp=a.mpMax=r.mp}}
+    else if(roll<.68){a.action='探索';a.lingshi+=Math.floor(Math.random()*8)}
+    else if(roll<.87){a.action='移動';const p=coordRC(a.coord);const dr=rnd([-1,0,1]),dc=rnd([-1,0,1]);a.coord=coordOf(clamp(p.r+dr,0,9),clamp(p.c+dc,0,9))}
+    else a.action='打怪';
+  }
+  renderAiIntel();
+}
+function qiSvg(){
+  return `<svg class="qi" width="118" height="150" viewBox="0 0 120 150" style="color:${g&&g.meditating?'var(--jade)':'#7892a2'}">
   <ellipse cx="60" cy="122" rx="40" ry="16" fill="#243049" stroke="#3f5279"/>
   <path d="M40 42 C30 46 28 74 33 96 L87 96 C92 74 90 46 80 42 C70 34 50 34 40 42Z" fill="#2b3a5a" stroke="#4a5f8c"/>
   <circle cx="60" cy="34" r="15" fill="#2f4067" stroke="#4a5f8c"/>
-  <path class="qiflow" d="M60 104 L60 82 L60 58 L60 42" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="4 8"/>
-  <circle cx="60" cy="106" r="4" fill="currentColor"><animate attributeName="r" values="3;6;3" dur="2.2s" repeatCount="indefinite"/></circle>
-</svg>`}
-
-
-function zoneGlyph(z){
-  if(!z)return '野';
-  const t=z.type||'';
-  if(t.includes('新手'))return '谷';
-  if(t.includes('坊市'))return '坊';
-  if(t.includes('交易'))return '市';
-  if(t.includes('秘境'))return '秘';
-  if(t.includes('靈地'))return '泉';
-  if(t.includes('廢墟'))return '墟';
-  if(t.includes('野外'))return '林';
-  if(t.includes('建築'))return '閣';
-  return '域';
+  <path class="${g&&g.meditating?'qiflow':''}" d="M60 104 L60 82 L60 58 L60 42" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="4 8"/>
+  <circle cx="60" cy="106" r="4" fill="currentColor">${g&&g.meditating?'<animate attributeName="r" values="3;7;3" dur="2.2s" repeatCount="indefinite"/>':''}</circle></svg>`;
 }
-function zoneTone(z){
-  if(!z)return 'wild';
-  if(z.novice)return 'safe';
-  if((z.type||'').includes('秘境'))return 'danger';
-  if((z.type||'').includes('交易'))return 'market';
-  if((z.type||'').includes('靈地'))return 'spirit';
-  return 'normal';
+function getWeapon(){return g.equipment.find(e=>e.uid===g.weaponUid)||null}
+function getArmor(){return g.equipment.find(e=>e.uid===g.armorUid)||null}
+function pAtk(){
+  let a=realmOf(g.lv).atk;const w=getWeapon();
+  if(w){const it=IT[w.itemId];a+=(it.val||0)*(1+.05*w.enhance);if(w.type==='飛劍')a*=1.5;if(g.techniques.includes('green_sword')&&w.type==='飛劍')a*=1.1}
+  if(g.techniques.includes('golden_dragon'))a*=1.02;
+  return Math.round(a);
 }
-function updateWorldClock(){
-  const el=$('worldClock'); if(!el)return;
-  const d=new Date();
-  const h=String(d.getHours()).padStart(2,'0'),m=String(d.getMinutes()).padStart(2,'0');
-  el.textContent='浮島時刻 '+h+':'+m;
+function pDef(){
+  let d=realmOf(g.lv).def;const a=getArmor();if(a)d+=(IT[a.itemId].val||0)*(1+.05*a.enhance);
+  if(g.techniques.includes('golden_dragon'))d*=1.05;return Math.round(d);
 }
-function renderMiniMap(){
-  const el=$('miniMap'); if(!el||!g)return;
-  let h='';
-  for(let r=0;r<10;r++)for(let c=0;c<10;c++){
-    const z=zoneAt(r,c), me=g.pos.r===r&&g.pos.c===c;
-    const cls='mini-cell '+(me?'me ':'')+(z?'zone '+zoneTone(z):'');
-    const title=(z?z.name:'荒野')+' '+String.fromCharCode(65+r)+'-'+(c+1);
-    h+='<button class="'+cls+'" title="'+title+'" onclick="inspectZone('+r+','+c+')">'+(me?'我':(z?zoneGlyph(z):''))+'</button>';
-  }
-  el.innerHTML=h;
-}
-function openWorldMap(){
-  let h='<div class="sheet-title-row"><div><h3>浮島全域圖</h3><p class="small">點選區域可查看地勢；可移動距離依境界提升。</p></div><span class="seal-mark">圖</span></div>';
-  h+='<div class="map-coordinate-head">';
-  for(let c=1;c<=10;c++)h+='<span>'+c+'</span>';
-  h+='</div><div class="world-map-full">';
-  for(let r=0;r<10;r++)for(let c=0;c<10;c++){
-    const z=zoneAt(r,c), me=g.pos.r===r&&g.pos.c===c;
-    const title=(z?z.name:'荒野')+' '+String.fromCharCode(65+r)+'-'+(c+1);
-    h+='<button class="map-cell '+(me?'me ':'')+(z?'zone '+zoneTone(z):'')+'" onclick="inspectZone('+r+','+c+')" title="'+title+'">'+
-      '<span class="map-row">'+(c===0?String.fromCharCode(65+r):'')+'</span><b>'+(me?'我':(z?zoneGlyph(z):'·'))+'</b></button>';
-  }
-  h+='</div><div class="map-legend"><span><i class="safe"></i>新手／安全</span><span><i class="spirit"></i>靈地</span><span><i class="danger"></i>秘境</span><span><i class="market"></i>交易</span></div>'+
-     '<button class="btn" onclick="closeOv()">收起地圖</button>';
-  sheet(h);
-}
-function inspectZone(r,c){
-  const z=zoneAt(r,c), coord=String.fromCharCode(65+r)+'-'+(c+1);
-  const dist=Math.max(Math.abs(r-g.pos.r),Math.abs(c-g.pos.c));
-  const canMove=dist>0&&dist<=(senseProfile().move||BIG_MOVE[g.big]);
-  const here=dist===0;
-  let h='<div class="sheet-title-row"><div><h3>'+(z?z.name:'無名荒野')+'</h3><p class="small">座標 '+coord+' · '+(z?z.type:'野外')+'</p></div><span class="seal-mark">'+zoneGlyph(z)+'</span></div>';
-  h+='<div class="intel-grid"><div><span>靈氣</span><b>'+(z?z.ling:1)+' 階</b></div><div><span>恢復</span><b>×'+(z?z.recover:1)+'</b></div><div><span>打坐</span><b>'+(z?z.meditate:8)+'</b></div><div><span>距離</span><b>'+dist+' 格</b></div></div>';
-  if(here)h+='<p class="notice safe-notice">你目前正在此地。</p>';
-  else if(canMove)h+='<p class="notice">此處在目前境界的御風範圍內，移動消耗 '+P.move_stamina_cost+' 精力。</p><button class="btn jade" onclick="moveTo('+r+','+c+',false)">御風前往 '+coord+'</button>';
-  else h+='<p class="notice danger-notice">距離超出目前境界可移動範圍。</p>';
-  h+='<button class="btn" onclick="openWorldMap()">返回全域圖</button>';
-  sheet(h);
-}
-function openStatusPanel(){
-  const r=realmOf(g.lv), z=zoneAt(g.pos.r,g.pos.c);
-  let h='<div class="sheet-title-row"><div><h3>'+g.name+' · 道體詳情</h3><p class="small">'+g.big+' '+((g.lv-1)%5+1)+'層 · Lv'+g.lv+'</p></div><span class="seal-mark">身</span></div>';
-  h+='<div class="intel-grid"><div><span>氣血</span><b>'+Math.round(g.hp)+' / '+g.hpMax+'</b></div><div><span>精力</span><b>'+Math.round(g.mp)+' / '+g.mpMax+'</b></div><div><span>攻擊</span><b>'+pAtk()+'</b></div><div><span>防禦</span><b>'+pDef()+'</b></div></div>';
-  h+='<div class="panel-list"><p><span>所在</span><b>'+(z?z.name:'荒野')+'</b></p><p><span>武器</span><b>'+(g.weapon?g.weapon.name:'空手')+'</b></p><p><span>防具</span><b>'+(g.armor?g.armor.name:'無')+'</b></p><p><span>傷勢</span><b>'+(g.injury?g.injury+'受傷':'無')+'</b></p><p><span>異常</span><b>'+(g.status.length?g.status.join('、'):'無')+'</b></p><p><span>累積修為</span><b>'+g.exp+' / '+r.expCum+'</b></p></div>';
-  const sp=senseProfile();h+='<div class="sense-strip">神識：同格 '+Math.round(sp.same*100)+'%｜1格 '+Math.round(sp.one*100)+'%｜2格 '+Math.round(sp.two*100)+'%｜伏擊識破 '+Math.round(sp.ambush*100)+'%｜御風 '+sp.move+' 格</div>';h+='<button class="btn" onclick="closeOv()">關閉</button>'; sheet(h);
-}
-
 function render(){
-  const r=realmOf(g.lv);
-  $('pname').textContent=g.name;
-  $('prealm').textContent=g.big+' '+((g.lv-1)%5+1)+'層';
-  const [qs,qc]=qiState();
-  $('qibox').innerHTML=qiSvg(qc);
-  $('qistate').innerHTML='氣息'+qs+(g.injury?' · '+g.injury+'受傷':'')+(g.status.includes('中毒')?' · 中毒':'')+(g.status.includes('走火入魔')?' · 走火入魔':'');
-  $('qistate').style.color=qc;
-  $('hpb').style.width=Math.max(0,g.hp/g.hpMax*100)+'%';
-  $('mpb').style.width=Math.max(0,g.mp/g.mpMax*100)+'%';
-  $('hpText').textContent=Math.max(0,Math.round(g.hp))+' / '+g.hpMax;
-  $('mpText').textContent=Math.max(0,Math.round(g.mp))+' / '+g.mpMax;
-  const need=r.expCum, prev=g.lv>1?realmOf(g.lv-1).expCum:0;
-  $('xpb').style.width=Math.min(100,(g.exp-prev)/(need-prev)*100)+'%';
-  $('xpText').textContent=Math.max(0,g.exp-prev)+' / '+Math.max(1,need-prev);
-  $('lvText').textContent='Lv'+g.lv;
-  const z=zoneAt(g.pos.r,g.pos.c), coord=String.fromCharCode(65+g.pos.r)+'-'+(g.pos.c+1);
-  $('loc').textContent=z?z.name:'無名荒野';
-  $('topLoc').textContent=(z?z.name:'荒野')+' · '+coord;
-  $('coordText').textContent=coord;
-  $('zoneType').textContent=z?z.type:'野外';
-  $('zoneLing').textContent=(z?z.ling:1)+' 階';
-  $('zoneRecover').textContent='×'+(z?z.recover:1);
-  $('zoneMeditate').textContent=(z&&z.novice?'2秒 / EXP':'20秒 / EXP');
-  $('sceneGlyph').textContent=zoneGlyph(z);
-  $('sceneGlyph').className='scene-glyph '+zoneTone(z);
-  $('ls').textContent=g.lingshi;applyTechniqueStats();
-  $('atk').textContent=pAtk(); $('def').textContent=pDef();
-  $('wp').textContent=g.weapon?g.weapon.name:'空手';
-  $('threatTitle').textContent=z&&z.novice?'護道結界穩定':'天象暫無異變';
-  $('threatText').textContent=z&&z.novice?'新手區域受結界庇護，妖獸與靈石收益略有加成。':'此地不受仙門庇護，探索與打坐皆可能引來其他氣息。';
-  $('worldState').textContent=z&&z.novice?'穩定':'警戒';
-  const loot=(z&&z.pool?z.pool.map(x=>IT[x[0]]&&IT[x[0]].name).filter(Boolean).slice(0,3):[]);
-  const encounters=monsterIdsForCurrentZone().map(id=>C.monsters.find(m=>m.id===id)).filter(Boolean).slice(0,4).map(m=>m.name);
-  $('zoneLoot').textContent=loot.length?loot.join('、'):'尚無明確機緣';
-  $('zoneEncounter').textContent=encounters.length?encounters.join('、'):'氣息難辨';
-  $('zoneAdvice').textContent=z&&z.novice?'先補足丹藥與修為，再離開護道結界。':((z&&z.meditate>=30)?'此地靈氣充沛，適合打坐，但需防範突發遭遇。':'先探索地勢並保留精力，避免在荒野耗盡道體。');
-  const gate=canBreakNow();
-  $('brkBtn').style.display=gate?'flex':'none';
-  $('breakMain').style.display=gate?'block':'none';
-  $('cureMain').style.display=g.status.includes('走火入魔')?'block':'none';
-  renderMiniMap(); updateWorldClock();
+  if(!g)return;
+  const r=realmOf(g.lv),z=zoneAt(g.pos.r,g.pos.c),w=getWeapon(),a=getArmor(),prev=g.lv>1?realmOf(g.lv-1).expCum:0;
+  $('pname').textContent=g.name;$('prealm').textContent=g.big+' '+((g.lv-1)%5+1)+'層 · Lv'+g.lv;
+  $('qibox').innerHTML=qiSvg();$('avatarWrap').classList.toggle('meditating',g.meditating);
+  $('qistate').textContent=g.meditating?'入定引氣中':(g.status.includes('走火入魔')?'氣息逆行':'氣息通暢');
+  $('hpText').textContent=Math.round(g.hp)+' / '+g.hpMax;$('mpText').textContent=Math.round(g.mp)+' / '+g.mpMax;$('xpText').textContent=Math.round(g.exp)+' / '+r.expCum;
+  $('hpb').style.width=clamp(g.hp/g.hpMax*100,0,100)+'%';$('mpb').style.width=clamp(g.mp/g.mpMax*100,0,100)+'%';$('xpb').style.width=clamp((g.exp-prev)/(r.expCum-prev)*100,0,100)+'%';
+  $('atk').textContent=pAtk();$('def').textContent=pDef();$('ls').textContent=g.lingshi.toLocaleString();$('yb').textContent=g.yuanbao.toLocaleString();
+  $('wp').textContent=w?w.name+' +'+w.enhance:'空手';$('armor').textContent=a?a.name+' +'+a.enhance:'無';$('sense').textContent=senseText(g.big);$('flight').textContent=bigMove(g.big)+' 格';
+  $('sceneZone').textContent=z?z.name:'無名荒野';$('sceneCoord').textContent=coordOf(g.pos.r,g.pos.c)+' · '+(z?z.type:'荒野');
+  $('sceneCopy').textContent=z&&z.novice?'新手結界壓制高階妖魔；Lv5以前可快速打坐，但不可在此突破。':(z&&z.type.includes('安全區')?'萬寶交易所禁止鬥法，適合交易與整理裝備。':(z&&window.V135_WORLD_EXPANSION?.regionToItem?.[z.name]?'此處可能出現天地異象；靈物僅能探索發現並嘗試收取。':'此地無護道結界，探索、打坐與移動皆可能遭遇其他修士。'));
+  $('zoneLing').textContent=(z?z.ling:1)+' 階';$('zoneRecover').textContent='×'+(z?z.recover:1);$('zoneMeditate').textContent=(z&&z.novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec)+' 秒 / EXP';
+  $('meditateText').textContent=g.meditating?'停止打坐':'開始打坐';$('meditateSub').textContent=g.meditating?'靈氣正在持續流入道體':'持續吐納並可離線結算';
+  const gate=(g.lv===5||g.lv===10||g.lv===15)&&g.exp>=r.expCum&&r.breakTarget;$('brkBtn').disabled=!gate;
+  $('activeAi').textContent=ai.filter(x=>x.alive).length;renderAiIntel();saveGame(false);
 }
-
-function gainExp(n){
-  g.exp+=n;
-  while(true){
+function renderAiIntel(){
+  if(!g||!$('aiList'))return;
+  const range=senseRange(g.big),near=ai.filter(a=>a.alive&&distanceCoord(a.coord,coordOf(g.pos.r,g.pos.c))<=range).slice(0,8);
+  $('nearbyCount').textContent=near.length+' 人';
+  $('aiList').innerHTML=near.length?near.map(a=>'<div class="ai-item"><div><b>'+esc(a.name)+'</b><br><span>'+a.personality+' · Lv'+a.lv+'</span></div><span>'+esc(a.action)+'</span></div>').join(''):'<div class="small">神識範圍內暫無修士氣息。</div>';
+}
+function distanceCoord(a,b){const x=coordRC(a),y=coordRC(b);return Math.max(Math.abs(x.r-y.r),Math.abs(x.c-y.c))}
+function gainExp(n,doRender=true){
+  if(!n)return;g.exp+=n;
+  while(g.lv<20){
     const r=realmOf(g.lv);
-    if(!r.breakTarget && g.exp>=r.expCum && g.lv<20){ g.lv++; onLevel(); }
-    else break;
+    if(r.breakTarget)break;
+    if(g.exp>=r.expCum){g.lv++;onLevel()}else break;
   }
-  render();
+  if(doRender)render();
 }
 function onLevel(){
-  const r=realmOf(g.lv);
-  g.hpMax=r.hp; g.mpMax=r.mp; g.hp=g.hpMax; g.mp=Math.min(g.mp,g.mpMax);
-  log('修為精進，達 '+g.big+' '+((g.lv-1)%5+1)+'層！','lg');
+  const r=realmOf(g.lv);g.big=r.big;g.hpMax=r.hp;g.mpMax=Math.max(P.start_stamina,r.mp);g.hp=g.hpMax;g.mp=g.mpMax;
+  log('修為精進，達到 <b>'+g.big+' '+((g.lv-1)%5+1)+'層</b>。','lg');
 }
-
-// ---- 移動 ----
-function openMove(){
-  // 所有移動入口統一開啟全域地圖，避免方向按鈕與清單並存。
-  openWorldMap();
-}
-function moveTo(r,c,me){
-  if(me){closeOv();return;}
-  const dist=Math.max(Math.abs(r-g.pos.r),Math.abs(c-g.pos.c));
-  if(dist<1||dist>(BIG_MOVE[g.big]||1)){toast('超出目前境界御風範圍');return;}
-  if(g.mp<P.move_stamina_cost){toast('精力不足');return;}
-  g.mp-=P.move_stamina_cost; g.pos={r,c}; closeOv();
-  const z=zoneAt(r,c);
-  log('你御風而行，來到 <b>'+(z?z.name:'荒野')+'</b>。');
+function toggleMeditate(){
+  if(fight){toast('鬥法中無法打坐');return}
+  const z=zoneAt(g.pos.r,g.pos.c);if(z&&z.meditate===0){toast('此區禁止打坐');return}
+  g.meditating=!g.meditating;g.meditateSec=0;
+  log(g.meditating?'你盤膝入定，靈氣開始沿經脈流入。':'你收功起身，停止吐納。',g.meditating?'lg':'');
   render();
-  const nz=zoneAt(r,c); maybeEncounter(nz&&nz.novice?0.18:0.5);
 }
-
-// ---- 探索 ----
-function explore(){
-  if(g.mp<P.explore_stamina_cost){toast('精力不足');return;}
-  g.mp-=P.explore_stamina_cost;
-  const z=zoneAt(g.pos.r,g.pos.c);
-  const pool=z&&z.pool.length?z.pool:[["4001",0.5]];
-  let found=null;
-  for(const[iid,p]of pool){if(Math.random()<p){found=iid;break;}}
-  if(found&&IT[found]){
-    const it=IT[found];
-    sheet('<h3>探索所得</h3><p>你在此地發現了 <b style="color:var(--gold)">'+it.name+'</b>。</p>'+
-      '<div class="row"><button class="btn jade" onclick="pick(\''+found+'\')">拾取</button><button class="btn" onclick="closeOv()">捨棄</button></div>'+
-      '<button class="btn" onclick="closeOv();explore()">再探一次 (−'+P.explore_stamina_cost+'精力)</button>');
-  }else{
-    log('你仔細搜尋，卻一無所獲…');
-    maybeEncounter(0.35);
+function stopMeditate(reason=''){
+  if(g.meditating){g.meditating=false;g.meditateSec=0;if(reason)log('打坐中斷：'+reason,'la')}
+}
+function mapMoveDistance(r,c){
+  const pr=Number(g?.pos?.r),pc=Number(g?.pos?.c);
+  return Math.max(Math.abs(Number(r)-pr),Math.abs(Number(c)-pc));
+}
+function openWorldMap(){
+  const rng=Math.max(1,Number(bigMove(g.big))||1),here=coordOf(g.pos.r,g.pos.c);
+  let h='<h3>十方浮島地圖</h3><p class="small">御風距離：最多 '+rng+' 格。相鄰 1 格與距離 '+rng+' 格內皆可前往。</p><div class="grid">';
+  for(let r=0;r<10;r++)for(let c=0;c<10;c++){
+    const co=coordOf(r,c),z=zoneAt(r,c),dist=mapMoveDistance(r,c),me=co===here,reachable=!me&&dist>=1&&dist<=rng,ac=ai.filter(a=>a.alive&&a.coord===co).length;
+    h+='<button type="button" class="cell '+(me?'me ':'')+(!reachable&&!me?'block':'')+'" '+(reachable?'onclick="moveTo('+r+','+c+')"':'disabled')+' title="'+(me?'目前位置':reachable?'移動至 '+co:'超出御風距離')+'"><b>'+(z?z.name:'荒野')+'</b><br>'+co+(ac?'<br><span class="ai">修士 '+ac+'</span>':'')+'</button>';
   }
+  h+='</div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉地圖</button>';sheet(h);
+}
+function moveTo(r,c){
+  r=Number(r);c=Number(c);
+  if(!Number.isInteger(r)||!Number.isInteger(c)||r<0||r>9||c<0||c>9){toast('目的地不存在');return}
+  const rng=Math.max(1,Number(bigMove(g.big))||1),dist=mapMoveDistance(r,c);
+  if(dist===0){toast('你已在此地');return}
+  if(dist>rng){toast('超出御風距離，最多可移動 '+rng+' 格');return}
+  if(g.mp<P.move_stamina_cost){toast('精力不足，無法御風');return}
+  stopMeditate('御風移動');g.mp-=P.move_stamina_cost;g.pos={r,c};closeOv();
+  const z=zoneAt(r,c);log('你御風前往 <b>'+(z?z.name:'無名荒野')+'</b>，消耗 '+P.move_stamina_cost+' 精力。');
+  render();setTimeout(()=>rollEncounter('move'),300);
+}
+function explore(){
+  if(fight)return;if(g.mp<P.explore_stamina_cost){toast('精力不足');return}
+  stopMeditate('開始探索');g.mp-=P.explore_stamina_cost;
+  if(window.V135_WORLD_EXPANSION?.beforeExplore?.()){render();return}
+  const z=zoneAt(g.pos.r,g.pos.c),pool=z&&z.pool&&z.pool.length?z.pool:[['4001',.35]];let found=null;
+  for(const [id,p] of pool){if(Math.random()<p){found=String(id);break}}
+  if(found&&IT[found]){
+    const it=IT[found];sheet('<h3>探索所得</h3><p>你在此地發現 <b style="color:var(--gold)">'+it.name+'</b>。</p><div class="row"><button class="btn jade" onclick="pickItem(\''+found+'\')">拾取</button><button class="btn" onclick="closeOv()">放棄</button></div>');
+  }else{log('你搜尋四周，暫無所得。');rollEncounter('explore')}
   render();
 }
-function pick(iid){g.inv[iid]=(g.inv[iid]||0)+1;log('獲得 '+IT[iid].name,'lg');closeOv();render();}
-
-// ---- 打坐 ----
-// V8：持續打坐邏輯由 openMeditation / startMeditation / stopMeditation 管理。
-
-// ---- 遭遇 ----
-const ZONE_MONSTERS={
-  "A-1":[9001,9002], "J-2":[9001,9002],
-  "H-4":[9001,9002,9003],
-  "F-2":[9002,9003,9004], "B-4":[9001,9002,9003],
-  "C-3":[9001,9002,9003], "C-4":[9002,9003], "C-5":[9002,9003,9004],
-  "D-4":[9002,9003,9004], "G-6":[9004,9005,9006,9101],
-  "I-10":[9005,9006,9101,9102,9103],
-  "E-5":[9005,9006,9101,9102,9103,9201,9202,9203],
-  "A-6":[]
-};
-function currentCoord(){return String.fromCharCode(65+g.pos.r)+'-'+(g.pos.c+1)}
-function monsterIdsForCurrentZone(){
-  const coord=currentCoord(), z=zoneAt(g.pos.r,g.pos.c);
-  if(Object.prototype.hasOwnProperty.call(ZONE_MONSTERS,coord))return ZONE_MONSTERS[coord];
-  // 無名荒野依離新手村距離分級，越深入越危險。
-  const depth=Math.max(g.pos.r,g.pos.c);
-  if(depth<=2)return [9001,9002];
-  if(depth<=4)return [9002,9003,9004];
-  if(depth<=6)return [9003,9004,9005,9006];
-  return [9005,9006,9101,9102];
+function pickItem(id){
+  if(isEquipmentId(id))g.equipment.push(newEquipment(id));else g.inv[id]=(g.inv[id]||0)+1;
+  log('獲得 '+IT[id].name+'。','lg');closeOv();render();
 }
-function pickMonster(){
-  const ids=monsterIdsForCurrentZone();
-  if(!ids.length)return null;
-  const pool=ids.map(id=>C.monsters.find(m=>m.id===id)).filter(Boolean);
-  // 區域先決定物種；再優先挑選不高於玩家太多的個體。
-  const suitable=pool.filter(m=>m.lv<=g.lv+2);
-  return JSON.parse(JSON.stringify(rnd(suitable.length?suitable:pool)));
+function rollEncounter(source){
+  const z=zoneAt(g.pos.r,g.pos.c),safe=z&&z.type.includes('安全區');if(safe)return;
+  const aiChance=z&&z.novice?.05:.22;
+  if(Math.random()<aiChance){
+    let cand=ai.filter(a=>a.alive&&a.coord===coordOf(g.pos.r,g.pos.c));
+    if(!cand.length)cand=ai.filter(a=>a.alive&&Math.abs(a.lv-g.lv)<=2);
+    if(cand.length)return startAiEncounter(rnd(cand));
+  }
+  const monsterChance=source==='move'?.25:.42;if(Math.random()<monsterChance)startFightMonster(pickMonster(z));
 }
-function maybeEncounter(p){
-  const m=pickMonster();
-  if(m&&Math.random()<p)startFight(m);
+function pickMonster(z){
+  let cand=C.monsters.filter(m=>!['活動王','古魔'].includes(m.cat));
+  if(z&&z.novice)cand=cand.filter(m=>m.lv<=3&&m.lv<=g.lv+1);
+  else cand=cand.filter(m=>Math.abs(m.lv-g.lv)<=2);
+  if(z&&z.name==='迷霧林')cand=cand.filter(m=>m.id===9001||m.id===9002||m.id===9003);
+  return JSON.parse(JSON.stringify(rnd(cand.length?cand:C.monsters.slice(0,3))));
 }
-
-
-function monsterAvatarSvg(m){const id=Number(m.id),cat=m.cat||'妖獸';let horn='',ears='',tail='',eyes='#ff7f73',face='#18222c',accent='#d8bb6a';if([9001,9005,9102].includes(id)){ears='<path d="M22 30 L34 8 L43 34 M77 30 L66 8 L57 34" fill="'+face+'" stroke="'+accent+'" stroke-width="3"/>';tail='<path d="M78 74 Q101 69 91 50" fill="none" stroke="'+accent+'" stroke-width="4"/>';}if([9002,9004,9103,9301].includes(id)){ears='<path d="M23 34 Q8 25 15 47 M77 34 Q92 25 85 47" fill="'+face+'" stroke="'+accent+'" stroke-width="3"/>';horn=id===9004||id===9301?'<path d="M50 18 L55 0 L61 21" fill="#c8b77d"/>':'';}if([9003,9303].includes(id)){face='#25151c';ears='';tail='<path d="M50 74 Q88 91 66 111 Q38 126 27 104" fill="none" stroke="'+accent+'" stroke-width="6"/>';}if([9006,9101,9302].includes(id)){ears='<path d="M18 52 Q2 25 37 39 M82 52 Q98 25 63 39" fill="#253141" stroke="'+accent+'" stroke-width="3"/>';horn='<path d="M47 20 L50 4 L55 21" fill="'+accent+'"/>';}if(cat==='古魔'||id===9304||id===9305){face='#241018';accent='#ed655c';horn='<path d="M31 27 L19 3 L43 20 M69 27 L82 3 L58 20" fill="#5b1f27" stroke="'+accent+'" stroke-width="3"/>';}const pupil=cat==='活動王'?'#ffd66e':eyes;return '<svg class="monster-avatar-svg" viewBox="0 0 100 120" aria-label="'+m.name+'"><defs><radialGradient id="g'+id+'" cx="50%" cy="40%"><stop offset="0" stop-color="'+face+'"/><stop offset="1" stop-color="#070b10"/></radialGradient></defs><circle cx="50" cy="58" r="38" fill="url(#g'+id+')" stroke="'+accent+'" stroke-width="3"/>'+ears+horn+'<path d="M28 54 Q50 35 72 54 Q68 85 50 91 Q32 85 28 54" fill="'+face+'" stroke="'+accent+'" stroke-width="2"/><circle cx="39" cy="58" r="4" fill="'+pupil+'"/><circle cx="61" cy="58" r="4" fill="'+pupil+'"/><path d="M44 73 Q50 78 56 73" fill="none" stroke="'+accent+'" stroke-width="3"/>'+tail+'<text x="50" y="111" text-anchor="middle" font-size="11" fill="'+accent+'" font-family="serif">'+m.name.slice(0,4)+'</text></svg>';}
-
-let fight;
-function startFight(m){
-  fight={m,mhp:m.hp};
-  renderFight('你察覺到 <b>'+m.name+'</b> 的氣息…');
+function startAiEncounter(a){
+  sheet('<h3>神識遭遇</h3><p>你察覺到修士 <b style="color:var(--gold)">'+esc(a.name)+'</b> 的氣息。</p><div class="money"><div><span>境界</span><b>'+a.realm+' Lv'+a.lv+'</b></div><div><span>性格</span><b style="font-size:14px">'+a.personality+'</b></div></div><div class="row" style="margin-top:12px"><button class="btn red" onclick="startFightAi('+a.id+')">攔截鬥法</button><button class="btn" onclick="closeOv()">避開</button></div>');
+}
+function startFightMonster(m){stopMeditate('遭遇妖獸');fight={kind:'monster',enemy:m,hp:m.hp,hpMax:m.hp};renderFight('你察覺到 '+m.name+' 的殺意。')}
+function startFightAi(id){
+  const a=ai.find(x=>x.id===id);if(!a)return;stopMeditate('遭遇修士');closeOv();
+  const rr=realmOf(a.lv),wp=a.gear.find(e=>e.cat==='法器'&&e.equipped),ar=a.gear.find(e=>e.cat==='防具'&&e.equipped);
+  const atk=Math.round(rr.atk+(wp?(IT[wp.itemId].val||0)*(1+.05*wp.enhance):0)),def=Math.round(rr.def+(ar?(IT[ar.itemId].val||0)*(1+.05*ar.enhance):0));
+  fight={kind:'ai',aiId:id,enemy:{name:a.name,lv:a.lv,hp:a.hpMax,atk,def,exp:Math.round(a.lv*70+40)},hp:a.hp,hpMax:a.hpMax};
+  renderFight('兩道神識交鋒，'+a.name+' 已拔劍。');
 }
 function renderFight(line){
-  const m=fight.m;
-  const php=Math.max(0,g.hp), mhp=Math.max(0,fight.mhp);
-  sheet('<div class="fight-title"><span>鬥法遭遇</span><b>'+m.cat+' · Lv'+m.lv+'</b></div>'+
-    '<div class="fight-stage">'+
-      '<div class="fighter player"><div class="combat-avatar">道</div><strong>'+g.name+'</strong><span>'+g.big+' '+((g.lv-1)%5+1)+'層</span></div>'+
-      '<div class="versus"><i></i><b>鬥</b><i></i></div>'+
-      '<div class="fighter enemy"><div class="combat-avatar">'+monsterAvatarSvg(m)+'</div><strong>'+m.name+'</strong><span>攻 '+m.atk+' · 防 '+m.def+'</span></div>'+
-    '</div>'+
-    '<div class="combat-bars">'+
-      '<div><div class="meter-head"><span>你的氣血</span><b>'+php+' / '+g.hpMax+'</b></div><div class="bar"><i class="hpf" style="width:'+Math.max(0,php/g.hpMax*100)+'%"></i></div></div>'+
-      '<div><div class="meter-head"><span>'+m.name+' 氣血</span><b>'+mhp+' / '+m.hp+'</b></div><div class="bar"><i class="enemy-hpf" style="width:'+Math.max(0,mhp/m.hp*100)+'%"></i></div></div>'+
-    '</div>'+
-    '<div class="combat-log" id="fl">'+line+'</div>'+
-    '<div class="combat-actions"><button class="btn red" onclick="atkTurn()"><span>劍</span>出手攻擊</button><button class="btn jade" onclick="openCombatBag()"><span>丹</span>使用道具</button><button class="btn gold" onclick="activateDescent()"><span>秘</span>降靈術</button><button class="btn" onclick="fleeTurn()"><span>遁</span>御風撤離</button></div>');
+  const e=fight.enemy;
+  sheet('<h3>鬥法 · '+esc(e.name)+'</h3><div class="fight-stage"><div class="fighter" id="playerFighter"><div class="sigil">我</div><strong>'+esc(g.name)+'</strong><div class="small">體力 '+Math.max(0,Math.round(g.hp))+' / '+g.hpMax+'</div></div><div class="fighter enemy" id="enemyFighter"><div class="sigil">敵</div><strong>'+esc(e.name)+'</strong><div class="small">體力 '+Math.max(0,Math.round(fight.hp))+' / '+fight.hpMax+'</div></div></div><div class="bar"><i class="enemy-hpf" style="width:'+clamp(fight.hp/fight.hpMax*100,0,100)+'%"></i></div><p class="small" style="min-height:38px;line-height:1.7">'+line+'</p><div class="row"><button class="btn red" onclick="attackTurn()">攻擊 −'+P.normal_attack_mp_cost+'精力</button><button class="btn jade" onclick="openCombatItems()">道具／丹藥</button><button class="btn" onclick="fleeTurn()">遁走</button></div>');
 }
-function openCombatBag(){
-  const keys=Object.keys(g.inv).filter(k=>g.inv[k]>0&&IT[k]&&(
-    (IT[k].eff||'').includes('回復')||IT[k].eff==='療傷'||IT[k].eff==='投擲'||IT[k].eff==='控制'
-  ));
-  let h='<h3>戰鬥行囊</h3><p class="small">使用道具會消耗本回合，妖獸隨後反擊。</p>';
-  if(!keys.length)h+='<p class="small">沒有可在戰鬥中使用的丹藥或符籙。</p>';
-  keys.forEach(k=>{const it=IT[k];h+='<div class="kv" style="border-bottom:1px solid var(--line);padding:8px 0"><span>'+it.name+' <span class="tag">'+it.cat+'</span> ×'+g.inv[k]+'</span><button class="btn" style="width:auto;padding:6px 14px;margin:0" onclick="useCombatItem(\''+k+'\')">使用</button></div>';});
-  h+='<button class="btn" onclick="renderFight(\''+(fight._l||'你與妖獸對峙。').replace(/'/g,"\\'")+'\')">返回戰鬥</button>';
-  sheet(h);
+function calcDmg(atk,def,mult=1){return Math.max(1,Math.round(atk*atk/(atk+def*(P.defense_coeff||1.5))*mult))}
+function attackTurn(){
+  if(g.mp<P.normal_attack_mp_cost){renderFight('精力不足，無法出手。請使用回精丹或遁走。');return}
+  g.mp-=P.normal_attack_mp_cost;
+  if(Math.random()<P.encounter_miss_rate){animateStrike('playerFighter');renderFight('你的攻擊落空了。');return setTimeout(enemyTurn,380)}
+  let mult=1,crit=false,rate=P.base_crit_rate+(g.techniques.includes('lightning_breath')?.10:0);
+  if(Math.random()<rate){crit=true;mult=P.base_crit_min+Math.random()*(P.base_crit_max-P.base_crit_min)}
+  let dmg=calcDmg(pAtk(),fight.enemy.def,mult);if(crit&&g.techniques.includes('lightning_breath'))dmg+=50;
+  fight.hp-=dmg;animateStrike('playerFighter');animateHit('enemyFighter',dmg);
+  if(fight.hp<=0)return setTimeout(winFight,330);
+  renderFight('你造成 '+dmg+' 傷害'+(crit?'（暴擊）':'')+'。');setTimeout(enemyTurn,420);
 }
-function useCombatItem(k){
-  const it=IT[k]; if(!it||!g.inv[k])return;
-  let text='';
-  if(it.eff==='體力回復'){const before=g.hp;g.hp=Math.min(g.hpMax,g.hp+it.val);text='服下'+it.name+'，回復 '+Math.round(g.hp-before)+' 氣血。';}
-  else if(it.eff==='精力回復'){const before=g.mp;g.mp=Math.min(g.mpMax,g.mp+it.val);text='服下'+it.name+'，回復 '+Math.round(g.mp-before)+' 精力。';}
-  else if(it.eff==='療傷'){if(!g.injury){toast('目前沒有外傷');return;}text='使用'+it.name+'，治癒'+g.injury+'傷。';g.injury=null;}
-  else if(it.eff==='投擲'){const d=Math.max(1,Math.round(it.val||1));fight.mhp-=d;text='祭出'+it.name+'，對'+fight.m.name+'造成 '+d+' 傷害。';}
-  else if(it.eff==='控制'){text='祭出'+it.name+'，妖獸被定住，本回合無法反擊。';g.inv[k]--;fight._l=text;if(fight.mhp<=0)return winFight();return renderFight(text);}
-  else{return toast('此物無法在戰鬥中使用');}
-  g.inv[k]--; fight._l=text;
-  if(fight.mhp<=0)return winFight();
-  renderFight(text);
-  monsterTurn();
+function enemyTurn(){
+  if(!fight)return;
+  if(Math.random()<P.encounter_miss_rate){renderFight(fight.enemy.name+' 的攻擊被你避開。');return}
+  const dmg=calcDmg(fight.enemy.atk,pDef());g.hp-=dmg;animateHit('playerFighter',dmg);
+  if(g.hp<=0)return setTimeout(loseFight,300);
+  renderFight(fight.enemy.name+' 反擊，造成 '+dmg+' 傷害。');render();
 }
-function calcDmg(atk,def,mult){
-  const coeff=P.defense_coeff||1.5;
-  let d=atk*atk/(atk+def*coeff)*(mult||1);
-  return Math.max(1,Math.round(d));
+function animateStrike(id){setTimeout(()=>{const e=$(id);if(e){e.classList.add('strike');setTimeout(()=>e.classList.remove('strike'),330)}},40)}
+function animateHit(id,dmg){setTimeout(()=>{const e=$(id);if(e){e.classList.add('hit');const p=document.createElement('div');p.className='damage-pop';p.textContent='-'+dmg;e.appendChild(p);setTimeout(()=>{e.classList.remove('hit');p.remove()},720)}},80)}
+function openCombatItems(){
+  let h='<h3>戰鬥道具</h3>';const ids=Object.keys(g.inv).filter(id=>g.inv[id]>0&&['丹藥','符籙'].includes(IT[id]?.cat));
+  if(!ids.length)h+='<p class="small">沒有可在戰鬥中使用的道具。</p>';
+  ids.forEach(id=>{const it=IT[id];h+='<div class="list-row"><div class="grow"><strong>'+it.name+' ×'+g.inv[id]+'</strong><small>'+it.eff+(it.val?' · '+it.val:'')+'</small></div><button class="btn" onclick="useCombatItem(\''+id+'\')">使用</button></div>'});
+  h+='<button class="btn" style="width:100%;margin-top:12px" onclick="renderFight(\'重新選擇行動。\')">返回鬥法</button>';sheet(h);
 }
-function animateHit(d,crit,cb){const pa=document.querySelector('.fighter.player .combat-avatar'),en=document.querySelector('.fighter.enemy');if(pa)pa.classList.add('attack-lunge');setTimeout(()=>{if(en)en.classList.add('hit-shake');const pop=document.createElement('div');pop.className='damage-pop'+(crit?' crit':'');pop.textContent=(crit?'暴擊 ':'')+d;document.querySelector('.fight-stage')?.appendChild(pop);},170);setTimeout(()=>{pa&&pa.classList.remove('attack-lunge');en&&en.classList.remove('hit-shake');cb&&cb();},520)}
-function atkTurn(){
-  const m=fight.m,cost=Number(P.normal_attack_mp_cost||10);
-  if(g.secretState&&g.secretState.backlashTurns>0){g.secretState.backlashTurns--;setFL('降靈術反噬中，本回合無法行動。');return monsterTurn();}
-  if(g.mp<cost){toast('精力不足，普通攻擊需要 '+cost);return;}
-  g.mp-=cost;
-  if(Math.random()<(P.encounter_miss_rate||0.15)){setFL('你的攻擊落空了！');render();return monsterTurn();}
-  let d=calcDmg(pAtk(),m.def,wMult()),crit=false,special=false;
-  if(g.secretState&&g.secretState.activeTurns>0&&Math.random()<.2){d=Math.round(d*1.8);crit=true;special=true;}
-  else if(Math.random()<effectiveCritRate()){const roll=Number(P.base_crit_min||1.4)+Math.random()*(Number(P.base_crit_max||1.6)-Number(P.base_crit_min||1.4));d=Math.round(d*roll);if(techEnabled('lightning_breath'))d=Math.round(d*(1+Number(techEffect('lightning_breath').critDamageValue||0)));crit=true;}
-  if(g.secretState&&g.secretState.activeTurns>0){g.secretState.activeTurns--;if(g.secretState.activeTurns===0)g.secretState.backlashTurns=3;}
-  fight.mhp-=d;setFL('你使用 '+(g.weapon?'（'+g.weapon.name+'）'+g.weapon.type:'空手')+(special?' 引動降靈術':'')+' 造成 '+d+' 傷害。');render();
-  animateHit(d,crit,()=>{if(fight.mhp<=0)return winFight();monsterTurn();});
-}
-function monsterTurn(){
-  const m=fight.m;
-  setTimeout(()=>{
-    if(Math.random()<(P.encounter_miss_rate||0.15)){appendFL(m.name+'的攻擊被你避開。');return renderFight($('fl').innerHTML);}
-    const d=calcDmg(m.atk,pDef(),1);
-    g.hp-=d;
-    let extra='';
-    if(!g.injury&&Math.random()<0.25){g.injury=rnd(['頭','胸','手臂','腿']);extra=' 你的'+g.injury+'受了傷！';}
-    appendFL(m.name+' 反擊，造成 '+d+' 傷害。'+extra);
-    if(g.hp<=0)return loseFight();
-    renderFight($('fl')?$('fl').innerHTML:'');
-    render();
-  },420);
+function useCombatItem(id){
+  const it=IT[id];if(!it||!g.inv[id])return;
+  if(it.eff==='體力回復'){g.hp=clamp(g.hp+it.val,0,g.hpMax);g.inv[id]--;renderFight('你服下 '+it.name+'，回復 '+it.val+' 體力。');render();return setTimeout(enemyTurn,450)}
+  if(it.eff==='精力回復'){g.mp=clamp(g.mp+it.val,0,g.mpMax);g.inv[id]--;renderFight('你服下 '+it.name+'，回復 '+it.val+' 精力。');render();return setTimeout(enemyTurn,450)}
+  if(it.eff==='療傷'){g.injury=null;g.inv[id]--;renderFight('你使用 '+it.name+' 穩住傷勢。');return setTimeout(enemyTurn,450)}
+  if(it.eff==='投擲'){g.inv[id]--;fight.hp-=it.val;animateHit('enemyFighter',it.val);if(fight.hp<=0)return setTimeout(winFight,320);renderFight('你祭出 '+it.name+'，造成固定 '+it.val+' 傷害。');return setTimeout(enemyTurn,450)}
+  toast('此道具目前不能在戰鬥中使用');
 }
 function fleeTurn(){
-  const m=fight.m;
-  if(Math.random()<(P.encounter_flee_success||0.5)){ log('你遁走，成功脫身。'); closeOv(); }
-  else{ setFL('逃跑失敗！'); monsterTurn(); }
+  const chance=P.encounter_flee_success+(g.big==='元嬰期'?.15:g.big==='結丹期'?.1:0);
+  if(Math.random()<chance){log('你遁走成功，脫離鬥法。');fight=null;closeOv();render()}
+  else{renderFight('遁走失敗，對方封住去路。');setTimeout(enemyTurn,420)}
 }
 function winFight(){
-  const m=fight.m;
-  log('你擊敗了 '+m.name+'！獲得 '+m.exp+' 修為。','lg');
-  let drops=[];
-  m.drops.forEach(([iid,p])=>{if(Math.random()<p&&IT[iid]){g.inv[iid]=(g.inv[iid]||0)+1;drops.push(IT[iid].name);}});
-  if(drops.length)log('掉落：'+drops.join('、'),'lg');
-  // 靈石 from kill
-  const ls=Math.round(m.exp/20); g.lingshi+=ls;
-  closeOv(); gainExp(m.exp); render();
+  const f=fight;fight=null;closeOv();
+  if(f.kind==='monster'){
+    const m=f.enemy;log('你擊敗 '+m.name+'，獲得 '+m.exp+' 修為。','lg');gainExp(m.exp,false);
+    const stone=Math.max(1,Math.round(m.exp/20));const z=zoneAt(g.pos.r,g.pos.c);
+    if(z&&z.novice){g.boundStone+=Math.round(stone*(1+P.novice_stone_bonus));log('獲得綁定靈石 '+Math.round(stone*(1+P.novice_stone_bonus))+'。','lg')}else{g.lingshi+=stone;log('獲得靈石 '+stone+'。','lg')}
+    const drops=[];(m.drops||[]).forEach(([id,p])=>{if(Math.random()<p&&IT[id]){if(isEquipmentId(id))g.equipment.push(newEquipment(id));else g.inv[id]=(g.inv[id]||0)+1;drops.push(IT[id].name)}});
+    if(drops.length)log('掉落：'+drops.join('、')+'。','lg');
+  }else{
+    const a=ai.find(x=>x.id===f.aiId);if(a){a.alive=false;a.hp=0;log('你擊敗修士 '+a.name+'。其屍身將保留一段時間。','lg');gainExp(f.enemy.exp,false);openCorpse(a)}
+  }
+  render();
+}
+function openCorpse(a){
+  const loot=[...a.gear.map(x=>({kind:'eq',data:x,label:x.name+' +'+x.enhance})),{kind:'stone',data:a.lingshi,label:'靈石 '+a.lingshi}];
+  corpse={a,loot,picked:0};renderCorpse();
+}
+function renderCorpse(){
+  const limit=P.corpse_loot_limit;let h='<h3>修士屍身 · 最多拾取 '+limit+' 件</h3><p class="small">已拾取 '+corpse.picked+' / '+limit+'。每個項目都算一件。</p>';
+  corpse.loot.forEach((x,i)=>{if(x.taken)return;h+='<div class="list-row"><div class="grow"><strong>'+esc(x.label)+'</strong><small>屍身戰利品</small></div><button class="btn" '+(corpse.picked>=limit?'disabled':'')+' onclick="takeCorpse('+i+')">拾取</button></div>'});
+  h+='<button class="btn gold" style="width:100%;margin-top:12px" onclick="closeOv()">結束搜刮</button>';sheet(h);
+}
+function takeCorpse(i){
+  if(corpse.picked>=P.corpse_loot_limit)return;const x=corpse.loot[i];if(!x||x.taken)return;x.taken=true;corpse.picked++;
+  if(x.kind==='eq'){const e={...x.data,uid:'eq_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),equipped:false};g.equipment.push(e)}
+  else if(x.kind==='stone')g.lingshi+=x.data;
+  log('從屍身拾取 '+x.label+'。','lg');renderCorpse();render();
 }
 function loseFight(){
-  closeOv();
-  sheet('<h3 style="color:var(--red)">身隕道消</h3><p>你被 '+fight.m.name+' 所殺，神識飄散……</p>'+
-    '<p class="small">（正式版：此時可嘗試奪舍求生；神識俱滅才真死、需重花靈石再入世。首次免費。）</p>'+
-    '<button class="btn gold" onclick="closeOv();show(\'create\')">重新入世</button>');
+  const name=fight?.enemy?.name||'未知敵手';fight=null;g.dead=true;closeOv();
+  sheet('<h3 style="color:var(--red)">身隕道消</h3><p>你被 '+esc(name)+' 所殺。正式多人版將進入奪舍判定；本原型可重新凝聚道體。</p><button class="btn gold" onclick="localStorage.removeItem(SAVE_KEY);location.reload()">重新入世</button>');
 }
-function setFL(t){fight._l=t;renderFight(t);}
-function appendFL(t){renderFight((fight._l||'')+' '+t);}
-
-// ---- 物品 ----
-function openBag(){
-  let h='<h3>行囊</h3>'+
-    '<div class="notice" style="margin-bottom:10px">武器：<b>'+(g.weapon?g.weapon.name+' +'+(g.enhance?.weapon||0):'未裝備')+
-    '</b>　防具：<b>'+(g.armor?g.armor.name+' +'+(g.enhance?.armor||0):'未裝備')+'</b></div>'+
-    '<button class="btn gold" onclick="openForge()">庚精強化</button>';
-  const keys=Object.keys(g.inv).filter(k=>g.inv[k]>0);
-  if(!keys.length)h+='<p class="small">空空如也。</p>';
-  keys.forEach(k=>{
-    const it=IT[k], equipped=(g.weapon&&g.weapon.id===k)||(g.armor&&g.armor.id===k);
-    h+='<div class="kv" style="border-bottom:1px solid var(--line);padding:8px 0">'+
-      '<span>'+it.name+' <span class="tag">'+it.cat+'</span> ×'+g.inv[k]+'</span>'+
-      '<button class="btn" '+(equipped?'disabled style="width:auto;padding:6px 14px;margin:0;opacity:.45"':'style="width:auto;padding:6px 14px;margin:0"')+
-      ' onclick="useItem(\''+k+'\')">'+(equipped?'已裝備':useLabel(it,k))+'</button></div>';
-  });
-  h+='<button class="btn" style="margin-top:12px" onclick="closeOv()">關閉</button>';
-  sheet(h);
-}
-function isWeapon(k){return k==='2001'||k==='2002';}
-function isArmor(k){return IT[k]&&IT[k].cat==='防具';}
-function useLabel(it,k){if(isWeapon(k)||isArmor(k))return '裝備';if((it.eff&&it.eff.indexOf('回復')>=0)||it.eff==='療傷')return '使用';return '—';}
-
-function equipItem(k,slot){
-  const it=IT[k];
-  if(!it || !g.inv[k] || g.inv[k] <= 0){toast('物品數量不足');return false;}
-  const current=g[slot];
-  if(current && current.id===k){toast('已經裝備此物');return false;}
-  if(current){g.inv[current.id]=(g.inv[current.id]||0)+1;}
-  g.inv[k]--;
-  if(slot==='weapon'){
-    const type=k==='2002'?'飛劍':'長劍', wc=C.weapons[type]||{mult:1};
-    g.weapon={id:k,name:it.name,type:type,mult:wc.mult||1};
-    log('裝備 '+it.name+'。舊武器已放回行囊。');
+function openBag(tab='bag'){
+  let h='<h3>行囊與鑄器</h3><div class="tabs"><button class="'+(tab==='bag'?'on':'')+'" onclick="openBag(\'bag\')">道具</button><button class="'+(tab==='equip'?'on':'')+'" onclick="openBag(\'equip\')">裝備</button><button class="'+(tab==='forge'?'on':'')+'" onclick="openBag(\'forge\')">獨立強化</button></div>';
+  if(tab==='bag'){
+    const ids=Object.keys(g.inv).filter(id=>g.inv[id]>0);
+    if(!ids.length)h+='<p class="small">行囊空空如也。</p>';
+    ids.forEach(id=>{const it=IT[id];h+='<div class="list-row"><div class="grow"><strong>'+it.name+' ×'+g.inv[id]+'</strong><small>'+it.cat+' · '+it.eff+(it.val?' '+it.val:'')+'</small></div>'+(canUseOutside(it)?'<button class="btn" onclick="useOutside(\''+id+'\')">使用</button>':'')+'</div>'});
+  }else if(tab==='equip'){
+    if(!g.equipment.length)h+='<p class="small">尚未取得裝備。坊市可購買長劍與護體法袍。</p>';
+    g.equipment.forEach(e=>h+='<div class="list-row"><div class="grow"><strong>'+e.name+' +'+e.enhance+(e.uid===g.weaponUid||e.uid===g.armorUid?' <span class="pill">已裝備</span>':'')+'</strong><small>'+e.cat+' · 這一件裝備擁有獨立強化值</small></div><button class="btn" onclick="equipItem(\''+e.uid+'\')">裝備</button></div>');
   }else{
-    g.armor={id:k,name:it.name};
-    log('穿戴 '+it.name+'。舊防具已放回行囊。');
+    h+='<div class="notice">每次強化只作用於你選中的那一件裝備。+0→+6 必成；+6 以後成功率逐級減半。失敗可能消失、維持或降級。</div><p class="small">庚精：'+(g.inv['8301']||0)+'</p>';
+    if(!g.equipment.length)h+='<p class="small">沒有可強化的裝備。</p>';
+    g.equipment.forEach(e=>{const rate=e.enhance<6?100:Math.pow(.5,e.enhance-5)*100;h+='<div class="list-row"><div class="grow"><strong>'+e.name+' +'+e.enhance+'</strong><small>下一級成功率 '+rate.toFixed(rate<10?2:0)+'%</small></div><button class="btn gold" onclick="enhanceItem(\''+e.uid+'\')">消耗1庚精</button></div>'});
   }
-  return true;
+  h+='<button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉</button>';sheet(h);
 }
-
-function applyItemQty(k,qty){
-  const it=IT[k];qty=Math.max(1,Math.min(qty||1,g.inv[k]||0));
-  if(isWeapon(k)){
-    if(!equipItem(k,'weapon'))return;
-  }else if(isArmor(k)){
-    if(!equipItem(k,'armor'))return;
-  }else if(it.eff==='體力回復'){
-    if(g.hp>=g.hpMax){toast('氣血已滿');return;}
-    const before=g.hp;g.hp=Math.min(g.hpMax,g.hp+it.val*qty);g.inv[k]-=qty;log('服下'+it.name+' ×'+qty+'，回復 '+Math.round(g.hp-before)+' 氣血。','lg');
-  }else if(it.eff==='精力回復'){
-    if(g.mp>=g.mpMax){toast('精力已滿');return;}
-    const before=g.mp;g.mp=Math.min(g.mpMax,g.mp+it.val*qty);g.inv[k]-=qty;log('服下'+it.name+' ×'+qty+'，回復 '+Math.round(g.mp-before)+' 精力。','lg');
-  }else if(it.eff==='療傷'){
-    if(!g.injury){toast('沒有需要療的傷');return;}
-    g.injury=null;g.inv[k]--;log(it.name+'：傷勢已癒。','lg');
-  }else{toast('此物暫無法直接使用');return;}
-  render();openBag();
+function canUseOutside(it){return ['體力回復','精力回復','療傷'].includes(it.eff)}
+function useOutside(id){
+  const it=IT[id];if(!g.inv[id])return;
+  if(it.eff==='體力回復')g.hp=clamp(g.hp+it.val,0,g.hpMax);
+  else if(it.eff==='精力回復')g.mp=clamp(g.mp+it.val,0,g.mpMax);
+  else if(it.eff==='療傷')g.injury=null;else return;
+  g.inv[id]--;log('使用 '+it.name+'。','lg');render();openBag('bag');
 }
-
-function useItem(k){const it=IT[k];if(!it||!g.inv[k])return;if(isWeapon(k)||isArmor(k)||it.eff==='療傷')return applyItemQty(k,1);if((it.eff||'').includes('回復')){const max=g.inv[k];sheet('<h3>使用 '+it.name+'</h3><div class="qty-box"><span>使用數量</span><input id="useQty" type="number" min="1" max="'+max+'" value="1"></div><div class="notice">目前持有 '+max+' 個，每個回復 '+it.val+'。</div><div class="row"><button class="btn jade" onclick="applyItemQty(\''+k+'\',Math.floor(Number($(\'useQty\').value)||1))">確認使用</button><button class="btn" onclick="openBag()">返回</button></div>');}else applyItemQty(k,1);}
-
-function getEnhanceRule(current){
-  return (C.enhancementRules||[]).find(r=>Number(r.current)===Number(current));
+function equipItem(uid){
+  const e=g.equipment.find(x=>x.uid===uid);if(!e)return;
+  if(e.cat==='法器'){g.weaponUid=uid}else if(e.cat==='防具'){g.armorUid=uid}
+  log('裝備 '+e.name+' +'+e.enhance+'。');render();openBag('equip');
 }
-function pct(n){return (Number(n)*100).toFixed(Number(n)*100<10?3:1).replace(/\.0$/,'')+'%';}
-function openForge(){
-  const stone=g.inv['8301']||0;
-  let h='<h3>庚精強化</h3><p class="small">持有庚精：<b style="color:var(--gold)">'+stone+'</b></p>';
-  if(!g.weapon&&!g.armor)h+='<div class="notice">請先裝備武器或防具。</div>';
-  ['weapon','armor'].forEach(slot=>{
-    const gear=g[slot]; if(!gear)return;
-    const lv=(g.enhance&&g.enhance[slot])||0, rule=getEnhanceRule(lv);
-    if(!rule){h+='<div class="notice">'+gear.name+' 已達目前資料表上限 +'+lv+'</div>';return;}
-    h+='<button class="btn gold" onclick="enhanceGear(\''+slot+'\')">強化 '+gear.name+
-      '　+'+lv+' → +'+rule.target+
-      '<br><span class="small">成功 '+pct(rule.success)+'｜消耗 '+rule.stoneCost+' 庚精｜每級攻防 +'+pct(rule.bonusRate)+'</span></button>';
-    if(Number(rule.success)<1)h+='<p class="small" style="margin:-2px 4px 8px">失敗：裝備消失 '+pct(rule.failDestroy)+'／不變 '+pct(rule.failKeep)+'／降級 '+pct(rule.failDowngrade)+'</p>';
-  });
-  h+='<div class="notice">V6 規則由外部 config.js 讀取。調整 Excel 後重新匯出設定，即可改變成功率與失敗結果。</div>'+
-    '<button class="btn" onclick="openBag()">返回行囊</button>';
-  sheet(h);
-}
-function enhanceGear(slot){
-  if(!g[slot]){toast('尚未裝備可強化物品');return;}
-  g.enhance=g.enhance||{weapon:0,armor:0};
-  const current=g.enhance[slot]||0, rule=getEnhanceRule(current);
-  if(!rule){toast('已達資料表強化上限');return;}
-  const cost=Number(rule.stoneCost)||1;
-  if((g.inv['8301']||0)<cost){toast('庚精不足');return;}
-  g.inv['8301']-=cost;
-  const name=g[slot].name;
-  if(Math.random()<Number(rule.success)){
-    g.enhance[slot]=Number(rule.target);
-    log(name+' 強化成功，提升至 +'+g.enhance[slot]+'。','lg');
-  }else{
+function enhanceItem(uid){
+  if(!(g.inv['8301']>0)){toast('庚精不足');return}
+  const e=g.equipment.find(x=>x.uid===uid);if(!e)return;g.inv['8301']--;
+  const rate=e.enhance<6?1:Math.pow(.5,e.enhance-5);
+  if(Math.random()<rate){e.enhance++;log(e.name+' 強化成功，達 +'+e.enhance+'。','lg')}
+  else{
     const roll=Math.random();
-    const destroy=Number(rule.failDestroy)||0, keep=Number(rule.failKeep)||0;
-    if(roll<destroy){
-      log(name+' 強化失敗，法器崩解消失！','ld');
-      g[slot]=null; g.enhance[slot]=0;
-    }else if(roll<destroy+keep){
-      log(name+' 強化失敗，但品階維持 +'+current+'。','la');
-    }else{
-      g.enhance[slot]=Math.max(0,current-1);
-      log(name+' 強化失敗，品階倒退至 +'+g.enhance[slot]+'。','ld');
-    }
+    if(roll<.4){g.equipment=g.equipment.filter(x=>x.uid!==uid);if(g.weaponUid===uid)g.weaponUid=null;if(g.armorUid===uid)g.armorUid=null;log(e.name+' 強化失敗，裝備化為飛灰。','ld')}
+    else if(roll<.7){log(e.name+' 強化失敗，等級維持。','la')}
+    else{e.enhance=Math.max(0,e.enhance-1);log(e.name+' 強化失敗，降為 +'+e.enhance+'。','la')}
   }
-  render();openForge();
+  render();openBag('forge');
 }
-
-// ---- 功法與雙貨幣商城 ----
-function openTechniques(){let h='<div class="sheet-title-row"><div><h3>功法</h3><p class="small">最多研習 '+(P.max_techniques||3)+' 種，可用轉身丹遺忘。</p></div><span class="seal-mark">功</span></div><div class="tech-grid">';const learned=g.techniques||[];(C.techniques||[]).forEach(t=>{const x=learned.find(v=>v.id===t.id);h+='<div class="tech-card"><h4>'+t.name+'</h4><small>'+((C.techniqueTypes||{})[t.type]?.name||t.type)+'</small><p>'+t.desc+'</p>'+(x?'<b>已研習 · 第 '+x.level+' 重</b><button class="btn" onclick="upgradeTechnique(\''+t.id+'\')">提升一重</button><button class="btn red" onclick="forgetTechnique(\''+t.id+'\')">使用轉身丹遺忘</button>':'<span class="tag">尚未研習</span>')+'</div>';});h+='</div><button class="btn" onclick="closeOv()">關閉</button>';sheet(h)}
-function learnTechnique(id){if(learnedTech(id)){toast('已研習此功法');return;}if((g.techniques||[]).length>=Number(P.max_techniques||3)){toast('最多只能研習三種功法');return;}g.techniques.push({id,level:1});applyTechniqueStats();toast('已研習 '+techDef(id).name);render();renderShop();}
-function upgradeTechnique(id){const x=learnedTech(id);if(!x)return;if(x.level>=3){toast('已達第三重');return;}x.level++;applyTechniqueStats();toast(techDef(id).name+' 提升至第 '+x.level+' 重');openTechniques();render();}
-function forgetTechnique(id){if(!(g.inv['9001']>0)){toast('需要轉身丹');return;}g.inv['9001']--;g.techniques=g.techniques.filter(x=>x.id!==id);applyTechniqueStats();toast('已遺忘 '+techDef(id).name);openTechniques();render();}
-function activateDescent(){if(!learnedTech('descent')){toast('尚未研習降靈術');return;}if(g.secretState&&(g.secretState.activeTurns>0||g.secretState.backlashTurns>0)){toast('降靈術尚未恢復');return;}g.secretState={activeTurns:5,backlashTurns:0};toast('降靈術啟動：五回合攻擊提升');}
-let shopTab='mall';
-function openShop(){shopTab='mall';renderShop();}
-function renderShop(){let h='<h3>商城與坊市</h3><div class="currency-strip"><span class="currency-chip">靈石 <b>'+g.lingshi+'</b></span><span class="currency-chip">商城元寶 <b>'+g.yuanbao+'</b></span></div><div class="tabs"><button class="'+(shopTab==='mall'?'on':'')+'" onclick="shopTab=\'mall\';renderShop()">元寶商城</button><button class="'+(shopTab==='exchange'?'on':'')+'" onclick="shopTab=\'exchange\';renderShop()">元寶兌換</button><button class="'+(shopTab==='npc'?'on':'')+'" onclick="shopTab=\'npc\';renderShop()">坊市</button></div>';
- if(shopTab==='mall'){(C.mallProducts||[]).forEach(s=>{const owned=s.productType==='technique'&&learnedTech(s.targetId);h+='<div class="kv" style="border-bottom:1px solid var(--line);padding:8px 0"><span>'+s.name+' <span class="tag">'+s.price+' 元寶</span></span><button class="btn gold" style="width:auto;padding:6px 14px;margin:0" '+(owned?'disabled':'')+' onclick="buyMall(\''+s.id+'\')">'+(owned?'已研習':'購買')+'</button></div>';});}
- else if(shopTab==='exchange'){h+='<div class="notice">兌換比例：1 元寶＝'+Number(P.yuanbao_exchange_lingshi||1000)+' 靈石。兌換後不可逆轉。</div><div class="qty-box"><span>兌換元寶</span><input id="exchangeQty" type="number" min="1" max="'+g.yuanbao+'" value="1"></div><button class="btn gold" onclick="exchangeYuanbao()">確認兌換</button>';}
- else{(C.shop||[]).forEach(s=>{h+='<div class="kv" style="border-bottom:1px solid var(--line);padding:8px 0"><span>'+s.name+' <span class="tag">'+s.price+' 靈石</span></span><button class="btn" style="width:auto;padding:6px 14px;margin:0" onclick="buy('+s.id+','+s.price+')">購買</button></div>';});}
- h+='<button class="btn" style="margin-top:12px" onclick="closeOv()">關閉</button>';sheet(h);}
-function buyMall(pid){const s=(C.mallProducts||[]).find(x=>x.id===pid);if(!s)return;if(g.yuanbao<s.price){toast('商城元寶不足');return;}if(s.productType==='technique'&&(g.techniques||[]).length>=Number(P.max_techniques||3)){toast('功法欄已滿，請先使用轉身丹遺忘');return;}g.yuanbao-=s.price;if(s.productType==='technique')learnTechnique(s.targetId);else{g.inv[s.targetId]=(g.inv[s.targetId]||0)+1;toast('購得 '+s.name);}render();renderShop();}
-function exchangeYuanbao(){const q=Math.max(1,Math.floor(Number($('exchangeQty').value)||1));if(q>g.yuanbao){toast('元寶不足');return;}g.yuanbao-=q;g.lingshi+=q*Number(P.yuanbao_exchange_lingshi||1000);toast('兌換成功');render();renderShop();}
-function openBuyQty(id,price){const max=Math.max(1,Math.floor(g.lingshi/price));sheet('<h3>購買 '+IT[id].name+'</h3><div class="qty-box"><span>購買數量</span><input id="buyQty" type="number" min="1" max="'+max+'" value="1" oninput="updateBuyTotal('+price+')"></div><div class="notice">單價 '+price+' 靈石｜總價 <b id="buyTotal">'+price+'</b> 靈石｜最多可買 '+max+'</div><div class="row"><button class="btn gold" onclick="confirmBuy('+id+','+price+')">確認購買</button><button class="btn" onclick="renderShop()">返回</button></div>');}
-function updateBuyTotal(price){const q=Math.max(1,Number($('buyQty').value)||1);$('buyTotal').textContent=q*price;}
-function confirmBuy(id,price){const qty=Math.max(1,Math.floor(Number($('buyQty').value)||1)),total=qty*price;if(g.lingshi<total){toast('靈石不足');return;}g.lingshi-=total;g.inv[id]=(g.inv[id]||0)+qty;toast('購得 '+IT[id].name+' ×'+qty);render();renderShop();}
-function buy(id,price){openBuyQty(id,price);}
-
-// ---- 突破 ----
-function openBreak(){const bt=C.breakthrough[g.lv];if(!bt)return;const z=currentZone();if(z&&z.novice){sheet('<h3>護道結界禁止突破</h3><div class="notice">新手村只保護修煉，不允許引動天地異象。請先離開 '+z.name+'，再尋找適合的突破地點。</div><button class="btn" onclick="openWorldMap()">查看地圖</button>');return;}let rate=bt.base+(z?Number(z.breakBonus||0):0);const pills={5:['8001'],10:['8002','8003'],15:['8004','8005']}[g.lv]||[];let pillHtml='';pills.forEach(pid=>{if(g.inv[pid]>0){const add=(IT[pid].val||0)/100;rate+=add*g.inv[pid];pillHtml+='<p class="small">＋'+IT[pid].name+' ×'+g.inv[pid]+'（+'+Math.round(add*g.inv[pid]*100)+'%）</p>';}});rate=Math.min(1,rate);let conceal='';if((g.inv['5001']||0)>0)conceal+='<button class="btn jade" onclick="beginBreak('+rate+',\'5001\')">使用斂息珠突破</button>';if((g.inv['5002']||0)>0)conceal+='<button class="btn jade" onclick="beginBreak('+rate+',\'5002\')">使用匿蹤符突破</button>';sheet('<h3>突破 '+bt.stage+'</h3><div class="sense-strip">御風距離：'+senseProfile().move+' 格｜所在：'+(z?z.name:'荒野')+'｜區域加成 '+Math.round((z?z.breakBonus:0)*100)+'%</div><p>基礎成功率 '+Math.round(bt.base*100)+'%'+pillHtml+'</p><p>本次成功率：<b style="color:var(--gold)">'+Math.round(rate*100)+'%</b></p><div class="world-alert">未使用遮蔽道具時，附近修士將收到「何處出現天地異象」的神識提示。突破期間為脆弱狀態。</div><button class="btn gold" onclick="beginBreak('+rate+',null)">直接引動突破</button>'+conceal+'<button class="btn" onclick="closeOv()">再等等</button>');}
-function beginBreak(rate,concealId){const concealed=!!concealId;if(concealId){if(!(g.inv[concealId]>0)){toast('遮蔽道具不足');return;}g.inv[concealId]--;}emitNearbyPhenomenon(g.lv,concealed);const v=(C.breakthroughVisuals||{})[String(g.lv)]||{effect:'天地異象',durationMs:2600};const cls=g.lv>=15?' thunder':'';sheet('<div class="break-phenomenon'+cls+'"><div class="meditate-icon">道</div><div class="break-copy"><b>'+v.effect+'</b><br>'+(concealed?'氣息已被遮蔽，外界難以察覺。':'天地異變已向附近傳開。')+'<br>突破中，經脈最為脆弱……</div></div>');setTimeout(()=>doBreak(rate,concealed),Number(v.durationMs)||2600);}
-function doBreak(rate,concealed){const bt=C.breakthrough[g.lv];const pills={5:['8001'],10:['8002','8003'],15:['8004','8005']}[g.lv]||[];pills.forEach(pid=>{if(g.inv[pid]>0)g.inv[pid]=0;});closeOv();if(Math.random()<rate){g.big=bt.target;g.lv++;onLevel();g.status=g.status.filter(s=>s!=='走火入魔');log('天雷過境，成功突破至 '+bt.target+'！御風距離提升至 '+(BIG_MOVE[g.big]||1)+' 格。','lg');sheet('<h3>突破成功</h3><div class="break-phenomenon"><div class="meditate-icon">成</div><div class="break-copy">'+g.name+' 已踏入 <b>'+bt.target+'</b><br>神識與御風能力同步提升。</div></div><button class="btn gold" onclick="closeOv()">穩固境界</button>');}else{if(!g.status.includes('走火入魔'))g.status.push('走火入魔');log('突破失敗，經脈逆行，陷入走火入魔。','ld');sheet('<h3>突破失敗</h3><div class="danger-notice">經脈逆行，氣息失控。可消耗 50 精力進行「調息歸元」。</div><button class="btn red" onclick="recoverQiDeviation()">立即調息</button><button class="btn" onclick="closeOv()">稍後處理</button>');}render();}
-function recoverQiDeviation(){const cost=Number(P.qi_deviation_cure_mp||50);if(!g.status.includes('走火入魔')){toast('目前沒有走火入魔');return;}if(g.mp<cost){toast('精力不足，需要 '+cost);return;}g.mp-=cost;g.status=g.status.filter(s=>s!=='走火入魔');log('消耗 '+cost+' 精力調息歸元，走火入魔已解除。','lg');closeOv();render();}
-
-setInterval(updateWorldClock,30000);
-
-</script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('./service-worker.js')
-      .catch(function (err) { console.warn('Service Worker registration failed:', err); });
-  });
+function openShop(tab='yuanbao'){shopTab=tab;renderShop()}
+function renderShop(){
+  let h='<h3>商城與萬寶坊市</h3><div class="money"><div><span>商城元寶</span><b>'+g.yuanbao.toLocaleString()+'</b></div><div><span>靈石</span><b>'+g.lingshi.toLocaleString()+'</b></div><div><span>綁定靈石</span><b>'+g.boundStone.toLocaleString()+'</b></div></div><div class="tabs">'+
+  tabBtn('yuanbao','元寶購買')+tabBtn('premium','功法商城')+tabBtn('exchange','元寶兌換')+tabBtn('npc','NPC購買')+tabBtn('sell','出售物品')+'</div>';
+  if(shopTab==='yuanbao'){
+    h+='<div class="notice">這不是一鍵加值按鈕。流程會建立訂單、選擇付款方式、等待付款回傳，再完成元寶入帳。此交付包使用支付沙盒，不會真的扣款。</div>';
+    C.paymentPackages.forEach(p=>{h+='<div class="list-row"><div class="grow"><strong>NT$'+p.twd+' → '+p.yuanbao+' 元寶</strong><small>'+p.label+(p.bonus?' · 含贈送 '+p.bonus+' 元寶':'')+'</small></div><button class="btn gold" onclick="startCheckout(\''+p.id+'\')">建立訂單</button></div>'});
+    const pending=g.orders.filter(o=>o.status==='待付款').slice(-3);if(pending.length){h+='<p class="small">待付款訂單</p>'+pending.map(o=>'<div class="list-row"><div class="grow"><strong>'+o.orderNo+'</strong><small>NT$'+o.twd+' · '+o.yuanbao+' 元寶 · '+o.method+'</small></div><button class="btn" onclick="payOrder(\''+o.orderNo+'\')">繼續付款</button></div>').join('')}
+  }else if(shopTab==='premium'){
+    C.techniques.forEach(t=>{const owned=g.techniques.includes(t.id);h+='<div class="list-row"><div class="grow"><strong>'+t.name+' <span class="pill">'+t.category+'</span></strong><small>'+t.desc+' · 20元寶</small></div><button class="btn '+(owned?'':'gold')+'" '+(owned?'disabled':'')+' onclick="buyTechnique(\''+t.id+'\')">'+(owned?'已研習':'購買')+'</button></div>'});
+    h+='<div class="list-row"><div class="grow"><strong>轉身丹</strong><small>遺忘一門功法時消耗 · 20元寶</small></div><button class="btn gold" onclick="buyPremiumItem(\'9001\',20)">購買</button></div>';
+  }else if(shopTab==='exchange'){
+    h+='<div class="form"><label>兌換元寶數量（1 元寶 = '+P.yuanbao_exchange_lingshi+' 靈石）</label><input id="exchangeAmount" type="number" min="1" value="1"><button class="btn gold" onclick="exchangeYuanbao()">確認單向兌換</button></div>';
+  }else if(shopTab==='npc'){
+    C.npcShop.forEach(s=>{const it=IT[String(s.id)];h+='<div class="list-row"><div class="grow"><strong>'+s.name+'</strong><small>'+it.cat+' · '+s.price+' 靈石</small></div><button class="btn" onclick="buyNpc(\''+s.id+'\','+s.price+')">購買</button></div>'});
+  }else{
+    const ids=Object.keys(g.inv).filter(id=>g.inv[id]>0&&sellPrice(id)>0);
+    if(!ids.length&&!g.equipment.length)h+='<p class="small">目前沒有 NPC 願意回收的物品。</p>';
+    ids.forEach(id=>h+='<div class="list-row"><div class="grow"><strong>'+IT[id].name+' ×'+g.inv[id]+'</strong><small>回收價 '+sellPrice(id)+' 靈石／件</small></div><button class="btn" onclick="sellItem(\''+id+'\')">出售1件</button></div>');
+    g.equipment.forEach(e=>h+='<div class="list-row"><div class="grow"><strong>'+e.name+' +'+e.enhance+'</strong><small>獨立裝備回收價 '+sellEquipmentPrice(e)+' 靈石</small></div><button class="btn red" onclick="sellEquipment(\''+e.uid+'\')">出售此件</button></div>');
+  }
+  h+='<button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">離開商城</button>';sheet(h);
+}
+function tabBtn(id,label){return '<button class="'+(shopTab===id?'on':'')+'" onclick="shopTab=\''+id+'\';renderShop()">'+label+'</button>'}
+function startCheckout(id){
+  const p=C.paymentPackages.find(x=>x.id===id);if(!p)return;
+  sheet('<h3>建立元寶購買訂單</h3><div class="money"><div><span>應付金額</span><b>NT$'+p.twd+'</b></div><div><span>入帳元寶</span><b>'+p.yuanbao+'</b></div></div><div class="form" style="margin-top:14px"><label>付款方式</label><select id="payMethod"><option>信用卡</option><option>LINE Pay</option><option>ATM虛擬帳號</option></select><label><input id="payAgree" type="checkbox" style="width:auto"> 我已確認商品與測試條款</label><button class="btn gold" onclick="createOrder(\''+id+'\')">送出訂單</button><button class="btn" onclick="openShop(\'yuanbao\')">返回方案</button></div>');
+}
+function createOrder(id){
+  if(!$('payAgree').checked){toast('請先確認測試條款');return}
+  const p=C.paymentPackages.find(x=>x.id===id),method=$('payMethod').value;
+  const no='XB'+new Date().toISOString().replace(/\D/g,'').slice(2,14)+Math.floor(Math.random()*90+10);
+  const o={orderNo:no,packageId:id,twd:p.twd,yuanbao:p.yuanbao,method,status:'待付款',createdAt:Date.now()};g.orders.push(o);saveGame(false);payOrder(no);
+}
+function payOrder(no){
+  const o=g.orders.find(x=>x.orderNo===no);if(!o)return;
+  sheet('<h3>支付沙盒 · '+o.orderNo+'</h3><div class="money"><div><span>付款方式</span><b style="font-size:14px">'+o.method+'</b></div><div><span>金額</span><b>NT$'+o.twd+'</b></div><div><span>元寶</span><b>'+o.yuanbao+'</b></div></div><div class="notice" style="margin-top:12px">正式版需由後端與金流服務商回傳付款結果。本測試版以沙盒回傳碼驗證完整訂單狀態，不會真的扣款。</div><div class="form" style="margin-top:12px"><label>沙盒付款回傳碼</label><input id="gatewayCode" placeholder="輸入 TEST-PAID"><button class="btn gold" onclick="confirmPayment(\''+no+'\')">驗證付款回傳</button><button class="btn" onclick="openShop(\'yuanbao\')">稍後付款</button></div>');
+}
+function confirmPayment(no){
+  const code=$('gatewayCode').value.trim().toUpperCase();if(code!=='TEST-PAID'){toast('付款回傳碼不正確');return}
+  const o=g.orders.find(x=>x.orderNo===no);if(!o||o.status==='已付款')return;
+  o.status='已付款';o.paidAt=Date.now();g.yuanbao+=o.yuanbao;log('訂單 '+o.orderNo+' 支付沙盒驗證成功，元寶 +'+o.yuanbao+'。','lg');render();openShop('yuanbao');
+}
+function buyTechnique(id){
+  const t=C.techniques.find(x=>x.id===id);if(!t)return;if(g.techniques.includes(id))return;
+  if(g.techniques.length>=P.max_techniques){toast('最多同時研習 '+P.max_techniques+' 種功法');return}
+  if(g.yuanbao<t.price){toast('商城元寶不足');return}
+  g.yuanbao-=t.price;g.techniques.push(id);log('研習功法 '+t.name+'。','lg');render();renderShop();
+}
+function buyPremiumItem(id,price){if(g.yuanbao<price){toast('商城元寶不足');return}g.yuanbao-=price;g.inv[id]=(g.inv[id]||0)+1;log('購得 '+IT[id].name+'。','lg');render();renderShop()}
+function exchangeYuanbao(){
+  const n=Math.floor(Number($('exchangeAmount').value));if(!(n>0)||n>g.yuanbao){toast('元寶數量不正確');return}
+  g.yuanbao-=n;g.lingshi+=n*P.yuanbao_exchange_lingshi;log('兌換 '+n+' 元寶為 '+(n*P.yuanbao_exchange_lingshi)+' 靈石。','lg');render();renderShop();
+}
+function buyNpc(id,price){
+  if(g.lingshi<price&&g.lingshi+g.boundStone<price){toast('靈石不足');return}
+  let remain=price;if(g.boundStone>0){const use=Math.min(g.boundStone,remain);g.boundStone-=use;remain-=use}g.lingshi-=remain;
+  if(isEquipmentId(id))g.equipment.push(newEquipment(id));else g.inv[String(id)]=(g.inv[String(id)]||0)+1;
+  log('向 NPC 購得 '+IT[String(id)].name+'。','lg');render();renderShop();
+}
+function baseNpcPrice(id){const s=C.npcShop.find(x=>String(x.id)===String(id));return s?s.price:Math.max(1,Math.round((IT[String(id)]?.val||10)*.5))}
+function sellPrice(id){return Math.max(1,Math.floor(baseNpcPrice(id)*P.npc_sell_rate))}
+function sellEquipmentPrice(e){return Math.floor(baseNpcPrice(e.itemId)*P.npc_sell_rate*(1+.15*e.enhance))}
+function sellItem(id){if(!(g.inv[id]>0))return;g.inv[id]--;const p=sellPrice(id);g.lingshi+=p;log('出售 '+IT[id].name+'，獲得 '+p+' 靈石。');render();renderShop()}
+function sellEquipment(uid){
+  const e=g.equipment.find(x=>x.uid===uid);if(!e)return;const p=sellEquipmentPrice(e);g.equipment=g.equipment.filter(x=>x.uid!==uid);if(g.weaponUid===uid)g.weaponUid=null;if(g.armorUid===uid)g.armorUid=null;g.lingshi+=p;log('出售 '+e.name+' +'+e.enhance+'，獲得 '+p+' 靈石。');render();renderShop();
+}
+function openBreak(){
+  const r=realmOf(g.lv),bt=C.breakthrough[String(g.lv)],z=zoneAt(g.pos.r,g.pos.c);
+  if(!bt||g.exp<r.expCum){toast('尚未達到突破條件');return}
+  if(z&&z.novice){sheet('<h3>新手結界禁止突破</h3><p>你已達練氣五層，但青牛谷結界會壓制天劫。請先從地圖離開新手村，再引動築基。</p><button class="btn jade" onclick="closeOv();openWorldMap()">開啟地圖</button>');return}
+  const ids={5:['8001'],10:['8002','8003'],15:['8004','8005']}[g.lv]||[];let rate=bt.base,detail='';
+  ids.forEach(id=>{const n=g.inv[id]||0;if(n){const add=(IT[id].val||0)/100*n;rate+=add;detail+='<div class="kv"><span>'+IT[id].name+' ×'+n+'</span><b>+'+Math.round(add*100)+'%</b></div>'}});
+  rate=Math.min(1,rate+(z?.breakBonus||0));
+  sheet('<h3>引動突破 · '+bt.stage+'</h3><div class="money"><div><span>基礎成功率</span><b>'+Math.round(bt.base*100)+'%</b></div><div><span>本次成功率</span><b>'+Math.round(rate*100)+'%</b></div></div>'+detail+'<p class="small">突破後將進入 '+bt.target+'，御風距離與神識範圍同步提高。</p><div class="row"><button class="btn gold" onclick="doBreak('+rate+')">引動天劫</button><button class="btn" onclick="closeOv()">再等等</button></div>');
+}
+function doBreak(rate){
+  const bt=C.breakthrough[String(g.lv)],ids={5:['8001'],10:['8002','8003'],15:['8004','8005']}[g.lv]||[];ids.forEach(id=>{if(g.inv[id])g.inv[id]=0});closeOv();
+  if(Math.random()<rate){g.lv++;g.big=bt.target;onLevel();g.status=g.status.filter(x=>x!=='走火入魔');log('天雷過境，成功突破至 '+bt.target+'！','lg')}
+  else{if(!g.status.includes('走火入魔'))g.status.push('走火入魔');log('突破失敗，氣息紊亂，走火入魔。','ld')}
+  render();
+}
+function openTutorial(i=0){
+  tutorialIndex=i;const steps=C.tutorial,s=steps[tutorialIndex];
+  let dots='<div class="tutorial-dots">'+steps.map((_,x)=>'<i class="'+(x===tutorialIndex?'on':'')+'"></i>').join('')+'</div>';
+  sheet('<div class="tutorial-card"><div class="tutorial-step">新手教學 '+(tutorialIndex+1)+' / '+steps.length+'</div><h3 style="margin-top:7px">'+s.title+'</h3><p>'+s.text+'</p>'+dots+'<div class="row">'+(tutorialIndex>0?'<button class="btn" onclick="openTutorial('+(tutorialIndex-1)+')">上一步</button>':'')+'<button class="btn gold" onclick="'+(tutorialIndex<steps.length-1?'openTutorial('+(tutorialIndex+1)+')':'finishTutorial()')+'">'+(tutorialIndex<steps.length-1?'下一步':'開始修行')+'</button></div><button class="btn" style="width:100%;margin-top:8px" onclick="skipTutorial()">略過教學</button></div>');
+}
+function finishTutorial(){g.tutorialDone=true;closeOv();log('新手教學完成。下一步：開始打坐，或從地圖選擇行動。','lg');saveGame(false)}
+function skipTutorial(){g.tutorialDone=true;closeOv();saveGame(false)}
+function openVersion(){
+  sheet('<h3>V11 新版重點</h3><div class="list-row"><div class="grow"><strong>正式元寶購買流程</strong><small>方案 → 建立訂單 → 付款方式 → 沙盒回傳 → 入帳</small></div></div><div class="list-row"><div class="grow"><strong>新手教學</strong><small>六步驟說明角色、地圖、探索、打坐、裝備與商城</small></div></div><div class="list-row"><div class="grow"><strong>持續與離線打坐</strong><small>新手村2秒1修為；一般區域20秒1修為</small></div></div><div class="list-row"><div class="grow"><strong>150名世界修士持久運行</strong><small>共用伺服器世界，會打坐、移動、探索、打怪、交易、聊天與成長</small></div></div><div class="list-row"><div class="grow"><strong>戰鬥與裝備</strong><small>攻擊耗10精力、戰鬥可用丹藥與符籙、裝備逐件獨立強化</small></div></div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">關閉</button>');
+}
+function confirmReset(){
+  sheet('<h3 style="color:var(--red)">重置角色</h3><p>這會刪除目前存檔、商城沙盒訂單與全部進度。</p><div class="row"><button class="btn red" onclick="localStorage.removeItem(SAVE_KEY);location.reload()">確認重置</button><button class="btn" onclick="closeOv()">取消</button></div>');
 }
 </script>
+<script src="v12_online.js?v=20260718-264"></script>
+<script src="v12_breakthrough.js?v=20260718-280"></script>
+<script src="v12_runtime_config.js?v=20260719-fix2-1"></script>
+<script>window.XIANXIA_V13_EXTERNAL_SCHEDULER=true;</script>
+<script src="v13_ai_brain.js?v=20260719-fix2-1"></script>
+<script src="v13_ambush.js?v=20260719-fix2-1"></script>
+<script src="v13_ai_observatory.js?v=20260719-fix2-1"></script>
+<script src="rewarded_ads_config.js?v=20260719-350"></script>
+<script src="v13_rewarded_ads.js?v=20260719-350"></script>
+<script src="v13_world_orchestrator.js?v=20260719-fix2-1"></script>
+<script src="v13_5_world_expansion.js?v=20260719-fix2-1"></script>
+<script src="v13_5_craft_engine.js?v=20260721-v145b-fix1"></script>
+<script src="v14_3_fix1_ui_map.js?v=20260720-fix4g"></script>
+<script src="v14_2_auction.js?v=20260720-142"></script>
 
+<script src="v14_4_black_cloud.js?v=20260720-fix4f"></script>
+<script src="v14_4_beast_tide.js?v=20260720-fix4b"></script>
+<script src="v14_4_great_tribulation.js?v=20260720-fix4c"></script>
+<script src="v14_4_great_tribulation_cycle.js?v=20260720-fix4d"></script>
+
+<script src="v14_5c_intel.js?v=20260721-v145c-fix1"></script>
+<script src="v14_5b_crafting_codex.js?v=20260721-v145b-fix1"></script>
+<script src="v14_5d_maintenance_gate.js?v=20260721-v145d-1"></script>
+<script src="v14_5_login_safe_loader.js?v=20260721-v145a-fix4-login-safe"></script>
 </body>
 </html>
