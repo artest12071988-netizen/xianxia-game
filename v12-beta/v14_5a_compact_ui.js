@@ -195,8 +195,20 @@
 
   function boot(){
     compactPanels();compactTechniques();markActionHierarchy();compactNav();refineBrand();ensureTicker();cycleTicker(true);updateAuctionLauncher();
-    clearInterval(state.auctionTimer);state.auctionTimer=setInterval(()=>{markActionHierarchy();updateAuctionLauncher();cycleTicker(false);},5000);
-    const observer=new MutationObserver(()=>{markActionHierarchy();updateAuctionLauncher();});observer.observe(document.body,{childList:true,subtree:true});
+    clearInterval(state.auctionTimer);
+    /*
+     * LOGIN HOTFIX3:
+     * 移除全頁 MutationObserver。updateAuctionLauncher 會修改 textContent，
+     * 其 childList 變動又觸發 observer，並與探索情報選單互相喚醒。
+     * 5 秒安全更新已足以維持跑馬燈、按鈕階層與拍賣入口。
+     */
+    state.auctionTimer=setInterval(()=>{
+      try{
+        markActionHierarchy();
+        updateAuctionLauncher();
+        cycleTicker(false);
+      }catch(e){console.warn('[V14.5A safe refresh]',e)}
+    },5000);
   }
 
   window.openV145WorldInfo=openWorldInfo;

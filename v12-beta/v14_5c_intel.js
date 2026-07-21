@@ -292,12 +292,20 @@
   }
   function boot(){
     wrapExplore();installFixedTreasureBridge();wrapMap();wrapMove();loadRows();injectMoreMenu();arrivalCheck();
-    if(!state.observer){state.observer=new MutationObserver(()=>injectMoreMenu());state.observer.observe(document.body,{childList:true,subtree:true})}
   }
 
   window.openExplorationIntelV145C=openIntelBook;
-  window.V145CIntel={version:VERSION,open:openIntelBook,dismiss,viewMap,refresh:()=>loadRows(true),active:activeRows};
-  const timer=setInterval(()=>{try{boot()}catch(err){console.warn('[V14.5C]',err)}},1000);
+  window.V145CIntel={version:VERSION+'-LOGIN-SAFE',open:openIntelBook,dismiss,viewMap,refresh:()=>loadRows(true),active:activeRows};
+  /*
+   * LOGIN HOTFIX3:
+   * 禁止監看整個 document.body。原 MutationObserver 會與 V14.5A HUD
+   * 互相觸發 childList，登入頁載入時形成主執行緒循環。
+   * 改成低頻、有限工作量的安全補掛。
+   */
+  const timer=setInterval(()=>{try{
+    wrapExplore();installFixedTreasureBridge();wrapMap();wrapMove();
+    injectMoreMenu();
+  }catch(err){console.warn('[V14.5C]',err)}},5000);
   window.addEventListener('beforeunload',()=>clearInterval(timer));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
