@@ -521,12 +521,23 @@ function onLevel(){
   const r=realmOf(g.lv);g.big=r.big;g.hpMax=r.hp;g.mpMax=Math.max(P.start_stamina,r.mp);g.hp=g.hpMax;g.mp=g.mpMax;
   log('修為精進，達到 <b>'+g.big+' '+((g.lv-1)%5+1)+'層</b>。','lg');
 }
+
+window.__V146MeditationBridge={
+  getState:()=>g,
+  getZone:()=>g&&typeof zoneAt==='function'?zoneAt(g.pos.r,g.pos.c):null,
+  getParams:()=>P,
+  toggle:()=>meditationButtonClick()
+};
+
 function toggleMeditate(){
   if(fight){toast('鬥法中無法打坐');return}
   const z=zoneAt(g.pos.r,g.pos.c);if(z&&z.meditate===0){toast('此區禁止打坐');return}
   g.meditating=!g.meditating;g.meditateSec=0;
   log(g.meditating?'你盤膝入定，靈氣開始沿經脈流入。':'你收功起身，停止吐納。',g.meditating?'lg':'');
   render();
+  if(typeof window.__V146MeditationStateChanged==='function'){
+    window.__V146MeditationStateChanged(g.meditating);
+  }
 }
 function stopMeditate(reason=''){
   if(g.meditating){g.meditating=false;g.meditateSec=0;if(reason)log('打坐中斷：'+reason,'la')}
@@ -848,6 +859,6 @@ function confirmReset(){
 <script src="v14_5c_intel.js?v=20260721-login-hotfix3"></script>
 <script src="v14_5b_crafting_codex.js?v=20260721-fix4h-loopfix"></script>
 <script src="v14_5d_maintenance_gate.js?v=20260721-v145d-1"></script>
-<script src="v14_6_meditation_immersion.js?v=20260721-v146-1"></script>
+<script src="v14_6_meditation_immersion.js?v=20260721-v146-fix1"></script>
 </body>
 </html>

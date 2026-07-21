@@ -3,7 +3,7 @@
 if(window.__V146MeditationImmersionLoaded)return;
 window.__V146MeditationImmersionLoaded=true;
 
-const VERSION='V14.6-MEDITATION-IMMERSION-1';
+const VERSION='V14.6-MEDITATION-IMMERSION-FIX1';
 const state={
   active:false,
   overlay:null,
@@ -125,7 +125,7 @@ function createOverlay(){
   state.overlay=el;
   byId('v146MeditationExit').addEventListener('click',()=>{
     try{
-      if(typeof meditationButtonClick==='function')meditationButtonClick();
+      window.__V146MeditationBridge?.toggle?.();
     }catch(err){console.warn('[V14.6 Meditation exit]',err)}
   });
   return el;
@@ -176,11 +176,14 @@ function formatTime(sec){
 
 function updateMetrics(){
   try{
-    if(typeof g==='undefined'||!g)return;
-    const zone=typeof zoneAt==='function'?zoneAt(g.pos.r,g.pos.c):null;
+    const bridge=window.__V146MeditationBridge;
+    const g=bridge?.getState?.();
+    if(!g)return;
+    const zone=bridge?.getZone?.()||null;
+    const P=bridge?.getParams?.()||{};
     const interval=zone&&zone.novice
-      ?(typeof P!=='undefined'?P.meditate_novice_exp_interval_sec:2)
-      :(typeof P!=='undefined'?P.meditate_exp_interval_sec:20);
+      ?(P.meditate_novice_exp_interval_sec||2)
+      :(P.meditate_exp_interval_sec||20);
     byId('v146MedName').textContent=g.name||'無名散修';
     byId('v146MedRealm').textContent=(g.big||'練氣期')+' · Lv'+(g.lv||1);
     byId('v146MedTime').textContent=formatTime(g.meditateSec);
@@ -230,29 +233,22 @@ function leave(){
 
 function sync(){
   try{
-    if(typeof g==='undefined'||!g){leave();return}
+    const g=window.__V146MeditationBridge?.getState?.();
+    if(!g){leave();return}
     if(g.meditating)enter();else leave();
   }catch(err){console.warn('[V14.6 Meditation sync]',err)}
 }
 
-function wrapMeditationButton(){
-  if(typeof meditationButtonClick!=='function'||meditationButtonClick.__v146Wrapped)return;
-  const original=meditationButtonClick;
-  const wrapped=function(){
-    const result=original.apply(this,arguments);
-    setTimeout(sync,0);
-    return result;
-  };
-  wrapped.__v146Wrapped=true;
-  window.meditationButtonClick=wrapped;
-}
+window.__V146MeditationStateChanged=function(active){
+  if(active)enter();else leave();
+};
 
 function boot(){
   createOverlay();
-  wrapMeditationButton();
   sync();
-  setTimeout(sync,800);
-  setTimeout(sync,2200);
+  setTimeout(sync,500);
+  setTimeout(sync,1500);
+  setInterval(sync,1000);
 }
 
 window.V146MeditationImmersion={
