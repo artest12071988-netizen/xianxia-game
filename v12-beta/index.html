@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>修仙大逃殺 V13.5 FIX2｜最小安全整合修正版</title>
+<title>修仙大逃殺 V14.5 FIX5｜安全分類介面與器紋橋接版</title>
 <style>
 :root{
   --void:#020406;--ink:#eee8da;--muted:#8e99a9;--gold:#d7b96b;--gold2:#8d6b31;
@@ -134,6 +134,7 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 <link rel="stylesheet" href="v14_4_beast_tide.css?v=20260720-fix4b">
 <link rel="stylesheet" href="v14_4_great_tribulation.css?v=20260720-fix4c">
 <link rel="stylesheet" href="v14_5a_compact_ui.css?v=20260721-v145a-fix2">
+<link rel="stylesheet" href="v14_5a_desktop_safe.css?v=20260721-v145a-fix5">
 <link rel="stylesheet" href="v14_5c_intel.css?v=20260721-v145c-fix1">
 <link rel="stylesheet" href="v14_5b_crafting_codex.css?v=20260721-v145b-fix1">
 <link rel="stylesheet" href="v14_5d_maintenance_gate.css?v=20260721-v145d-1">
@@ -756,6 +757,23 @@ function confirmReset(){
   sheet('<h3 style="color:var(--red)">重置角色</h3><p>這會刪除目前存檔、商城沙盒訂單與全部進度。</p><div class="row"><button class="btn red" onclick="localStorage.removeItem(SAVE_KEY);location.reload()">確認重置</button><button class="btn" onclick="closeOv()">取消</button></div>');
 }
 </script>
+<script>
+/* V14.5 FIX5 SAFE CORE BRIDGE: explicit access only; no polling, eval, or DOM mutation. */
+window.XIANXIA_CORE_BRIDGE = Object.freeze({
+  getGame:()=>g, getItems:()=>IT, getParams:()=>P,
+  save:(show=false)=>saveGame(show), render:()=>render(),
+  log:(text,type='')=>log(text,type), toast:(text)=>toast(text),
+  sheet:(html)=>sheet(html), closeSheet:()=>closeOv(),
+  isGameVisible:()=>document.getElementById('game')?.classList.contains('on')===true,
+  wrapNewEquipment:(factory)=>{const prev=newEquipment;newEquipment=factory(prev)},
+  wrapPlayerAttack:(factory)=>{const prev=pAtk;pAtk=factory(prev)},
+  wrapPlayerDefense:(factory)=>{const prev=pDef;pDef=factory(prev)},
+  wrapAttackTurn:(factory)=>{const prev=attackTurn;attackTurn=factory(prev)},
+  wrapWinFight:(factory)=>{const prev=winFight;winFight=factory(prev)},
+  wrapOpenBag:(factory)=>{const prev=openBag;openBag=factory(prev)},
+  setEnhanceItem:(fn)=>{window.enhanceItem=fn}
+});
+</script>
 <script src="v12_online.js?v=20260718-264"></script>
 <script src="v12_breakthrough.js?v=20260718-280"></script>
 <script src="v12_runtime_config.js?v=20260719-fix2-1"></script>
@@ -770,7 +788,7 @@ function confirmReset(){
 <script src="v13_5_craft_engine.js?v=20260721-v145b-fix1"></script>
 <script src="v14_3_fix1_ui_map.js?v=20260720-fix4g"></script>
 <script src="v14_2_auction.js?v=20260720-142"></script>
-<script src="v14_3_artifact.js?v=20260720-143"></script>
+<script src="v14_3_artifact_safe.js?v=20260721-v145a-fix5"></script>
 <script src="v14_4_black_cloud.js?v=20260720-fix4f"></script>
 <script src="v14_4_beast_tide.js?v=20260720-fix4b"></script>
 <script src="v14_4_great_tribulation.js?v=20260720-fix4c"></script>
@@ -779,5 +797,6 @@ function confirmReset(){
 <script src="v14_5c_intel.js?v=20260721-v145c-fix1"></script>
 <script src="v14_5b_crafting_codex.js?v=20260721-v145b-fix1"></script>
 <script src="v14_5d_maintenance_gate.js?v=20260721-v145d-1"></script>
+<script src="v14_5a_desktop_safe.js?v=20260721-v145a-fix5"></script>
 </body>
 </html>
