@@ -1,9 +1,9 @@
 (()=>{
   'use strict';
-  if(window.__V145PremiumHudFix3Loaded)return;
-  window.__V145PremiumHudFix3Loaded=true;
+  if(window.__V145PremiumHudLoaded)return;
+  window.__V145PremiumHudLoaded=true;
 
-  const state={tickerIndex:0,tickerTimer:null,lastQueueKey:'',auctionTimer:null,desktopObserver:null};
+  const state={tickerIndex:0,tickerTimer:null,lastQueueKey:'',auctionTimer:null};
   const q=(s,r=document)=>r.querySelector(s);
   const qa=(s,r=document)=>[...r.querySelectorAll(s)];
   const get=(name)=>{try{return Function('return typeof '+name+'!=="undefined"?'+name+':null')()}catch(_){return null}};
@@ -68,18 +68,16 @@
       const t=button('展開傳音與輸入','v145a-chat-toggle');t.addEventListener('click',()=>{const open=chat.classList.toggle('v145a-expanded');t.textContent=open?'收合傳音':'展開傳音與輸入';});chat.appendChild(t);
     }
   }
+
   function markActionHierarchy(){
     const grid=q('#game .action-grid');if(!grid)return;
     qa('.action-tile',grid).forEach((el)=>{
       const code=(el.getAttribute('onclick')||'')+' '+(el.id||'');
-      el.classList.remove('v145a-primary-action','v145a-secondary-action','v145a-desktop-utility-action','v145a-context-action');
-      if(/openWorldMap|explore\(|meditationButtonClick|openBreak/.test(code))el.classList.add('v145a-primary-action');
-      else el.classList.add('v145a-secondary-action');
-      if(/openBag|openShop|openCrafting|v145aMoreAction/.test(code))el.classList.add('v145a-desktop-utility-action');
-      if(/eventRealmBtn|openEventRealm/.test(code))el.classList.add('v145a-context-action');
+      el.classList.remove('v145a-primary-action','v145a-secondary-action');
+      if(/openWorldMap|explore\(|meditationButtonClick|openBag/.test(code))el.classList.add('v145a-primary-action');else el.classList.add('v145a-secondary-action');
     });
     if(!q('#v145aMoreAction',grid)){
-      const more=document.createElement('button');more.type='button';more.id='v145aMoreAction';more.className='btn action-tile v145a-secondary-action v145a-desktop-utility-action';
+      const more=document.createElement('button');more.type='button';more.id='v145aMoreAction';more.className='btn action-tile v145a-secondary-action';
       more.innerHTML='<span class="rune">更</span><span><strong>更多功能</strong><small>拍賣、傳音、教學與系統</small></span>';
       more.addEventListener('click',openMoreMenu);grid.appendChild(more);
     }
@@ -174,7 +172,7 @@
   function openMoreMenu(){
     const sheetFn=get('sheet')||window.sheet;if(typeof sheetFn!=='function')return;
     const item=(icon,label,call,sub='')=>`<button class="v145a-more-item" type="button" onclick="closeOv();setTimeout(()=>window.V145PremiumHud.run('${call}'),80)"><span>${icon}</span><b>${label}</b>${sub?`<small>${sub}</small>`:''}</button>`;
-    sheetFn(`<div class="v145a-more-sheet"><div class="v145a-info-kicker">CULTIVATION MENU</div><h3>更多功能</h3><div class="v145a-more-grid">${item('坊','商城坊市','openShop','NPC交易與元寶')}${item('拍','萬寶拍賣','openAuctionHouseV142','競標、上架、領取')}${item('破','境界突破','openBreak','築基、結丹、元嬰')}${item('煉','萬法煉造','openCrafting','煉丹、煉器與鍛造')}${item('譜','萬法譜','openRecipeCodexV145B','公開合成配方')}${item('聞','傳聞錄','openExplorationIntelV145C','探索情報與線索')}${item('音','全服傳音','openWorldChat','查看與發布傳音')}${item('訣','新手教學','openTutorial','重新查看操作教學')}${item('紋','天工器紋','openArtifactWorkshopV143','刻印、洗煉與淬鍊')}${item('雲','天地情報','openV145WorldInfo','世界事件與提示')}</div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">返回</button></div>`);
+    sheetFn(`<div class="v145a-more-sheet"><div class="v145a-info-kicker">CULTIVATION MENU</div><h3>更多功能</h3><div class="v145a-more-grid">${item('坊','商城坊市','openShop','NPC交易與元寶')}${item('拍','萬寶拍賣','openAuctionHouseV142','競標、上架、領取')}${item('破','境界突破','openBreak','築基、結丹、元嬰')}${item('煉','萬法煉造','openCrafting','煉丹、煉器與鍛造')}${item('音','全服傳音','openWorldChat','查看與發布傳音')}${item('訣','新手教學','openTutorial','重新查看操作教學')}${item('紋','天工器紋','openArtifactWorkshopV143','刻印、洗煉與淬鍊')}${item('雲','天地情報','openV145WorldInfo','世界事件與提示')}</div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">返回</button></div>`);
   }
 
   function compactNav(){
@@ -184,95 +182,24 @@
     if(buttons[5])buttons[5].style.display='none';
   }
 
-
-  const DESKTOP_CATEGORIES={
-    world:{title:'世界',kicker:'WORLD',items:[
-      ['圖','世界地圖','map','固定十乘十地域與御風移動'],['聞','探索情報','intel','天地靈物、妖獸與修士線索'],['獸','妖獸圖鑑','dex','查看妖獸與古魔資料'],['勢','天地情報','worldInfo','黑雲、獸潮、大天劫與拍賣']
-    ]},
-    character:{title:'角色',kicker:'CHARACTER',items:[
-      ['命','角色總覽','character','道體、屬性、裝備與功法'],['囊','行囊裝備','bag','道具、裝備與消耗品'],['破','境界突破','break','築基、結丹與元嬰'],['功','常駐功法','techniques','查看目前研習的功法']
-    ]},
-    craft:{title:'天工',kicker:'CELESTIAL CRAFT',items:[
-      ['煉','萬法煉造','craft','煉丹、煉器與鍛造'],['譜','萬法譜','codex','查看公開配方與材料'],['紋','天工器紋','artifact','刻印、洗煉與淬鍊'],['匠','絕世神匠','master','冰火島絕世鍛造']
-    ]},
-    trade:{title:'交易',kicker:'MARKET',items:[
-      ['坊','商城坊市','shop','NPC交易、功法與元寶'],['拍','萬寶拍賣','auction','競標、上架與領取']
-    ]},
-    social:{title:'社交',kicker:'CULTIVATORS',items:[
-      ['音','全服傳音','chat','查看與發布世界傳音'],['近','附近修士','nearby','神識感應與附近動靜']
-    ]},
-    settings:{title:'系統',kicker:'SYSTEM',items:[
-      ['訣','新手教學','tutorial','重新查看操作教學'],['雲','雲端狀態','cloud','同步、存檔與連線狀態'],['報','問題回報','feedback','回報遊戲異常與建議'],['棄','放棄道體','reset','永久刪除目前角色']
-    ]}
-  };
-
-  function focusPanel(selector,expand=false){
-    const el=q(selector);if(!el)return;
-    if(expand)el.classList.add('v145a-expanded');
-    el.scrollIntoView({behavior:'smooth',block:'start'});
-    el.classList.add('v145a-focus-flash');setTimeout(()=>el.classList.remove('v145a-focus-flash'),900);
-  }
-  function setIntelTab(tab='region'){
-    const panel=q('#game .intel-panel');if(!panel)return;
-    panel.dataset.v145aIntelTab=tab;
-    qa('.v145a-intel-tabs button',panel).forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
-  }
-  function setupIntelTabs(){
-    const panel=q('#game .intel-panel');if(!panel||panel.dataset.v145aTabsReady==='1')return;
-    panel.dataset.v145aTabsReady='1';panel.dataset.v145aIntelTab='region';
-    q(':scope > .intel-grid',panel)?.classList.add('v145a-intel-region');
-    const heads=qa(':scope > .panel-head',panel);
-    const nearHead=heads.find(h=>/神識感應/.test(h.textContent));const senseHead=heads.find(h=>/附近動靜/.test(h.textContent));
-    nearHead?.classList.add('v145a-intel-nearby');q(':scope > .ai-list',panel)?.classList.add('v145a-intel-nearby');
-    senseHead?.classList.add('v145a-intel-rumor');q(':scope > .sense-feed',panel)?.classList.add('v145a-intel-rumor');
-    q(':scope > .command-row',panel)?.classList.add('v145a-intel-system-actions');
-    const tabs=document.createElement('div');tabs.className='v145a-intel-tabs';tabs.innerHTML='<button type="button" class="on" data-tab="region">區域</button><button type="button" data-tab="rumor">情報</button><button type="button" data-tab="nearby">附近</button>';
-    tabs.addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(b)setIntelTab(b.dataset.tab)});
-    const firstHead=heads[0];firstHead?.insertAdjacentElement('afterend',tabs);
-  }
-  function categoryRun(key){
-    const close=get('closeOv')||window.closeOv;if(typeof close==='function')close();
-    const later=fn=>setTimeout(fn,80);
-    const actions={
-      map:()=>actionCall('openWorldMap'),intel:()=>actionCall('openExplorationIntelV145C'),dex:()=>actionCall('openMonsterDex'),worldInfo:openWorldInfo,
-      character:()=>focusPanel('#game .character-panel',true),bag:()=>actionCall('openBag'),break:()=>actionCall('openBreak'),techniques:()=>{focusPanel('#game .character-panel',true);setTimeout(()=>q('#game .technique-dock-wrap')?.scrollIntoView({behavior:'smooth',block:'center'}),180)},
-      craft:()=>actionCall('openCrafting'),codex:()=>actionCall('openRecipeCodexV145B'),artifact:()=>actionCall('openArtifactWorkshopV143'),master:()=>actionCall('openMasterCraftsmanV145B'),
-      shop:()=>actionCall('openShop'),auction:()=>actionCall('openAuctionHouseV142'),chat:()=>actionCall('openWorldChat'),nearby:()=>{setIntelTab('nearby');focusPanel('#game .intel-panel',true)},
-      tutorial:()=>actionCall('openTutorial'),cloud:()=>actionCall('openCloudStatus'),feedback:()=>actionCall('openFeedback'),reset:()=>actionCall('confirmReset')
-    };
-    if(actions[key])later(actions[key]);
-  }
-  function openDesktopCategory(name){
-    if(name==='practice'){focusPanel('#game .world-panel');return;}
-    const cfg=DESKTOP_CATEGORIES[name],sheetFn=get('sheet')||window.sheet;if(!cfg||typeof sheetFn!=='function')return;
-    const cards=cfg.items.map(([icon,label,key,sub])=>`<button class="v145a-category-item" type="button" onclick="window.V145PremiumHud.categoryRun('${key}')"><span>${icon}</span><b>${label}</b><small>${sub}</small></button>`).join('');
-    sheetFn(`<div class="v145a-category-sheet"><div class="v145a-info-kicker">${cfg.kicker}</div><h3>${cfg.title}</h3><div class="v145a-category-grid">${cards}</div><button class="btn" style="width:100%;margin-top:12px" onclick="closeOv()">返回修行</button></div>`);
-  }
-  function ensureDesktopNav(){
-    const header=q('#game .world-header');if(!header||q('#v145aDesktopNav',header))return;
-    const nav=document.createElement('nav');nav.id='v145aDesktopNav';nav.className='v145a-desktop-nav';nav.setAttribute('aria-label','遊戲主分類');
-    nav.innerHTML='<button type="button" data-category="practice">修行</button><button type="button" data-category="world">世界</button><button type="button" data-category="character">角色</button><button type="button" data-category="craft">天工</button><button type="button" data-category="trade">交易</button><button type="button" data-category="social">社交</button><button type="button" class="v145a-settings" data-category="settings" aria-label="系統設定">設</button>';
-    nav.addEventListener('click',e=>{const b=e.target.closest('button[data-category]');if(b)openDesktopCategory(b.dataset.category)});
-    const meta=q('.world-meta',header);header.insertBefore(nav,meta||null);
-  }
-
   function updateAuctionLauncher(){
     const el=document.getElementById('auctionLaunch');if(!el)return;
     const w=auctionWindow();el.classList.toggle('v145a-auction-live',w.show);
     el.hidden=!w.show;
     if(w.show)el.textContent=w.diff<0?`拍賣 ${remainText(w.start)}`:'萬寶拍賣';
   }
+
   function refineBrand(){
-    const tag=q('#game .brand-tag');if(tag)tag.textContent='V14.5 · CELESTIAL DESKTOP';
+    const tag=q('#game .brand-tag');if(tag)tag.textContent='V14.5 · CELESTIAL HUD';
   }
+
   function boot(){
-    compactPanels();compactTechniques();markActionHierarchy();compactNav();refineBrand();ensureTicker();ensureDesktopNav();setupIntelTabs();cycleTicker(true);updateAuctionLauncher();
-    clearInterval(state.auctionTimer);state.auctionTimer=setInterval(()=>{markActionHierarchy();updateAuctionLauncher();cycleTicker(false);ensureDesktopNav();setupIntelTabs();},5000);
-    if(state.desktopObserver)state.desktopObserver.disconnect();
-    state.desktopObserver=new MutationObserver(()=>{markActionHierarchy();updateAuctionLauncher();ensureDesktopNav();setupIntelTabs();});state.desktopObserver.observe(document.body,{childList:true,subtree:true});
+    compactPanels();compactTechniques();markActionHierarchy();compactNav();refineBrand();ensureTicker();cycleTicker(true);updateAuctionLauncher();
+    clearInterval(state.auctionTimer);state.auctionTimer=setInterval(()=>{markActionHierarchy();updateAuctionLauncher();cycleTicker(false);},5000);
+    const observer=new MutationObserver(()=>{markActionHierarchy();updateAuctionLauncher();});observer.observe(document.body,{childList:true,subtree:true});
   }
 
   window.openV145WorldInfo=openWorldInfo;
-  window.V145PremiumHud={openWorldInfo,openMoreMenu,openDesktopCategory,categoryRun,run:(name)=>name==='openV145WorldInfo'?openWorldInfo():actionCall(name),refresh:()=>cycleTicker(true)};
+  window.V145PremiumHud={openWorldInfo,openMoreMenu,run:(name)=>name==='openV145WorldInfo'?openWorldInfo():actionCall(name),refresh:()=>cycleTicker(true)};
   ready(boot);
 })();
