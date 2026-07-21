@@ -1,0 +1,140 @@
+/* 修仙大逃殺｜專業後台介面層 V14.6 ADMIN UI FIX1
+   僅調整顯示、導覽與收合，不修改任何原功能事件、欄位 ID 或資料流程。 */
+:root{
+  --admin-sidebar:236px;
+  --admin-topbar:72px;
+  --admin-radius:14px;
+  --admin-shadow:0 12px 34px rgba(0,0,0,.32);
+}
+body.admin-ui-ready{background:#060b12;overflow-x:hidden}
+body.admin-ui-ready .wrap{width:min(1520px,100%);max-width:none;margin:0 auto;padding:14px 18px 30px}
+body.admin-ui-ready>.admin-ui-shell{min-height:100vh}
+
+/* 頂部 */
+body.admin-ui-ready .wrap>.head{
+  position:sticky;top:0;z-index:90;
+  min-height:var(--admin-topbar);padding:12px 16px;margin:0 0 14px;
+  background:rgba(6,11,18,.92);backdrop-filter:blur(15px);
+  border:1px solid rgba(86,216,206,.18);border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.22)
+}
+body.admin-ui-ready .wrap>.head h1{font-size:22px;letter-spacing:.04em}
+
+/* 登入狀態保持乾淨 */
+body.admin-ui-ready #loginCard,body.admin-ui-ready #claimCard{max-width:760px;margin:50px auto}
+
+/* 後台外框 */
+body.admin-ui-ready #adminMain:not(.hidden){
+  display:grid;grid-template-columns:var(--admin-sidebar) minmax(0,1fr);
+  gap:14px;align-items:start;
+}
+.admin-ui-sidebar{
+  position:sticky;top:calc(var(--admin-topbar) + 28px);z-index:60;
+  max-height:calc(100vh - var(--admin-topbar) - 45px);overflow:auto;
+  padding:12px;background:linear-gradient(180deg,#101925,#0a111a);
+  border:1px solid var(--line);border-radius:var(--admin-radius);box-shadow:var(--admin-shadow)
+}
+.admin-ui-sidebar-title{padding:4px 8px 10px;color:var(--muted);font-size:11px;letter-spacing:.12em}
+.admin-ui-nav{display:grid;gap:6px}
+.admin-ui-nav-btn{
+  display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:9px 10px;
+  border:1px solid transparent;border-radius:10px;background:transparent;color:#b7c2d0;
+  text-align:left;cursor:pointer;transition:.16s ease
+}
+.admin-ui-nav-btn:hover{background:#152130;color:var(--ink)}
+.admin-ui-nav-btn.active{background:linear-gradient(90deg,rgba(86,216,206,.16),rgba(216,185,102,.08));border-color:#2d827d;color:var(--jade)}
+.admin-ui-nav-icon{width:24px;text-align:center;font-size:16px}
+.admin-ui-nav-label{font-size:14px;font-weight:700}
+.admin-ui-nav-count{margin-left:auto;min-width:24px;padding:2px 6px;border:1px solid var(--line);border-radius:99px;font-size:10px;text-align:center;color:var(--muted)}
+.admin-ui-side-actions{display:grid;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+.admin-ui-side-actions button{min-height:38px;padding:8px 10px}
+
+.admin-ui-content{min-width:0}
+.admin-ui-toolbar{
+  position:sticky;top:calc(var(--admin-topbar) + 28px);z-index:55;
+  display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:12px;
+  background:rgba(10,17,27,.94);backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 22px rgba(0,0,0,.22)
+}
+.admin-ui-section-title{min-width:150px;font-size:18px;font-weight:800;color:var(--gold)}
+.admin-ui-search-wrap{position:relative;flex:1;min-width:170px}
+.admin-ui-search{height:40px;padding:8px 38px 8px 12px;font-size:14px;background:#070e17}
+.admin-ui-search-clear{position:absolute;right:4px;top:4px;width:32px;height:32px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.admin-ui-toolbar-info{white-space:nowrap;font-size:12px;color:var(--muted)}
+
+/* 原始卡片專業化與壓縮 */
+body.admin-ui-ready #adminMain .card{margin-bottom:12px;padding:16px;border-radius:var(--admin-radius);box-shadow:var(--admin-shadow)}
+body.admin-ui-ready #adminMain .card h2{margin:0 0 14px;font-size:21px}
+body.admin-ui-ready #adminMain .grid{gap:12px}
+body.admin-ui-ready #adminMain .field{gap:5px}
+body.admin-ui-ready #adminMain input,
+body.admin-ui-ready #adminMain textarea,
+body.admin-ui-ready #adminMain select{padding:10px 12px;font-size:15px}
+body.admin-ui-ready #adminMain textarea{min-height:72px}
+body.admin-ui-ready #adminMain .btn{min-height:42px;padding:9px 12px}
+body.admin-ui-ready #adminMain .status div{padding:9px 10px}
+
+/* 卡片工具與收合 */
+.admin-ui-card-tools{display:flex;align-items:center;gap:6px;float:right;margin-top:-4px;margin-left:10px}
+.admin-ui-collapse{
+  width:34px;height:34px;padding:0;border:1px solid var(--line);border-radius:9px;
+  background:#101b28;color:var(--muted);cursor:pointer;font-size:17px
+}
+.admin-ui-collapse:hover{color:var(--jade);border-color:#2d827d}
+.card.admin-ui-collapsed>*:not(h2):not(.head):not(.admin-ui-card-tools){display:none!important}
+.card.admin-ui-collapsed{padding-bottom:10px!important}
+.card.admin-ui-collapsed h2{margin-bottom:0!important}
+.card.admin-ui-collapsed>.head{margin-bottom:0!important}
+
+/* 分類顯示 */
+.admin-ui-managed[data-ui-hidden="true"]{display:none!important}
+.admin-ui-managed[data-ui-search-hidden="true"]{display:none!important}
+.admin-ui-empty{display:none;padding:38px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px;background:#0a111b}
+.admin-ui-empty.on{display:block}
+
+/* 長型營運區塊：限制頁面高度，區塊內捲動 */
+.admin-ui-scroll-card{max-height:calc(100vh - 132px);overflow:auto;scrollbar-gutter:stable}
+.admin-ui-scroll-card>h2,.admin-ui-scroll-card>.head{position:sticky;top:-16px;z-index:12;padding-top:16px;padding-bottom:10px;background:linear-gradient(#101824 78%,transparent)}
+.admin-ui-scroll-card::-webkit-scrollbar,.admin-ui-sidebar::-webkit-scrollbar{width:9px}
+.admin-ui-scroll-card::-webkit-scrollbar-thumb,.admin-ui-sidebar::-webkit-scrollbar-thumb{background:#304158;border-radius:99px;border:2px solid #0a111b}
+
+/* 導覽首頁摘要 */
+.admin-ui-dashboard-banner{
+  display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
+  padding:14px 16px;margin-bottom:12px;border:1px solid rgba(216,185,102,.26);
+  border-radius:14px;background:linear-gradient(120deg,rgba(216,185,102,.09),rgba(86,216,206,.06))
+}
+.admin-ui-dashboard-banner b{display:block;color:var(--gold);font-size:17px}
+.admin-ui-dashboard-banner span{display:block;margin-top:3px;color:var(--muted);font-size:12px}
+.admin-ui-quick{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.admin-ui-quick button{min-height:36px;padding:7px 10px;font-size:12px}
+
+/* 手機／平板 */
+@media(max-width:980px){
+  body.admin-ui-ready .wrap{padding:8px}
+  body.admin-ui-ready #adminMain:not(.hidden){display:block}
+  .admin-ui-sidebar{position:sticky;top:82px;max-height:none;overflow-x:auto;overflow-y:hidden;padding:8px;margin-bottom:10px}
+  .admin-ui-sidebar-title,.admin-ui-side-actions{display:none}
+  .admin-ui-nav{display:flex;gap:6px;min-width:max-content}
+  .admin-ui-nav-btn{width:auto;min-height:38px;padding:7px 10px}
+  .admin-ui-nav-count{display:none}
+  .admin-ui-content{width:100%}
+  .admin-ui-toolbar{top:132px;flex-wrap:wrap}
+  .admin-ui-section-title{min-width:auto;flex:1}
+  .admin-ui-search-wrap{order:3;flex-basis:100%}
+  .admin-ui-scroll-card{max-height:none;overflow:visible}
+  .admin-ui-scroll-card>h2,.admin-ui-scroll-card>.head{position:static;padding:0;background:none}
+}
+@media(max-width:600px){
+  body.admin-ui-ready .wrap>.head{min-height:64px;padding:10px 12px}
+  body.admin-ui-ready .wrap>.head h1{font-size:18px}
+  .admin-ui-sidebar{top:72px}
+  .admin-ui-toolbar{top:122px;padding:8px}
+  .admin-ui-nav-icon{display:none}
+  .admin-ui-nav-label{font-size:13px}
+  .admin-ui-toolbar-info{display:none}
+  .admin-ui-dashboard-banner{grid-template-columns:1fr}
+  .admin-ui-quick{justify-content:flex-start}
+  body.admin-ui-ready #adminMain .card{padding:12px}
+  body.admin-ui-ready #adminMain .card h2{font-size:19px}
+}
