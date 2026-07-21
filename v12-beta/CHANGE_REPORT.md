@@ -1,39 +1,14 @@
-# V14.6 專業世界管理後台 UI FIX1
+# V14.6 ADMIN UI FIX2
 
-## 母版判定
-使用壓縮檔中時間最新、且已包含完整功能引用的後台母版：
+## 修正
+- 修正 FIX1 將所有功能誤歸於同一頂層內容容器的問題。
+- 建立真正獨立的分類 pane。
+- 各功能卡片依標題搬入對應 pane。
+- 動態載入的拍賣、數值、煉造與 AI 模組仍會自動分類。
 
-`修仙大逃殺_AI修仙實境測試場_第二階段_備份與100位AI安全重生_最小部署包.zip/admin.html`
-
-該母版已引用：
-- `admin_config.js`
-- `admin_observatory.js`
-- `admin_crafting.js`
-- `admin_auction.js`
-- `admin_great_tribulation.js`
-- `admin_maintenance.js`
-- `admin_ai_test_lab.js`
-- `admin_ai_test_stage2.js`
-
-## 修改範圍
-只新增顯示層：
-- `admin_professional_ui.css`
-- `admin_professional_ui.js`
-- `admin.html` 僅增加上述 CSS／JS 引用
-
-## 未修改
-- Supabase 連線與 RPC
-- 所有輸入欄位 ID
-- 所有 onclick
-- 原始功能腳本
-- 數值、拍賣、煉造、維護、AI 測試流程
-
-## 靜態驗證
-- HTML ID：44/44 保留
-- onclick：18/18 保留
-- 原功能 script src：11/11 保留
-- 新 UI JavaScript 語法：PASS
-
-## 正式判定
-靜態安全檢查：PASS
-GitHub／Supabase／手機實機：待部署後人工驗收
+## 保留
+- 原始 HTML 欄位 ID
+- onclick 事件
+- Supabase/RPC
+- 原始外部腳本引用
+- 所有管理功能與資料流程

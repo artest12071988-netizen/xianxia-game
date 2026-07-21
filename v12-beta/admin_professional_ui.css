@@ -138,3 +138,21 @@ body.admin-ui-ready #adminMain .status div{padding:9px 10px}
   body.admin-ui-ready #adminMain .card{padding:12px}
   body.admin-ui-ready #adminMain .card h2{font-size:19px}
 }
+
+/* FIX2：真正的獨立分類頁面 */
+.admin-ui-panes{min-width:0}
+.admin-ui-pane{display:none;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+.admin-ui-pane.active{display:grid}
+.admin-ui-pane[data-group="overview"]>.card,
+.admin-ui-pane[data-group="world"]>.card,
+.admin-ui-pane[data-group="revenue"]>.card,
+.admin-ui-pane[data-group="auction"]>.card{margin-bottom:0}
+.admin-ui-pane[data-group="config"],
+.admin-ui-pane[data-group="craft"],
+.admin-ui-pane[data-group="ai"],
+.admin-ui-pane[data-group="other"]{grid-template-columns:minmax(0,1fr)}
+.admin-ui-pane[data-group="overview"]>.card:first-child,
+.admin-ui-pane[data-group="revenue"]>.card,
+.admin-ui-pane[data-group="auction"]>.card{grid-column:1/-1}
+.admin-ui-managed[data-ui-search-hidden="true"]{display:none!important}
+@media(max-width:1180px){.admin-ui-pane{grid-template-columns:minmax(0,1fr)}}
