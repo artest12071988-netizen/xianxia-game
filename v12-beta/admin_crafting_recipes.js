@@ -1,10 +1,11 @@
-/* V14.8 FINAL2｜停用重複空白動態配方面板。正式配方統一由 admin_crafting.js / Config 管理。 */
+/* V14.8 FINAL3｜只移除舊版空白動態配方面板，不影響正式 Config 配方控制台。 */
 (()=>{'use strict';
 function removeLegacy(){
   document.getElementById('recipeFormCard')?.remove();
   const list=document.getElementById('recipeAdminList');
-  list?.closest('section.card')?.remove();
+  const legacyCard=list?.closest('section.card');
+  if(legacyCard && legacyCard.id!=='craftConfigCardV145B') legacyCard.remove();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',removeLegacy,{once:true});else removeLegacy();
-new MutationObserver(removeLegacy).observe(document.documentElement,{childList:true,subtree:true});
+setTimeout(removeLegacy,800);setTimeout(removeLegacy,2200);
 })();
