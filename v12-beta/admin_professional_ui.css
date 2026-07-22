@@ -174,3 +174,33 @@ body.admin-ui-ready #adminMain:not(.hidden) > :not(.admin-ui-sidebar):not(.admin
   body.admin-ui-ready #adminMain:not(.hidden) > .admin-ui-sidebar,
   body.admin-ui-ready #adminMain:not(.hidden) > .admin-ui-content{grid-column:auto;grid-row:auto}
 }
+
+/* V14.8 structural fix: only sidebar is sticky; headers never overlap content */
+.admin-shell{align-items:start!important}.admin-sidebar{position:sticky!important;top:12px!important;align-self:start!important}
+.admin-workspace,.admin-page,.admin-page-content{min-width:0!important;width:100%!important}
+.admin-module-head,.admin-searchbar{position:static!important;top:auto!important;z-index:auto!important}
+.admin-module-body{overflow:visible!important;max-height:none!important}
+[data-admin-module="config"] .cfg-table-wrap{max-height:68vh;overflow:auto}
+@media(max-width:900px){.admin-sidebar{position:static!important}.admin-shell{display:block!important}}
+
+
+/* V14.8 FINAL1｜後台最終排版收尾
+   只固定左側選單；搜尋列、標題、功能卡片依正常文件流排列。 */
+#adminMain.admin-ui-ready,.admin-ui-content,.admin-ui-panes,.admin-ui-pane{min-width:0}
+.admin-ui-toolbar{position:relative!important;top:auto!important;z-index:20!important;margin:0 0 14px!important}
+.admin-ui-simple-workflow{position:relative!important;top:auto!important;z-index:15!important}
+.admin-ui-scroll-card,.admin-ui-table-card{max-height:none!important;overflow:visible!important}
+.admin-ui-scroll-card>h2,.admin-ui-scroll-card>.head{position:relative!important;top:auto!important;background:none!important;padding-top:0!important}
+.admin-ui-pane{display:none!important;width:100%!important}
+.admin-ui-pane.active{display:block!important}
+.admin-ui-pane>.card{width:100%!important;max-width:none!important;margin:0 0 14px!important}
+.admin-ui-pane>.grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;width:100%!important}
+[data-admin-module="config"] .cfg-table-wrap,.cfg-table-wrap{max-height:68vh!important;overflow:auto!important;overscroll-behavior:contain}
+#recipeFormCard,#aiAcceptanceCard,#playerAdminCard{width:100%!important;max-width:none!important}
+#aiAcceptanceCard+.card{margin-top:14px}
+.admin-ui-legacy-workflow{display:none!important}
+@media(max-width:900px){
+  .admin-ui-toolbar{position:relative!important}
+  .admin-ui-pane>.grid{grid-template-columns:1fr!important}
+  [data-admin-module="config"] .cfg-table-wrap,.cfg-table-wrap{max-height:62vh!important}
+}

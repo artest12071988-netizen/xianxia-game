@@ -21,9 +21,9 @@ async function run(){
     const {data,error}=await c.rpc('admin_v148_ai_acceptance_report',{p_hours:24});if(error)throw error;
     const a=data.ai||{},co=data.corpses||{};
     $('#v148AuditSummary').innerHTML='<div class="v148-audit-grid">'+
-      box('驗收結果',data.pass?'PASS':'FAIL',data.pass?'v148-pass':'v148-fail')+
+      box('資料結構',data.pass?'PASS':'FAIL',data.pass?'v148-pass':'v148-fail')+
       box('AI 總數',a.total??0)+box('存活／待重生',(a.alive??0)+' / '+(a.dead_waiting??0))+
-      box('有裝備 AI',a.with_gear??0)+box('有行囊 AI',a.with_inventory??0)+
+      box('有裝備 AI',a.with_gear??0,(a.with_gear??0)===0?'v148-fail':'v148-pass')+box('有行囊 AI',a.with_inventory??0,(a.with_inventory??0)===0?'v148-fail':'v148-pass')+
       box('資產全空 AI',a.empty_assets??0,(a.empty_assets??0)>0?'v148-fail':'v148-pass')+
       box('非法物品',((a.invalid_inventory_entries??0)+(a.invalid_gear_entries??0)),((a.invalid_inventory_entries??0)+(a.invalid_gear_entries??0))>0?'v148-fail':'v148-pass')+
       box('活躍屍體',co.active??0)+box('24h 搜刮事件',co.loot_events??0)+
