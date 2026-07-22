@@ -1,1 +1,11 @@
-.meditation-settings-grid input{font-variant-numeric:tabular-nums}.meditation-settings-grid small{display:block;margin-top:6px;color:#8fa6b8;line-height:1.5}
+.meditation-settings-grid small{display:block;margin-top:6px;color:var(--muted);line-height:1.55}
+.med-preview{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:#07101a;overflow:hidden}
+.med-preview-head{padding:12px 14px;border-bottom:1px solid var(--line)}
+.med-preview-head h3{margin:0 0 4px;color:var(--gold);font-size:17px}
+.med-preview-head small{color:var(--muted);line-height:1.5}
+.med-preview-wrap{overflow:auto}
+.med-preview table{width:100%;border-collapse:collapse;min-width:760px}
+.med-preview th,.med-preview td{padding:10px 12px;border-bottom:1px solid #ffffff0d;text-align:right;white-space:nowrap}
+.med-preview th:first-child,.med-preview td:first-child{text-align:left}
+.med-preview thead th{color:var(--muted);font-size:11px;background:#0d1723}
+.med-preview tbody th{color:#f0dfb0}
