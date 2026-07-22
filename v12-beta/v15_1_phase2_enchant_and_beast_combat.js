@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.1-PHASE2-FIVE-ELEMENT-ENCHANT-DIVINE-BEAST-COMBAT';
+const BUILD='V15.1-PHASE3-FIVE-ELEMENT-AUDIT-DIVINE-BEAST-COMBAT';
 const ELEMENTS={
   '8401':{key:'fire',label:'火性附魔',element:'火',target:'weapon',valueMin:20,valueMax:25,summary:e=>`追加 ${Number(e.value||20).toFixed(1)}% 火性傷害`},
   '8402':{key:'water',label:'水性附魔',element:'水',target:'weapon',value:3,summary:()=>`每次命中削減對方最大法力 3%`},
@@ -29,6 +29,21 @@ function rpc(name,args={}){
   const c=client();
   if(!c)return Promise.reject(new Error('尚未連線伺服器'));
   return c.rpc(name,args).then(({data,error})=>{if(error)throw error;return data})
+}
+function auditEnchant(eventType,element,amount=0,equipmentUid=null,context={}){
+  if(!loggedIn())return;
+  rpc('divine_beast_record_enchant_event',{
+    p_event_type:eventType,
+    p_element:element,
+    p_amount:Number(amount||0),
+    p_equipment_uid:equipmentUid,
+    p_player_name:String(g?.name||'未知修士'),
+    p_context:context||{}
+  }).catch(e=>{
+    const m=String(e?.message||e);
+    if(!/Could not find|does not exist/i.test(m))
+      console.warn('['+BUILD+'] enchant audit failed',e);
+  });
 }
 function coord(){try{return typeof window.coordOf==='function'?window.coordOf(g.pos.r,g.pos.c):String.fromCharCode(65+num(g.pos?.r))+'-'+(num(g.pos?.c)+1)}catch(_){return ''}}
 function equipment(){return Array.isArray(g?.equipment)?g.equipment:[]}
@@ -79,6 +94,11 @@ function applyEnchant(uid,materialId){
   g.inv[materialId]=Math.max(0,num(g.inv[materialId])-1);
   e.elementEnchant=ench;
   log?.(`${e.name} 完成${m.label}：${m.summary(ench)}。`,'lg');
+  auditEnchant('applied',m.key,ench.value||0,e.uid,{
+    equipment_name:e.name,
+    material_id:String(materialId),
+    target:m.target
+  });
   saveGame?.(false);render?.();openEnchantWorkshop();
 }
 function openEnchantWorkshop(){
@@ -172,21 +192,50 @@ function resolvePlayerDamage(targetDef,targetHp){
 }
 function applyPostHitEffects(result,actualDamage){
   let parts=[];
-  if(result.fire)parts.push(`火性追加 ${result.fire}`);
+  const w=equippedWeapon();
+  if(result.fire){
+    parts.push(`火性追加 ${result.fire}`);
+    auditEnchant('fire_damage','fire',result.fire,w?.uid,{
+      combat_kind:fight?.kind||'regular'
+    });
+  }
   if(result.water&&fight){
     ensureEnemyMana();
     const loss=Math.max(1,Math.round(fight.enemyMpMax*.03));
     fight.enemyMp=Math.max(0,fight.enemyMp-loss);syncAiMana();parts.push(`法力削減 ${loss}`);
+    auditEnchant('water_mana_drain','water',loss,w?.uid,{
+      enemy_mp_max:fight.enemyMpMax,
+      combat_kind:fight?.kind||'regular'
+    });
   }
   if(result.m?.key==='wood'){
     const heal=Math.max(1,Math.round(actualDamage*.20));
-    const before=num(g.hp);g.hp=clamp2(before+heal,0,num(g.hpMax));parts.push(`回復體力 ${Math.round(g.hp-before)}`);
+    const before=num(g.hp);g.hp=clamp2(before+heal,0,num(g.hpMax));
+    const restored=Math.round(g.hp-before);
+    parts.push(`回復體力 ${restored}`);
+    auditEnchant('wood_heal','wood',restored,w?.uid,{
+      actual_damage:actualDamage,
+      combat_kind:fight?.kind||'regular'
+    });
+  }
+  if(result.m?.key==='metal'&&result.crit){
+    auditEnchant('metal_crit','metal',actualDamage,w?.uid,{
+      multiplier:result.mult,
+      combat_kind:fight?.kind||'regular'
+    });
   }
   return parts;
 }
 function earthReduction(raw){
-  const m=elementByEnchant(armorEnchant());
-  return m?.key==='earth'?Math.max(1,Math.round(raw*.75)):raw;
+  const a=equippedArmor(),m=elementByEnchant(armorEnchant());
+  if(m?.key!=='earth')return raw;
+  const reduced=Math.max(1,Math.round(raw*.75));
+  auditEnchant('earth_reduction','earth',Math.max(0,raw-reduced),a?.uid,{
+    raw_damage:raw,
+    final_damage:reduced,
+    combat_kind:fight?.kind||'regular'
+  });
+  return reduced;
 }
 function combatElementBadges(){
   const w=weaponEnchant(),a=armorEnchant(),wm=elementByEnchant(w),am=elementByEnchant(a),out=[];
