@@ -17,10 +17,10 @@
 .v152-raid-btn.leave{border-color:#a94743;color:#ff8881;background:rgba(87,29,29,.28)}
 
 .v152-raid-root{z-index:35;display:grid;grid-template-rows:auto 1fr auto;background:#02070c;color:#e8eef3;overflow:hidden}
-.v152-raid-stage-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(1.05) brightness(.52);transform:scale(1.015)}
+.v152-raid-stage-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(1.12) brightness(.72) contrast(1.05);transform:scale(1.012)}
 .v152-raid-stage-bg:after{content:"";position:absolute;inset:0;background:
- radial-gradient(circle at 52% 42%,transparent 0 20%,rgba(1,6,10,.18) 54%,rgba(1,6,10,.85) 100%),
- linear-gradient(90deg,rgba(2,7,12,.94),rgba(2,7,12,.12) 27%,rgba(2,7,12,.1) 68%,rgba(2,7,12,.94)),
+ radial-gradient(circle at 52% 42%,transparent 0 34%,rgba(1,6,10,.08) 60%,rgba(1,6,10,.68) 100%),
+ linear-gradient(90deg,rgba(2,7,12,.82),rgba(2,7,12,.03) 24%,rgba(2,7,12,.03) 74%,rgba(2,7,12,.82)),
  linear-gradient(0deg,#02070c 0%,transparent 38%,rgba(2,7,12,.54) 100%)}
 .v152-raid-top,.v152-raid-main,.v152-raid-controls{position:relative;z-index:2}
 .v152-raid-top{display:grid;grid-template-columns:minmax(180px,1fr) minmax(360px,2fr) minmax(180px,1fr);align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--raid-line);background:linear-gradient(180deg,rgba(3,9,15,.94),rgba(3,9,15,.55))}
@@ -33,8 +33,8 @@
 .v152-raid-top-actions{display:flex;justify-content:flex-end;gap:8px}
 .v152-raid-mini{padding:8px 11px;border:1px solid #324456;border-radius:9px;background:#0b1621;color:#cbd6df;cursor:pointer}
 
-.v152-raid-main{display:grid;grid-template-columns:minmax(230px,310px) 1fr minmax(310px,410px);min-height:0}
-.v152-raid-side{min-height:0;padding:14px;background:rgba(2,8,13,.78);backdrop-filter:blur(7px)}
+.v152-raid-main{display:grid;grid-template-columns:minmax(205px,270px) 1fr minmax(285px,360px);min-height:0}
+.v152-raid-side{min-height:0;padding:14px;background:rgba(2,8,13,.66);backdrop-filter:blur(7px)}
 .v152-raid-side.left{border-right:1px solid var(--raid-line)}
 .v152-raid-side.right{border-left:1px solid var(--raid-line)}
 .v152-raid-panel-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:var(--raid-gold);font-weight:900}
@@ -82,4 +82,114 @@
  .v152-raid-actions{grid-template-columns:repeat(2,1fr)}
  .v152-raid-center-caption{margin-bottom:12px;font-size:13px}
  .v152-raid-top{padding:12px}.v152-raid-controls{padding:10px}
+}
+
+
+/* V15.2 Phase 2：視覺重製、斬擊、震動、浮字、神獸對白 */
+.v152-prompt-dialogue{
+  max-width:650px;margin:5px 0 10px;padding:11px 14px;
+  border-left:3px solid var(--raid-gold);
+  background:linear-gradient(90deg,rgba(173,127,31,.22),transparent);
+  color:#f4d985;font:800 16px/1.7 "Noto Serif TC",serif;
+  text-shadow:0 2px 9px #000
+}
+.v152-boss-dialogue{
+  position:absolute;z-index:9;left:50%;top:28px;transform:translate(-50%,-16px);
+  width:min(720px,88%);padding:13px 18px;border:1px solid rgba(236,199,89,.54);
+  border-radius:12px;background:linear-gradient(90deg,rgba(4,9,14,.88),rgba(43,28,8,.84),rgba(4,9,14,.88));
+  color:#f3db8e;text-align:center;opacity:0;pointer-events:none;
+  box-shadow:0 14px 50px rgba(0,0,0,.55),0 0 28px rgba(220,170,45,.13);
+  transition:.25s
+}
+.v152-boss-dialogue.show{opacity:1;transform:translate(-50%,0)}
+.v152-boss-dialogue small{display:block;color:#dc6f61;font-size:11px;letter-spacing:.18em;margin-bottom:4px}
+.v152-boss-dialogue b{font:900 clamp(14px,1.5vw,21px)/1.55 "Noto Serif TC",serif}
+.v152-fx-layer,.v152-damage-layer{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden}
+.v152-damage-layer{z-index:10}
+.v152-float-damage{
+  position:absolute;transform:translate(-50%,-50%);
+  animation:v152FloatDamage 1.25s ease-out forwards;
+  text-align:center;text-shadow:0 3px 10px #000,0 0 16px currentColor
+}
+.v152-float-damage small{display:block;font-weight:900;font-size:12px}
+.v152-float-damage b{font:1000 clamp(27px,4vw,58px)/1 system-ui}
+.v152-float-damage.player{color:#72e7ec}.v152-float-damage.crit{color:#ffd75e}.v152-float-damage.boss{color:#ff625b}
+@keyframes v152FloatDamage{
+  0%{opacity:0;transform:translate(-50%,-15%) scale(.55)}
+  18%{opacity:1;transform:translate(-50%,-50%) scale(1.18)}
+  100%{opacity:0;transform:translate(-50%,-150%) scale(.92)}
+}
+.v152-slash{
+  position:absolute;left:28%;top:24%;width:50%;height:7px;border-radius:100%;
+  background:linear-gradient(90deg,transparent,#d8ffff 35%,#51e5ea 55%,transparent);
+  box-shadow:0 0 16px #55f1f4,0 0 42px #14aeb9;
+  transform:rotate(-28deg) scaleX(0);transform-origin:left center;
+  animation:v152Slash .42s ease-out forwards
+}
+.v152-slash.s2{top:42%;left:34%;transform:rotate(24deg) scaleX(0);animation-delay:.08s}
+.v152-impact-ring{
+  position:absolute;left:53%;top:42%;width:90px;height:90px;border:4px solid rgba(235,255,255,.9);
+  border-radius:50%;transform:translate(-50%,-50%) scale(.1);
+  box-shadow:0 0 25px #86ffff;animation:v152Ring .5s ease-out forwards
+}
+@keyframes v152Slash{
+  0%{opacity:0;transform:rotate(-28deg) scaleX(0)}
+  25%{opacity:1}
+  100%{opacity:0;transform:rotate(-28deg) scaleX(1.3)}
+}
+.v152-slash.s2{animation-name:v152Slash2}
+@keyframes v152Slash2{
+  0%{opacity:0;transform:rotate(24deg) scaleX(0)}
+  25%{opacity:1}
+  100%{opacity:0;transform:rotate(24deg) scaleX(1.15)}
+}
+@keyframes v152Ring{to{opacity:0;transform:translate(-50%,-50%) scale(4)}}
+.fx-player-hit .v152-raid-stage-bg{animation:v152BossRecoil .45s ease}
+.fx-player-crit .v152-raid-stage-bg{animation:v152BossCrit .62s ease}
+@keyframes v152BossRecoil{
+  0%,100%{transform:scale(1.012) translateX(0);filter:saturate(1.12) brightness(.72)}
+  25%{transform:scale(1.035) translateX(13px);filter:saturate(.2) brightness(1.35)}
+  50%{transform:scale(1.025) translateX(-8px)}
+}
+@keyframes v152BossCrit{
+  0%,100%{transform:scale(1.012);filter:saturate(1.12) brightness(.72)}
+  18%{transform:scale(1.065);filter:saturate(.1) brightness(1.8)}
+  40%{transform:scale(1.025) translateX(-14px)}
+  60%{transform:scale(1.025) translateX(10px)}
+}
+.v152-claw{
+  position:absolute;left:22%;top:18%;width:70%;height:8px;
+  background:linear-gradient(90deg,transparent,#fff 38%,#ff5e55 52%,transparent);
+  box-shadow:0 0 18px #ff3f38,0 0 45px #7a0000;
+  transform:rotate(35deg) translateX(-120%);animation:v152Claw .5s ease-out forwards
+}
+.v152-claw.c2{top:36%;animation-delay:.07s}.v152-claw.c3{top:54%;animation-delay:.14s}
+@keyframes v152Claw{to{opacity:0;transform:rotate(35deg) translateX(80%)}}
+.v152-aoe-wave{
+  position:absolute;left:50%;top:45%;width:130px;height:130px;border:8px solid rgba(255,72,58,.8);
+  border-radius:50%;transform:translate(-50%,-50%) scale(.1);
+  box-shadow:0 0 35px #ff3d31 inset,0 0 60px #ff3d31;
+  animation:v152Aoe .9s ease-out forwards
+}
+.v152-aoe-wave.w2{animation-delay:.16s}
+.v152-red-flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,120,75,.05),rgba(150,0,0,.48));animation:v152Flash .55s ease-out forwards}
+@keyframes v152Aoe{to{opacity:0;transform:translate(-50%,-50%) scale(8)}}
+@keyframes v152Flash{0%,100%{opacity:0}35%{opacity:1}}
+.fx-boss-single,.fx-boss-aoe{animation:v152ScreenShake .65s ease}
+.fx-boss-aoe{animation-duration:.9s}
+@keyframes v152ScreenShake{
+  0%,100%{transform:translate(0)}
+  12%{transform:translate(-8px,4px)}
+  24%{transform:translate(10px,-5px)}
+  38%{transform:translate(-12px,-2px)}
+  52%{transform:translate(8px,5px)}
+  68%{transform:translate(-5px,1px)}
+}
+.v152-raid-center-caption{
+  border-color:rgba(236,200,90,.4);
+  background:linear-gradient(90deg,rgba(2,8,13,.75),rgba(21,16,7,.72),rgba(2,8,13,.75));
+  font-weight:700
+}
+.v152-raid-player-card,.v152-raid-participant,.v152-feed-row{
+  box-shadow:inset 0 1px rgba(255,255,255,.025)
 }

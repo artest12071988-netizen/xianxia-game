@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.2-PHASE1-IMMERSIVE-RAID-COMBAT';
+const BUILD='V15.2-PHASE2-RAID-FX-AOE-COMBAT';
 const ELEMENTS={
   '8401':{key:'fire',label:'火性附魔',element:'火',target:'weapon',valueMin:20,valueMax:25,summary:e=>`追加 ${Number(e.value||20).toFixed(1)}% 火性傷害`},
   '8402':{key:'water',label:'水性附魔',element:'水',target:'weapon',value:3,summary:()=>`每次命中削減對方最大法力 3%`},
@@ -380,7 +380,7 @@ async function divineAttack(){
   if(g.mp<P.normal_attack_mp_cost){renderDivineFight('精力不足，無法攻擊。');return}
   S.attackBusy=true;g.mp-=P.normal_attack_mp_cost;
   try{
-    if(Math.random()<P.encounter_miss_rate){renderDivineFight('你的攻擊被神獸避開。');S.attackBusy=false;return setTimeout(divineEnemyTurn,420)}
+    if(Math.random()<P.encounter_miss_rate){renderDivineFight('你的攻擊被神獸避開。');S.attackBusy=false;return setTimeout(()=>window.V152_RAID?.requestBossCounter?.().catch(e=>console.warn('['+BUILD+'] boss counter failed',e)),260)}
     const r=resolvePlayerDamage(num(fight.beast.defense_power),num(fight.hp));
     const data=await rpc('divine_beast_attack',{p_token:fight.token,p_damage:r.requested,p_player_name:String(g.name||'未知修士')});
     const applied=num(data?.applied_damage),before=num(fight.hp);
@@ -389,8 +389,14 @@ async function divineAttack(){
     const effects=applyPostHitEffects(r,applied);
     saveGame?.(false);render?.();
     if(data?.outcome&&data.outcome!=='active'){S.attackBusy=false;return finishDivine(data.outcome,data)}
+    window.V152_RAID?.playerImpact?.({
+      damage:applied,
+      crit:r.crit,
+      fire:r.fire||0
+    });
     renderDivineFight(`你對神獸造成 ${Math.round(applied)} 點持久傷害${r.crit?'（暴擊）':''}${effects.length?'；'+effects.join('、'):''}。`);
-    S.attackBusy=false;setTimeout(divineEnemyTurn,480);
+    S.attackBusy=false;
+    setTimeout(()=>window.V152_RAID?.requestBossCounter?.().catch(e=>console.warn('['+BUILD+'] boss counter failed',e)),320);
   }catch(e){
     S.attackBusy=false;
     const msg=String(e?.message||e);
@@ -420,7 +426,7 @@ async function fleeDivine(){
   if(Math.random()<chance){
     const token=fight.token;fight=null;window.V152_RAID?.close?.(true);closeOv?.();log?.('你從神獸威壓中成功遁走。','la');render?.();
     try{await rpc('divine_beast_close_encounter',{p_token:token})}catch(_){}
-  }else{renderDivineFight('遁走失敗，神獸封鎖了空間。');setTimeout(divineEnemyTurn,420)}
+  }else{renderDivineFight('遁走失敗，神獸封鎖了空間。');setTimeout(()=>window.V152_RAID?.requestBossCounter?.(),300)}
 }
 function finishDivine(outcome,data){
   const name=fight?.enemy?.name||'神獸';
@@ -478,15 +484,15 @@ async function divineUseCombatItem(id){
   const it=IT?.[String(id)];if(!it||!(num(g.inv?.[id])>0))return;
   if(it.eff==='體力回復'){
     g.inv[id]--;g.hp=clamp2(num(g.hp)+num(it.val),0,num(g.hpMax));saveGame?.(false);render?.();
-    renderDivineFight(`你服下 ${esc(it.name)}，回復 ${num(it.val)} 體力。`);return setTimeout(divineEnemyTurn,450)
+    renderDivineFight(`你服下 ${esc(it.name)}，回復 ${num(it.val)} 體力。`);return setTimeout(()=>window.V152_RAID?.requestBossCounter?.(),300)
   }
   if(it.eff==='精力回復'){
     g.inv[id]--;g.mp=clamp2(num(g.mp)+num(it.val),0,num(g.mpMax));saveGame?.(false);render?.();
-    renderDivineFight(`你服下 ${esc(it.name)}，回復 ${num(it.val)} 精力。`);return setTimeout(divineEnemyTurn,450)
+    renderDivineFight(`你服下 ${esc(it.name)}，回復 ${num(it.val)} 精力。`);return setTimeout(()=>window.V152_RAID?.requestBossCounter?.(),300)
   }
   if(it.eff==='療傷'){
     g.inv[id]--;g.injury=null;saveGame?.(false);
-    renderDivineFight(`你使用 ${esc(it.name)} 穩住傷勢。`);return setTimeout(divineEnemyTurn,450)
+    renderDivineFight(`你使用 ${esc(it.name)} 穩住傷勢。`);return setTimeout(()=>window.V152_RAID?.requestBossCounter?.(),300)
   }
   if(it.eff==='投擲'){
     S.attackBusy=true;g.inv[id]--;saveGame?.(false);
@@ -497,7 +503,7 @@ async function divineUseCombatItem(id){
       render?.();
       if(data?.outcome&&data.outcome!=='active'){S.attackBusy=false;return finishDivine(data.outcome,data)}
       renderDivineFight(`你祭出 ${esc(it.name)}，對神獸造成 ${Math.round(applied)} 點持久傷害。`);
-      S.attackBusy=false;return setTimeout(divineEnemyTurn,450)
+      S.attackBusy=false;window.V152_RAID?.playerImpact?.({damage:applied,crit:false});return setTimeout(()=>window.V152_RAID?.requestBossCounter?.(),300)
     }catch(e){
       S.attackBusy=false;g.inv[id]=num(g.inv[id])+1;saveGame?.(false);
       renderDivineFight(`投擲傷害寫入失敗，物品已退回：${esc(e?.message||e)}`);

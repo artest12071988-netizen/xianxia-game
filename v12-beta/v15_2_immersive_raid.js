@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.2-PHASE1-IMMERSIVE-RAID';
+const BUILD='V15.2-PHASE2-IMMERSIVE-RAID-FX-AOE';
 const ART={
  qinglong:'assets/divine_beasts/qinglong.webp',
  baihu:'assets/divine_beasts/baihu.webp',
@@ -11,7 +11,7 @@ const ART={
 const DIR={east:'東方',west:'西方',north:'北方',south:'南方',center:'中央'};
 const S={
  prompt:null,root:null,token:null,beast:null,active:false,poll:null,countdown:null,
- snapshot:null,tab:'feed',line:'',handlers:null,seen:new Set(),busy:false
+ snapshot:null,tab:'feed',line:'',handlers:null,seen:new Set(),hitLedger:new Set(),busy:false,hitBusy:false
 };
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const num=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d};
@@ -32,6 +32,151 @@ function secondsLeft(iso){
 function timeText(sec){
  const m=Math.floor(sec/60),s=sec%60;return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
 }
+
+const INTRO_LINES={
+ baihu:'渺小的人類修士，還妄想得到我身上的異寶？',
+ qinglong:'東方萬木皆聽吾令，爾等也敢逆天而行？',
+ fenghuang:'凡火亦敢近吾真炎？頃刻便教爾等化作飛灰！',
+ xuanwu:'萬水歸墟，爾等攻勢不過蜉蝣撼海。',
+ qilin:'中土氣運由吾鎮守，貪念一起，便是劫數。'
+};
+function uuid(){
+ if(globalThis.crypto?.randomUUID)return crypto.randomUUID();
+ return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+   const r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16)
+ });
+}
+function earthReductionPct(){
+ try{
+   const e=(window.g?.equipment||[]).find(x=>String(x.uid)===String(window.g?.armorUid));
+   return e?.elementEnchant?.key==='earth'?25:0;
+ }catch(_){return 0}
+}
+function showDialogue(text,skill=''){
+ if(!S.root||!text)return;
+ const box=S.root.querySelector('[data-boss-dialogue]');
+ box.classList.remove('show');
+ void box.offsetWidth;
+ box.innerHTML=`<small>${esc(skill||'神獸怒喝')}</small><b>「${esc(text)}」</b>`;
+ box.classList.add('show');
+ setTimeout(()=>box?.classList.remove('show'),4200);
+}
+function floatDamage(value,kind='player',label=''){
+ if(!S.root)return;
+ const layer=S.root.querySelector('[data-damage-layer]');
+ const el=document.createElement('div');
+ el.className=`v152-float-damage ${kind}`;
+ el.innerHTML=`${label?`<small>${esc(label)}</small>`:''}<b>${kind==='boss'?'-':''}${fmt(value)}</b>`;
+ el.style.left=`${44+Math.random()*16}%`;
+ el.style.top=`${30+Math.random()*18}%`;
+ layer.appendChild(el);
+ setTimeout(()=>el.remove(),1300);
+}
+function playerImpact(info={}){
+ if(!S.root)return;
+ const root=S.root,fx=root.querySelector('[data-fx-layer]');
+ root.classList.remove('fx-player-hit','fx-player-crit');
+ void root.offsetWidth;
+ root.classList.add(info.crit?'fx-player-crit':'fx-player-hit');
+ fx.innerHTML='<i class="v152-slash s1"></i><i class="v152-slash s2"></i><i class="v152-impact-ring"></i>';
+ floatDamage(info.damage||0,info.crit?'crit':'player',info.crit?'暴擊':'');
+ setTimeout(()=>{
+   root.classList.remove('fx-player-hit','fx-player-crit');
+   fx.innerHTML='';
+ },680);
+}
+function bossImpact(hit={}){
+ if(!S.root)return;
+ const root=S.root,fx=root.querySelector('[data-fx-layer]');
+ root.classList.remove('fx-boss-single','fx-boss-aoe');
+ void root.offsetWidth;
+ const aoe=hit.attack_type==='aoe';
+ root.classList.add(aoe?'fx-boss-aoe':'fx-boss-single');
+ fx.innerHTML=aoe
+   ?'<i class="v152-aoe-wave w1"></i><i class="v152-aoe-wave w2"></i><i class="v152-red-flash"></i>'
+   :'<i class="v152-claw c1"></i><i class="v152-claw c2"></i><i class="v152-claw c3"></i>';
+ showDialogue(hit.dialogue,hit.skill_name);
+ floatDamage(hit.damage||0,'boss',hit.attack_type==='aoe'?'範圍神通':hit.skill_name);
+ setLine(`${S.beast?.beast_name||'神獸'}施展【${hit.skill_name}】，你受到 ${fmt(hit.damage)} 傷害！`);
+ setTimeout(()=>{
+   root.classList.remove('fx-boss-single','fx-boss-aoe');
+   fx.innerHTML='';
+ },900);
+}
+async function updateCombatStats(){
+ if(!S.token)return;
+ try{
+   await rpc('divine_beast_update_raid_combat_stats',{
+     p_token:S.token,
+     p_player_defense:num(window.pDef?.()),
+     p_earth_reduction_pct:earthReductionPct()
+   });
+ }catch(e){
+   const m=String(e?.message||e);
+   if(!/Could not find|does not exist/i.test(m))
+     console.warn('['+BUILD+'] combat stats failed',e);
+ }
+}
+async function requestBossCounter(){
+ if(!S.token)return null;
+ await updateCombatStats();
+ const data=await rpc('divine_beast_boss_counterattack',{
+   p_token:S.token,
+   p_action_id:uuid(),
+   p_player_defense:num(window.pDef?.()),
+   p_earth_reduction_pct:earthReductionPct()
+ });
+ if(data?.attack){
+   showDialogue(data.attack.dialogue,data.attack.skill_name);
+ }
+ setTimeout(()=>refresh(true),120);
+ return data;
+}
+async function applyPendingHits(){
+ if(S.hitBusy||!S.active||!S.token)return;
+ S.hitBusy=true;
+ try{
+   const hits=await rpc('divine_beast_pending_boss_hits',{p_token:S.token});
+   if(!Array.isArray(hits)||!hits.length)return;
+   const g=window.g;
+   g.v152RaidHitLedger=g.v152RaidHitLedger&&typeof g.v152RaidHitLedger==='object'
+     ?g.v152RaidHitLedger:{};
+   for(const hit of hits){
+     const id=String(hit.receipt_id);
+     if(!g.v152RaidHitLedger[id]){
+       const damage=Math.max(0,Math.round(num(hit.damage)));
+       g.hp=Math.max(0,num(g.hp)-damage);
+       g.v152RaidHitLedger[id]={at:Date.now(),damage};
+       bossImpact(hit);
+       window.saveGame?.(false);
+       try{await window.flushCloudSave?.(true)}catch(_){}
+     }
+     try{
+       await rpc('divine_beast_ack_boss_hit',{
+         p_receipt_id:hit.receipt_id,
+         p_hp_after:num(g.hp),
+         p_mp_after:num(g.mp)
+       });
+     }catch(e){
+       console.warn('['+BUILD+'] boss hit ack pending',e);
+     }
+     renderPlayer();
+     if(g.hp<=0){
+       const token=S.token;
+       try{await rpc('divine_beast_leave_raid',{p_token:token,p_reason:'defeated_by_boss'})}catch(_){}
+       finish('你在神獸神通下失去意識，討伐失敗。');
+       setTimeout(()=>window.loseFight?.(),500);
+       break;
+     }
+     await new Promise(r=>setTimeout(r,260));
+   }
+ }catch(e){
+   const m=String(e?.message||e);
+   if(!/Could not find|does not exist/i.test(m))
+     console.warn('['+BUILD+'] pending boss hit failed',e);
+ }finally{S.hitBusy=false}
+}
+
 function prompt(data,handlers={}){
  close(false);removePrompt();
  const b=data?.beast||{};
@@ -56,6 +201,7 @@ function prompt(data,handlers={}){
   </div>
  </div>`;
  document.body.appendChild(el);S.prompt=el;
+ setTimeout(()=>{const line=INTRO_LINES[String(b.beast_key||'')];if(line){const desc=el.querySelector('.v152-raid-prompt-desc');desc.insertAdjacentHTML('afterend',`<div class="v152-prompt-dialogue">「${esc(line)}」</div>`) }},120);
  el.querySelector('[data-act="join"]').onclick=async()=>{
   const btn=el.querySelector('[data-act="join"]');btn.disabled=true;btn.textContent='正在進入戰場…';
   try{await handlers.join?.()}catch(e){btn.disabled=false;btn.textContent='加入討伐';alert('加入討伐失敗：'+(e?.message||e))}
@@ -86,7 +232,7 @@ function open(ctx){
    <div class="v152-raid-panel-title" style="margin-top:14px"><span>目前參戰</span><small data-member-count>0</small></div>
    <div class="v152-raid-list" data-participant-list></div>
   </aside>
-  <section class="v152-raid-center"><div class="v152-raid-center-caption" data-line>${esc(S.line)}</div></section>
+  <section class="v152-raid-center"><div class="v152-boss-dialogue" data-boss-dialogue></div><div class="v152-fx-layer" data-fx-layer></div><div class="v152-damage-layer" data-damage-layer></div><div class="v152-raid-center-caption" data-line>${esc(S.line)}</div></section>
   <aside class="v152-raid-side right">
    <div class="v152-raid-tabs">
     <button class="on" data-tab="feed">即時戰況</button>
@@ -117,6 +263,8 @@ function open(ctx){
  root.querySelector('[data-toggle-info]').onclick=()=>root.classList.toggle('show-right');
  root.querySelectorAll('[data-tab]').forEach(bn=>bn.onclick=()=>setTab(bn.dataset.tab));
  renderPlayer();
+ updateCombatStats();
+ setTimeout(()=>showDialogue(INTRO_LINES[String(b.beast_key||'')]||'膽敢踏入吾之領域？','神獸威壓'),350);
  startSync();
 }
 function showTechniques(){
@@ -194,6 +342,7 @@ async function refresh(force=false){
      p_player_mp_max:num(g.mpMax)
    });
    renderSnapshot(snap);
+   await applyPendingHits();
    const note=S.root?.querySelector('[data-sync-note]');
    if(note)note.textContent=`最後同步 ${new Date().toLocaleTimeString('zh-TW',{hour12:false})}`;
  }catch(e){
@@ -226,7 +375,7 @@ function close(restore=true){
  if(restore)window.render?.();
 }
 window.V152_RAID={
- build:BUILD,prompt,open,setLine,refresh,finish,close,
+ build:BUILD,prompt,open,setLine,refresh,finish,close,playerImpact,bossImpact,requestBossCounter,showDialogue,
  active:()=>S.active,state:S
 };
 console.info('['+BUILD+'] active');
