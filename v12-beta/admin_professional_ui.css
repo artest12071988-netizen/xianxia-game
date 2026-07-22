@@ -1,4 +1,4 @@
-/* 修仙大逃殺｜專業後台介面層 V14.6 ADMIN UI FIX1
+/* 修仙大逃殺｜專業後台介面層 V14.6 ADMIN UI FIX4
    僅調整顯示、導覽與收合，不修改任何原功能事件、欄位 ID 或資料流程。 */
 :root{
   --admin-sidebar:236px;
@@ -163,3 +163,14 @@ body.admin-ui-ready #adminMain .status div{padding:9px 10px}
 .admin-ui-simple-copy{display:grid;gap:3px}.admin-ui-simple-copy b{color:var(--jade,#56d8ce);font-size:15px}.admin-ui-simple-copy span{color:var(--muted,#8f9aaa);font-size:12px}
 .admin-ui-simple-actions{display:flex;gap:8px;min-width:300px}.admin-ui-simple-actions .btn{flex:1;white-space:nowrap}
 @media(max-width:700px){.admin-ui-simple-workflow{top:6px;display:grid}.admin-ui-simple-actions{min-width:0;width:100%}.admin-ui-simple-actions .btn{min-height:50px}}
+
+/* FIX4｜鎖定後台外框，避免動態模組被追加到最外層後擠壞欄位 */
+body.admin-ui-ready #adminMain:not(.hidden) > .admin-ui-sidebar{grid-column:1;grid-row:1}
+body.admin-ui-ready #adminMain:not(.hidden) > .admin-ui-content{grid-column:2;grid-row:1}
+body.admin-ui-ready #adminMain:not(.hidden) > :not(.admin-ui-sidebar):not(.admin-ui-content){display:none!important}
+.admin-ui-content{width:100%;max-width:100%;overflow:hidden}
+.admin-ui-panes,.admin-ui-pane{width:100%;max-width:100%}
+@media(max-width:980px){
+  body.admin-ui-ready #adminMain:not(.hidden) > .admin-ui-sidebar,
+  body.admin-ui-ready #adminMain:not(.hidden) > .admin-ui-content{grid-column:auto;grid-row:auto}
+}

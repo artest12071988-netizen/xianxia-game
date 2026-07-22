@@ -1,4 +1,4 @@
-/* 修仙大逃殺｜專業後台導覽 V14.6 ADMIN UI FIX2
+/* 修仙大逃殺｜專業後台導覽 V14.6 ADMIN UI FIX4
    顯示層插件：真正將功能卡片分派到獨立分類頁；不覆寫原函式、不改欄位 ID、不改 RPC。 */
 (function(){
 'use strict';
@@ -36,9 +36,22 @@ function addCollapse(card){
   sync();
 }
 function isTopCard(card){return !card.parentElement.closest('section.card');}
+function absorbStrayMainChildren(main,content){
+  Array.from(main.children).forEach(node=>{
+    if(node===content||node.classList?.contains('admin-ui-sidebar'))return;
+    // 動態模組可能在 UI 建立後仍直接 append 到 #adminMain；先移入內容區再分類。
+    content.appendChild(node);
+  });
+}
 function cleanEmptyLayouts(content){
-  Array.from(content.querySelectorAll(':scope > .grid, :scope > div.grid')).forEach(grid=>{
-    if(!grid.querySelector('section.card')&&!normalize(grid.textContent)&&grid.children.length===0)grid.remove();
+  Array.from(content.querySelectorAll('.grid')).forEach(grid=>{
+    if(grid.closest('.admin-ui-pane'))return;
+    if(!grid.querySelector('section.card')&&!normalize(grid.textContent))grid.remove();
+  });
+  Array.from(content.children).forEach(node=>{
+    if(node.matches?.('.admin-ui-toolbar,.admin-ui-dashboard-banner,.admin-ui-panes,.admin-ui-empty'))return;
+    if(node.matches?.('section.card'))return;
+    if(!node.querySelector?.('section.card')&&!normalize(node.textContent))node.remove();
   });
 }
 function classify(){
@@ -48,7 +61,11 @@ function classify(){
   if(!content)return;
   state.classifying=true;
   try{
-    const cards=Array.from(content.querySelectorAll('section.card')).filter(isTopCard);
+    absorbStrayMainChildren(main,content);
+    const cards=Array.from(main.querySelectorAll('section.card')).filter(card=>{
+      if(card.closest('.admin-ui-sidebar'))return false;
+      return isTopCard(card);
+    });
     cards.forEach(card=>{
       if(card.closest('#loginCard,#claimCard'))return;
       addCollapse(card);
@@ -67,7 +84,7 @@ function classify(){
 function buildShell(){
   const main=document.getElementById('adminMain');if(!main||main.dataset.uiShellReady)return;
   main.dataset.uiShellReady='1';
-  const existing=Array.from(main.children);
+  const existing=Array.from(main.children).filter(node=>!node.classList?.contains('admin-ui-sidebar')&&!node.classList?.contains('admin-ui-content'));
   const sidebar=document.createElement('aside');sidebar.className='admin-ui-sidebar';
   sidebar.innerHTML='<div class="admin-ui-sidebar-title">管理模組</div><nav class="admin-ui-nav" aria-label="後台功能分類"></nav><div class="admin-ui-side-actions"><button type="button" class="btn" data-ui-action="expand">全部展開</button><button type="button" class="btn" data-ui-action="collapse">全部收合</button></div>';
   const content=document.createElement('div');content.className='admin-ui-content';
@@ -77,7 +94,8 @@ function buildShell(){
   GROUPS.filter(g=>g.id!=='all').forEach(g=>{const p=document.createElement('div');p.className='admin-ui-pane';p.dataset.group=g.id;panes.appendChild(p);});
   const other=document.createElement('div');other.className='admin-ui-pane';other.dataset.group='other';panes.appendChild(other);
   const empty=document.createElement('div');empty.className='admin-ui-empty';empty.textContent='目前分類沒有符合搜尋條件的項目。';
-  content.append(toolbar,banner,panes,...existing,empty);main.append(sidebar,content);
+  content.append(toolbar,banner,panes,...existing,empty);
+  main.replaceChildren(sidebar,content);
   const nav=sidebar.querySelector('.admin-ui-nav');
   GROUPS.forEach(g=>{const b=document.createElement('button');b.type='button';b.className='admin-ui-nav-btn';b.dataset.group=g.id;b.innerHTML='<span class="admin-ui-nav-icon">'+g.icon+'</span><span class="admin-ui-nav-label">'+g.label+'</span><span class="admin-ui-nav-count">0</span>';b.addEventListener('click',()=>setGroup(g.id));nav.appendChild(b);});
   toolbar.querySelector('#adminUiSearch').addEventListener('input',e=>{state.search=normalize(e.target.value).toLowerCase();applyView();});
@@ -116,8 +134,8 @@ function applyView(){
 function scheduleClassify(){if(state.scheduled||state.classifying)return;state.scheduled=true;requestAnimationFrame(()=>{state.scheduled=false;classify();});}
 function init(){
   document.body.classList.add('admin-ui-ready');buildShell();classify();
-  const content=document.querySelector('#adminMain > .admin-ui-content');
-  if(content){state.observer=new MutationObserver(scheduleClassify);state.observer.observe(content,{childList:true,subtree:true});}
+  const main=document.getElementById('adminMain');
+  if(main){state.observer=new MutationObserver(scheduleClassify);state.observer.observe(main,{childList:true,subtree:true});}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
