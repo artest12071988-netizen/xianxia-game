@@ -133,7 +133,7 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 <link rel="stylesheet" href="v14_4_black_cloud.css?v=20260720-fix4a">
 <link rel="stylesheet" href="v14_4_beast_tide.css?v=20260720-fix4b">
 <link rel="stylesheet" href="v14_4_great_tribulation.css?v=20260720-fix4c">
-<link rel="stylesheet" href="v14_5a_compact_ui_recovery.css?v=20260721-v145a-fix4-login-safe">
+<link rel="stylesheet" href="v14_5a_compact_ui.css?v=20260721-v145a-fix2">
 <link rel="stylesheet" href="v14_5c_intel.css?v=20260721-v145c-fix1">
 <link rel="stylesheet" href="v14_5b_crafting_codex.css?v=20260721-v145b-fix1">
 <link rel="stylesheet" href="v14_5d_maintenance_gate.css?v=20260721-v145d-1">
@@ -322,7 +322,58 @@ function senseText(big){return ({'練氣期':'同格','築基期':'周邊1格','
 function isEquipmentId(id){const it=IT[String(id)];return !!it&&(it.cat==='法器'||it.cat==='防具')}
 function newEquipment(itemId,enhance=0){
   const it=IT[String(itemId)];
-  return {uid:'eq_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),itemId:String(itemId),name:it.name,type:it.type||it.cat,cat:it.cat,enhance,equipped:false};
+  return {uid:'eq_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),itemId:String(itemId),name:it.name,type:it.type||it.cat,cat:it.cat,enhance:Number.isFinite(Number(enhance))?Math.max(0,Math.floor(Number(enhance))):0,equipped:false};
+}
+function equipmentFallbackId(raw){
+  const cat=String(raw?.cat||'');
+  const type=String(raw?.type||raw?.slot||'');
+  if(cat==='防具'||type==='armor'||type.includes('甲')||type.includes('袍'))return IT['3001']?'3001':Object.keys(IT).find(id=>IT[id]?.cat==='防具');
+  return IT['2001']?'2001':Object.keys(IT).find(id=>IT[id]?.cat==='法器');
+}
+function normalizeEquipmentRecord(raw,index=0){
+  if(!raw||typeof raw!=='object')return null;
+  let itemId=String(raw.itemId??raw.item_id??'');
+  let base=IT[itemId];
+  if(!base){
+    itemId=String(equipmentFallbackId(raw)||'');
+    base=IT[itemId];
+  }
+  if(!base)return null;
+  const enhanceRaw=Number(raw.enhance);
+  const enhance=Number.isFinite(enhanceRaw)?Math.max(0,Math.floor(enhanceRaw)):0;
+  const uid=String(raw.uid||('eq_repaired_'+Date.now()+'_'+index+'_'+Math.random().toString(36).slice(2,7)));
+  const name=String(raw.name||base.name||'無名裝備');
+  const cat=(raw.cat==='防具'||raw.cat==='法器')?raw.cat:base.cat;
+  const type=String(raw.type||base.type||base.cat);
+  return {
+    ...raw,
+    uid,
+    itemId,
+    name,
+    type,
+    cat,
+    enhance,
+    equipped:false,
+    aiOriginalAttack:Number.isFinite(Number(raw.attack))?Number(raw.attack):(Number.isFinite(Number(raw.aiOriginalAttack))?Number(raw.aiOriginalAttack):undefined),
+    repairedFromAiLoot:!!(!raw.itemId||!IT[String(raw.itemId)]||!Number.isFinite(Number(raw.enhance)))
+  };
+}
+function repairPlayerEquipment(){
+  if(!g)return 0;
+  const source=Array.isArray(g.equipment)?g.equipment:[];
+  let repaired=0;
+  const clean=[];
+  source.forEach((raw,index)=>{
+    const before=JSON.stringify(raw);
+    const fixed=normalizeEquipmentRecord(raw,index);
+    if(!fixed)return;
+    if(JSON.stringify(fixed)!==before)repaired++;
+    clean.push(fixed);
+  });
+  g.equipment=clean;
+  if(g.weaponUid&&!g.equipment.some(e=>e.uid===g.weaponUid))g.weaponUid=null;
+  if(g.armorUid&&!g.equipment.some(e=>e.uid===g.armorUid))g.armorUid=null;
+  return repaired;
 }
 function initAi(){
   return C.aiCultivators.map((a,i)=>{
@@ -359,8 +410,13 @@ function continueGame(){
   }catch(e){localStorage.removeItem(SAVE_KEY);toast('舊存檔無法讀取，已清除');$('continueBtn').style.display='none'}
 }
 function normalizeSave(){
-  g.inv=g.inv||{};g.equipment=g.equipment||[];g.techniques=g.techniques||[];g.orders=g.orders||[];g.purchaseLimits=g.purchaseLimits||{};
+  g.inv=g.inv||{};g.equipment=Array.isArray(g.equipment)?g.equipment:[];g.techniques=g.techniques||[];g.orders=g.orders||[];g.purchaseLimits=g.purchaseLimits||{};
   g.yuanbao=g.yuanbao||0;g.lingshi=g.lingshi||0;g.boundStone=g.boundStone||0;g.meditating=!!g.meditating;g.meditateSec=g.meditateSec||0;g.worldStats=g.worldStats||{};g.aiTreasures=g.aiTreasures||{};
+  const repaired=repairPlayerEquipment();
+  if(repaired>0){
+    setTimeout(()=>toast('已自動修復 '+repaired+' 件異常 AI 裝備'),350);
+    setTimeout(()=>saveGame(false),500);
+  }
 }
 function saveGame(showToast=false){
   if(!g)return;g.lastSavedAt=Date.now();
@@ -465,12 +521,23 @@ function onLevel(){
   const r=realmOf(g.lv);g.big=r.big;g.hpMax=r.hp;g.mpMax=Math.max(P.start_stamina,r.mp);g.hp=g.hpMax;g.mp=g.mpMax;
   log('修為精進，達到 <b>'+g.big+' '+((g.lv-1)%5+1)+'層</b>。','lg');
 }
+
+window.__V146MeditationBridge={
+  getState:()=>g,
+  getZone:()=>g&&typeof zoneAt==='function'?zoneAt(g.pos.r,g.pos.c):null,
+  getParams:()=>P,
+  toggle:()=>meditationButtonClick()
+};
+
 function toggleMeditate(){
   if(fight){toast('鬥法中無法打坐');return}
   const z=zoneAt(g.pos.r,g.pos.c);if(z&&z.meditate===0){toast('此區禁止打坐');return}
   g.meditating=!g.meditating;g.meditateSec=0;
   log(g.meditating?'你盤膝入定，靈氣開始沿經脈流入。':'你收功起身，停止吐納。',g.meditating?'lg':'');
   render();
+  if(typeof window.__V146MeditationStateChanged==='function'){
+    window.__V146MeditationStateChanged(g.meditating);
+  }
 }
 function stopMeditate(reason=''){
   if(g.meditating){g.meditating=false;g.meditateSec=0;if(reason)log('打坐中斷：'+reason,'la')}
@@ -600,7 +667,14 @@ function winFight(){
   render();
 }
 function openCorpse(a){
-  const loot=[...a.gear.map(x=>({kind:'eq',data:x,label:x.name+' +'+x.enhance})),{kind:'stone',data:a.lingshi,label:'靈石 '+a.lingshi}];
+  const gear=Array.isArray(a?.gear)?a.gear:[];
+  const loot=[
+    ...gear.map((x,i)=>{
+      const fixed=normalizeEquipmentRecord(x,i);
+      return fixed?{kind:'eq',data:fixed,label:fixed.name+' +'+fixed.enhance}:null;
+    }).filter(Boolean),
+    {kind:'stone',data:Math.max(0,Number(a?.lingshi)||0),label:'靈石 '+Math.max(0,Number(a?.lingshi)||0)}
+  ];
   corpse={a,loot,picked:0};renderCorpse();
 }
 function renderCorpse(){
@@ -610,8 +684,12 @@ function renderCorpse(){
 }
 function takeCorpse(i){
   if(corpse.picked>=P.corpse_loot_limit)return;const x=corpse.loot[i];if(!x||x.taken)return;x.taken=true;corpse.picked++;
-  if(x.kind==='eq'){const e={...x.data,uid:'eq_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),equipped:false};g.equipment.push(e)}
-  else if(x.kind==='stone')g.lingshi+=x.data;
+  if(x.kind==='eq'){
+    const e=normalizeEquipmentRecord({...x.data,uid:null,equipped:false},g.equipment.length);
+    if(e)g.equipment.push(e);
+    else{toast('此裝備資料異常，已阻止寫入行囊');return}
+  }
+  else if(x.kind==='stone')g.lingshi+=Math.max(0,Number(x.data)||0);
   log('從屍身拾取 '+x.label+'。','lg');renderCorpse();render();
 }
 function loseFight(){
@@ -619,11 +697,13 @@ function loseFight(){
   sheet('<h3 style="color:var(--red)">身隕道消</h3><p>你被 '+esc(name)+' 所殺。正式多人版將進入奪舍判定；本原型可重新凝聚道體。</p><button class="btn gold" onclick="localStorage.removeItem(SAVE_KEY);location.reload()">重新入世</button>');
 }
 function openBag(tab='bag'){
+  const repaired=repairPlayerEquipment();
+  if(repaired>0){saveGame(false);toast('已修復 '+repaired+' 件異常裝備')}
   let h='<h3>行囊與鑄器</h3><div class="tabs"><button class="'+(tab==='bag'?'on':'')+'" onclick="openBag(\'bag\')">道具</button><button class="'+(tab==='equip'?'on':'')+'" onclick="openBag(\'equip\')">裝備</button><button class="'+(tab==='forge'?'on':'')+'" onclick="openBag(\'forge\')">獨立強化</button></div>';
   if(tab==='bag'){
     const ids=Object.keys(g.inv).filter(id=>g.inv[id]>0);
     if(!ids.length)h+='<p class="small">行囊空空如也。</p>';
-    ids.forEach(id=>{const it=IT[id];h+='<div class="list-row"><div class="grow"><strong>'+it.name+' ×'+g.inv[id]+'</strong><small>'+it.cat+' · '+it.eff+(it.val?' '+it.val:'')+'</small></div>'+(canUseOutside(it)?'<button class="btn" onclick="useOutside(\''+id+'\')">使用</button>':'')+'</div>'});
+    ids.forEach(id=>{const it=IT[id];if(!it)return;h+='<div class="list-row"><div class="grow"><strong>'+it.name+' ×'+g.inv[id]+'</strong><small>'+it.cat+' · '+it.eff+(it.val?' '+it.val:'')+'</small></div>'+(canUseOutside(it)?'<button class="btn" onclick="useOutside(\''+id+'\')">使用</button>':'')+'</div>'});
   }else if(tab==='equip'){
     if(!g.equipment.length)h+='<p class="small">尚未取得裝備。坊市可購買長劍與護體法袍。</p>';
     g.equipment.forEach(e=>h+='<div class="list-row"><div class="grow"><strong>'+e.name+' +'+e.enhance+(e.uid===g.weaponUid||e.uid===g.armorUid?' <span class="pill">已裝備</span>':'')+'</strong><small>'+e.cat+' · 這一件裝備擁有獨立強化值</small></div><button class="btn" onclick="equipItem(\''+e.uid+'\')">裝備</button></div>');
@@ -762,7 +842,7 @@ function confirmReset(){
 <script>window.XIANXIA_V13_EXTERNAL_SCHEDULER=true;</script>
 <script src="v13_ai_brain.js?v=20260719-fix2-1"></script>
 <script src="v13_ambush.js?v=20260719-fix2-1"></script>
-<script src="v13_ai_observatory.js?v=20260719-fix2-1"></script>
+<script src="v13_ai_observatory.js?v=20260721-fix4i-safe"></script>
 <script src="rewarded_ads_config.js?v=20260719-350"></script>
 <script src="v13_rewarded_ads.js?v=20260719-350"></script>
 <script src="v13_world_orchestrator.js?v=20260719-fix2-1"></script>
@@ -770,15 +850,20 @@ function confirmReset(){
 <script src="v13_5_craft_engine.js?v=20260721-v145b-fix1"></script>
 <script src="v14_3_fix1_ui_map.js?v=20260720-fix4g"></script>
 <script src="v14_2_auction.js?v=20260720-142"></script>
-
-<script src="v14_4_black_cloud.js?v=20260720-fix4f"></script>
-<script src="v14_4_beast_tide.js?v=20260720-fix4b"></script>
+<script src="v14_3_artifact.js?v=20260720-143"></script>
+<script src="v14_4_black_cloud.js?v=20260721-fix4h-loopfix"></script>
+<script src="v14_4_beast_tide.js?v=20260721-fix4i-reload"></script>
 <script src="v14_4_great_tribulation.js?v=20260720-fix4c"></script>
-<script src="v14_4_great_tribulation_cycle.js?v=20260720-fix4d"></script>
-
-<script src="v14_5c_intel.js?v=20260721-v145c-fix1"></script>
-<script src="v14_5b_crafting_codex.js?v=20260721-v145b-fix1"></script>
+<script src="v14_4_great_tribulation_cycle.js?v=20260721-fix4i-safe"></script>
+<script src="v14_5a_compact_ui.js?v=20260721-login-hotfix3"></script>
+<script src="v14_5c_intel.js?v=20260721-login-hotfix3"></script>
+<script src="v14_5b_crafting_codex.js?v=20260721-fix4h-loopfix"></script>
 <script src="v14_5d_maintenance_gate.js?v=20260721-v145d-1"></script>
-<script src="v14_5_login_safe_loader.js?v=20260721-v145a-fix4-login-safe"></script>
+<script src="v14_6_meditation_immersion.js?v=20260721-v146-fix1"></script>
+<script src="v14_8_corpse_world.js?v=20260722-v148-phase2"></script>
+<script src="v14_9_item_effects_and_meditation.js?v=20260722-v149-fix1"></script>
+<script src="v15_0_equipment_integrity_fix.js?v=20260722-v150-eq-fix1"></script>
+<script src="v15_0_equipment_instance_fix.js?v=20260722-v150-eq-fix2"></script>
+<script src="v15_0_equipment_action_fix.js?v=20260722-v150-eq-fix3"></script>
 </body>
 </html>
