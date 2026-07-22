@@ -121,6 +121,8 @@
 'use strict';
 const cfg=window.XIANXIA_ONLINE_CONFIG||{};
 const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
+window.xianxiaAdminSupabase=sb;
+window.sb=sb;
 let sessionUser=null,controls=null,channel=null;
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e.t);e.t=setTimeout(()=>e.classList.remove('on'),2400)}
@@ -159,7 +161,7 @@ boot();
 <script src="admin_ai_test_lab.js?v=20260721-stage1"></script>
 <script src="admin_ai_test_stage2.js?v=20260721-stage2"></script>
 <script src="admin_player_management.js?v=20260722-v147"></script>
-<script src="admin_ai_acceptance.js?v=20260722-v148-phase2"></script>
+<script src="admin_ai_acceptance.js?v=20260722-v148-phase2-fix2"></script>
 <script src="admin_professional_ui.js?v=20260722-v148-phase2"></script>
 </body>
 </html>

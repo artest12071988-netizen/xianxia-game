@@ -2,7 +2,7 @@
 'use strict';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function client(){return window.cloudState?.client||window.sb||null}
+function client(){return window.xianxiaAdminSupabase||window.cloudState?.client||window.sb||null}
 function toast2(m){if(typeof window.toast==='function')window.toast(m);else alert(m)}
 function card(){
   let c=$('#aiAcceptanceCard');if(c)return c;
@@ -41,6 +41,22 @@ async function anomalies(){
     $('#v148AuditTable').innerHTML=rows.length?'<h3>異常 AI</h3><div class="v148-table-wrap"><table><thead><tr><th>ID</th><th>道號</th><th>境界</th><th>座標</th><th>世代</th><th>靈石</th><th>裝備</th><th>行囊</th><th>異常</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.id)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.realm)+' Lv'+esc(r.level)+'</td><td>'+esc(r.coord)+'</td><td>'+esc(r.generation)+'</td><td>'+esc(r.lingshi)+'</td><td>'+esc(r.gear_count)+'</td><td>'+esc(r.inventory_types)+'</td><td>'+esc(r.anomaly)+'</td></tr>').join('')+'</tbody></table></div>':'<p class="small v148-pass">目前沒有符合條件的異常 AI。</p>';
   }catch(e){toast2('讀取異常清單失敗：'+(e.message||e));}
 }
-function init(){card()}
+function waitForClient(maxWaitMs=10000){
+  return new Promise(resolve=>{
+    const started=Date.now();
+    const timer=setInterval(()=>{
+      const c=client();
+      if(c||Date.now()-started>=maxWaitMs){clearInterval(timer);resolve(c||null)}
+    },100);
+  });
+}
+async function init(){
+  card();
+  const c=await waitForClient();
+  if(!c){
+    const summary=$('#v148AuditSummary');
+    if(summary)summary.textContent='Supabase 連線尚未建立，請重新整理後台。';
+  }
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
