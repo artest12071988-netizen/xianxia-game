@@ -15,9 +15,21 @@ function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&l
 function num(v,d=0){const n=Number(v);return Number.isFinite(n)?n:d}
 function clamp2(v,a,b){return Math.max(a,Math.min(b,v))}
 function coreReady(){return !!(window.g&&window.IT&&window.P&&typeof window.sheet==='function')}
-function client(){try{return window.cloudState?.client||null}catch(_){return null}}
-function loggedIn(){try{return !!(window.cloudState?.enabled&&window.cloudState?.user&&client())}catch(_){return false}}
-function rpc(name,args={}){const c=client();if(!c)return Promise.reject(new Error('尚未連線伺服器'));return c.rpc(name,args).then(({data,error})=>{if(error)throw error;return data})}
+function cloud(){
+  try{
+    if(typeof cloudState!=='undefined'&&cloudState)return cloudState;
+    return window.XIANXIA_CLOUD_STATE||window.cloudState||null;
+  }catch(_){
+    return window.XIANXIA_CLOUD_STATE||window.cloudState||null;
+  }
+}
+function client(){const c=cloud();return c?.client||null}
+function loggedIn(){const c=cloud();return !!(c?.enabled&&c?.user&&c?.client)}
+function rpc(name,args={}){
+  const c=client();
+  if(!c)return Promise.reject(new Error('尚未連線伺服器'));
+  return c.rpc(name,args).then(({data,error})=>{if(error)throw error;return data})
+}
 function coord(){try{return typeof window.coordOf==='function'?window.coordOf(g.pos.r,g.pos.c):String.fromCharCode(65+num(g.pos?.r))+'-'+(num(g.pos?.c)+1)}catch(_){return ''}}
 function equipment(){return Array.isArray(g?.equipment)?g.equipment:[]}
 function findEq(uid){return equipment().find(e=>String(e?.uid)===String(uid))||null}
@@ -414,9 +426,17 @@ function install(){
   if(!S.rewardTimer){pollRewards();S.rewardTimer=setInterval(pollRewards,20000)}
   window.V151_PHASE2={
     build:BUILD,applyEnchant,openEnchantWorkshop,divineAttack,fleeDivine,
-    tryBeastEncounter,pollRewards,state:S
+    tryBeastEncounter,pollRewards,state:S,
+    connection:()=>({
+      cloudFound:!!cloud(),
+      enabled:!!cloud()?.enabled,
+      loggedIn:loggedIn(),
+      userId:cloud()?.user?.id||null,
+      coord:coord(),
+      rpcReady:!!client()
+    })
   };
-  console.info('['+BUILD+'] active');
+  console.info('['+BUILD+'] active; cloud bridge=FIX1',window.V151_PHASE2.connection());
   return true;
 }
 let tries=0;const timer=setInterval(()=>{tries++;if(install()||tries>100)clearInterval(timer)},250);
