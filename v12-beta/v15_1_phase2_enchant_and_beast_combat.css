@@ -1,0 +1,45 @@
+/* V15.1 Phase 2 — 五行附魔與神獸戰鬥 */
+.v151-element-fire{--v151-element:#ff7043;--v151-glow:rgba(255,112,67,.24)}
+.v151-element-water{--v151-element:#48a9ff;--v151-glow:rgba(72,169,255,.22)}
+.v151-element-wood{--v151-element:#65d38e;--v151-glow:rgba(101,211,142,.20)}
+.v151-element-metal{--v151-element:#f4d35e;--v151-glow:rgba(244,211,94,.20)}
+.v151-element-earth{--v151-element:#c99a55;--v151-glow:rgba(201,154,85,.22)}
+.v151-element-none{--v151-element:#7890a8;--v151-glow:rgba(120,144,168,.12)}
+.v151-eq-meta{
+  margin-top:7px;padding:8px 10px;border-left:3px solid var(--v151-element);
+  border-radius:8px;background:linear-gradient(90deg,var(--v151-glow),transparent);
+  color:#c7d3df;font-size:12px;line-height:1.65
+}
+.v151-eq-meta b,.v151-element-label{color:var(--v151-element)}
+.v151-enchant-shell{display:grid;gap:12px}
+.v151-enchant-note{padding:12px;border:1px solid #314154;border-radius:10px;background:#0b1420;color:#b9c7d5;line-height:1.7}
+.v151-enchant-card{
+  border:1px solid color-mix(in srgb,var(--v151-element) 55%,#2a3949);
+  border-radius:13px;padding:14px;background:
+    radial-gradient(circle at 100% 0,var(--v151-glow),transparent 42%),#09121d;
+  box-shadow:0 0 0 1px rgba(255,255,255,.015) inset
+}
+.v151-enchant-card h4{margin:0 0 5px;color:var(--v151-element);font-size:17px}
+.v151-enchant-card small{display:block;color:#9fb0c0;line-height:1.65}
+.v151-materials{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.v151-material-btn{border-color:var(--v151-element)!important;color:var(--v151-element)!important}
+.v151-material-btn[disabled]{opacity:.35}
+.v151-beast-shell{display:grid;gap:12px}
+.v151-beast-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.v151-beast-title{font-size:24px;font-weight:900;color:#f1cf65}
+.v151-beast-sub{color:#9fb0c0;font-size:12px;line-height:1.7}
+.v151-beast-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.v151-beast-stats>div{padding:10px;border:1px solid #2a3a4a;border-radius:10px;background:#08111c}
+.v151-beast-stats span{display:block;color:#8398ac;font-size:11px}
+.v151-beast-stats b{display:block;margin-top:4px;color:#f3e1a0}
+.v151-beast-bar{height:13px;border-radius:999px;background:#1b2733;overflow:hidden;border:1px solid #34485d}
+.v151-beast-bar i{display:block;height:100%;background:linear-gradient(90deg,#9d332d,#e6b754);transition:width .25s}
+.v151-beast-bar.mp i{background:linear-gradient(90deg,#267bbd,#5bd3e8)}
+.v151-beast-message{min-height:48px;padding:10px 12px;border:1px solid #2b3a49;border-radius:10px;background:#07101a;color:#d7e0e8;line-height:1.7}
+.v151-combat-elements{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.v151-combat-elements span{padding:4px 8px;border-radius:999px;border:1px solid var(--v151-element);color:var(--v151-element);font-size:11px;background:var(--v151-glow)}
+.v151-reward-toast{color:#f2d26c}
+@media(max-width:700px){
+  .v151-beast-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .v151-beast-title{font-size:20px}
+}
