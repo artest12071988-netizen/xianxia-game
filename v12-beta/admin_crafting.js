@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const VERSION='V14.6-ADMIN-CRAFT-SIMPLE-FLOW-FIX3';
+  const VERSION='V14.8-ADMIN-CRAFT-CONFIG-RESTORE-FINAL2';
   const cardId='craftConfigCardV145B';
   const categories=['alchemy','equipment','legendary'];
   const categoryLabel={alchemy:'煉丹',equipment:'煉器',legendary:'絕世鍛造'};
@@ -162,5 +162,6 @@
   function boot(){inject();clearInterval(refreshTimer);refreshTimer=setInterval(()=>{inject();loadFromDraft(false)},900)}
   window.V145B_ADMIN_CRAFTING={version:VERSION,refresh:()=>loadFromDraft(true),validate:validateRows,validateRecipes:(source,d)=>validateRecipeRows(source,d),getRows:()=>clone(rows)};
   window.applyCraftConfigV135=apply;
+  window.addEventListener('xianxia:config-admin-ready',()=>{inject();loadFromDraft(true)});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
