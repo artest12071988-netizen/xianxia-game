@@ -10,7 +10,7 @@ const GROUPS=[
   {id:'auction',label:'萬寶拍賣',icon:'◆',keys:['萬寶拍賣後台']},
   {id:'config',label:'遊戲數值',icon:'▦',keys:['遊戲數值營運後台','版本紀錄與回復']},
   {id:'craft',label:'萬法煉造',icon:'⚒',keys:['萬法煉造與合成控制台','絕世神匠','萬法譜']},
-  {id:'ai',label:'AI 測試場',icon:'✦',keys:['AI 修仙實境測試場']},
+  {id:'ai',label:'AI 測試場',icon:'✦',keys:['AI 修仙實境測試場','AI 歷程驗收中心']},
   {id:'all',label:'全部功能',icon:'☰',keys:[]}
 ];
 const state={active:localStorage.getItem('xianxia_admin_ui_group')||'overview',search:'',observer:null,scheduled:false,classifying:false};

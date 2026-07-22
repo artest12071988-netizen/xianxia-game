@@ -1,0 +1,11 @@
+#aiAcceptanceCard .v148-audit-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+#aiAcceptanceCard .v148-audit-box{border:1px solid #29405a;border-radius:12px;padding:12px;background:#09131f}
+#aiAcceptanceCard .v148-audit-box span{display:block;color:#8fa8c4;font-size:12px;margin-bottom:6px}
+#aiAcceptanceCard .v148-audit-box b{font-size:22px;color:#f2c94c}
+#aiAcceptanceCard .v148-pass{color:#2dd4bf!important}
+#aiAcceptanceCard .v148-fail{color:#ff5a5f!important}
+#aiAcceptanceCard .v148-audit-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+#aiAcceptanceCard table{width:100%;border-collapse:collapse;font-size:13px}
+#aiAcceptanceCard th,#aiAcceptanceCard td{padding:9px;border-bottom:1px solid #223247;text-align:left}
+#aiAcceptanceCard .v148-table-wrap{max-height:420px;overflow:auto;border:1px solid #223247;border-radius:12px}
+@media(max-width:800px){#aiAcceptanceCard .v148-audit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
