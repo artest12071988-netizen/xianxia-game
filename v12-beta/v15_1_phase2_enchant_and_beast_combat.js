@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.1-PHASE3-FIVE-ELEMENT-AUDIT-DIVINE-BEAST-COMBAT';
+const BUILD='V15.2-PHASE1-IMMERSIVE-RAID-COMBAT';
 const ELEMENTS={
   '8401':{key:'fire',label:'火性附魔',element:'火',target:'weapon',valueMin:20,valueMax:25,summary:e=>`追加 ${Number(e.value||20).toFixed(1)}% 火性傷害`},
   '8402':{key:'water',label:'水性附魔',element:'水',target:'weapon',value:3,summary:()=>`每次命中削減對方最大法力 3%`},
@@ -304,17 +304,69 @@ async function tryBeastEncounter(source){
 function startDivineFight(data,source){
   const b=data.beast||{};
   stopMeditate?.('遭遇神獸');
-  fight={
-    kind:'divine_beast',token:data.token,source,
-    enemy:{name:b.beast_name,atk:num(b.attack_power),def:num(b.defense_power)},
-    beast:b,hp:num(b.current_hp),hpMax:num(b.max_hp),
-    enemyMpMax:Math.max(1000,Math.round(num(b.attack_power,100)*10)),
-    enemyMp:Math.max(1000,Math.round(num(b.attack_power,100)*10))
+
+  const join=async()=>{
+    const joined=await rpc('divine_beast_join_encounter',{
+      p_token:data.token,
+      p_player_name:String(g.name||'未知修士'),
+      p_player_hp:num(g.hp),
+      p_player_hp_max:num(g.hpMax),
+      p_player_mp:num(g.mp),
+      p_player_mp_max:num(g.mpMax)
+    });
+    fight={
+      kind:'divine_beast',token:data.token,source,
+      enemy:{name:b.beast_name,atk:num(b.attack_power),def:num(b.defense_power)},
+      beast:{...b,...(joined?.beast||{})},
+      hp:num(joined?.beast?.current_hp,b.current_hp),
+      hpMax:num(joined?.beast?.max_hp,b.max_hp),
+      enemyMpMax:Math.max(1000,Math.round(num(b.attack_power,100)*10)),
+      enemyMp:Math.max(1000,Math.round(num(b.attack_power,100)*10))
+    };
+    if(window.V152_RAID){
+      V152_RAID.open({
+        token:data.token,
+        beast:fight.beast,
+        line:`天地震動，你已加入 ${esc(b.beast_name)} 聯合討伐！`,
+        onSnapshot:snap=>{
+          if(!fight||fight.kind!=='divine_beast')return;
+          if(snap?.beast){
+            fight.hp=num(snap.beast.current_hp,fight.hp);
+            fight.hpMax=num(snap.beast.max_hp,fight.hpMax);
+            fight.beast={...fight.beast,...snap.beast};
+          }
+        }
+      });
+    }
+    renderDivineFight(`天地震動，你已加入 ${esc(b.beast_name)} 聯合討伐！`);
   };
-  renderDivineFight(`天地震動，你在 ${esc(b.coord||coord())} 遭遇了 ${esc(b.beast_name)}！`);
+
+  const leave=async()=>{
+    try{
+      await rpc('divine_beast_leave_raid',{
+        p_token:data.token,
+        p_reason:'quick_leave'
+      });
+    }catch(e){
+      console.warn('['+BUILD+'] quick leave failed',e);
+    }
+    log?.(`你察覺 ${b.beast_name} 威壓過盛，選擇快速離開。`,'la');
+    render?.();
+  };
+
+  if(window.V152_RAID){
+    V152_RAID.prompt(data,{join,leave});
+  }else{
+    join();
+  }
 }
 function renderDivineFight(line){
   if(!fight||fight.kind!=='divine_beast')return;
+  if(window.V152_RAID?.active?.()){
+    V152_RAID.setLine(line);
+    V152_RAID.refresh();
+    return;
+  }
   const b=fight.beast||{},hpPct=clamp2(num(fight.hp)/Math.max(1,num(fight.hpMax))*100,0,100),mpPct=clamp2(num(fight.enemyMp)/Math.max(1,num(fight.enemyMpMax))*100,0,100);
   sheet(`<div class="v151-beast-shell"><div class="v151-beast-head"><div><div class="v151-beast-title">${esc(b.beast_name||fight.enemy.name)}</div><div class="v151-beast-sub">${esc(b.direction||'')}方神獸｜全服共用持久血量｜本次傷害會立即寫入伺服器</div></div><span class="pill">世代 ${num(b.generation)}</span></div>`+
     `<div><div class="small">神獸體力 ${Math.round(fight.hp).toLocaleString()} / ${Math.round(fight.hpMax).toLocaleString()}</div><div class="v151-beast-bar"><i style="width:${hpPct}%"></i></div></div>`+
@@ -342,7 +394,7 @@ async function divineAttack(){
   }catch(e){
     S.attackBusy=false;
     const msg=String(e?.message||e);
-    if(/ENCOUNTER_EXPIRED|BEAST_NOT_ACTIVE|ENCOUNTER_NOT_FOUND/i.test(msg)){fight=null;closeOv?.();toast?.('此次神獸遭遇已結束');pollRewards();return}
+    if(/ENCOUNTER_EXPIRED|BEAST_NOT_ACTIVE|ENCOUNTER_NOT_FOUND/i.test(msg)){fight=null;window.V152_RAID?.finish?.('此次神獸遭遇已結束');closeOv?.();toast?.('此次神獸遭遇已結束');pollRewards();return}
     renderDivineFight('攻擊寫入失敗：'+esc(msg));
   }
 }
@@ -366,14 +418,14 @@ async function fleeDivine(){
   if(!fight||fight.kind!=='divine_beast'||S.attackBusy)return;
   const chance=num(P.encounter_flee_success,.45)+(g.big==='元嬰期'?.15:g.big==='結丹期'?.10:0);
   if(Math.random()<chance){
-    const token=fight.token;fight=null;closeOv?.();log?.('你從神獸威壓中成功遁走。','la');render?.();
+    const token=fight.token;fight=null;window.V152_RAID?.close?.(true);closeOv?.();log?.('你從神獸威壓中成功遁走。','la');render?.();
     try{await rpc('divine_beast_close_encounter',{p_token:token})}catch(_){}
   }else{renderDivineFight('遁走失敗，神獸封鎖了空間。');setTimeout(divineEnemyTurn,420)}
 }
 function finishDivine(outcome,data){
   const name=fight?.enemy?.name||'神獸';
   const line=outcome==='defeated'?`${name} 已被全服修士擊潰。`:`${name} 傷勢過重，撕裂空間逃離。`;
-  log?.(line,'lg');fight=null;closeOv?.();render?.();toast?.(line);setTimeout(pollRewards,700);
+  log?.(line,'lg');fight=null;window.V152_RAID?.finish?.(line);closeOv?.();render?.();toast?.(line);setTimeout(pollRewards,700);
 }
 
 async function pollRewards(){
