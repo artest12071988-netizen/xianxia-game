@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.2-PHASE2-IMMERSIVE-RAID-FX-AOE';
+const BUILD='V15.2-PHASE2-FIX1-BOSS-PRESSURE-DIALOGUE';
 const ART={
  qinglong:'assets/divine_beasts/qinglong.webp',
  baihu:'assets/divine_beasts/baihu.webp',
@@ -11,7 +11,7 @@ const ART={
 const DIR={east:'東方',west:'西方',north:'北方',south:'南方',center:'中央'};
 const S={
  prompt:null,root:null,token:null,beast:null,active:false,poll:null,countdown:null,
- snapshot:null,tab:'feed',line:'',handlers:null,seen:new Set(),hitLedger:new Set(),busy:false,hitBusy:false
+ snapshot:null,tab:'feed',line:'',handlers:null,seen:new Set(),hitLedger:new Set(),busy:false,hitBusy:false,castBusy:false,tauntTimer:null,lastDialogueAt:0,audio:null
 };
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const num=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d};
@@ -40,6 +40,68 @@ const INTRO_LINES={
  xuanwu:'萬水歸墟，爾等攻勢不過蜉蝣撼海。',
  qilin:'中土氣運由吾鎮守，貪念一起，便是劫數。'
 };
+const AMBIENT_LINES={
+ baihu:[
+  '爾等的殺意，遠不及西方庚金萬一。',
+  '再靠近一步，本座便撕碎你的元神。',
+  '人數再多，也只會讓此地多幾具屍骨。',
+  '吾之一爪，可斷山河，何況爾等血肉之軀。',
+  '異寶有靈，絕不會落入弱者手中。',
+  '本座已記住你們每一道氣息。',
+  '想以車輪戰消耗本座？可笑。',
+  '西方殺劫已至，誰也逃不出去。',
+  '你們的恐懼，本座聽得一清二楚。',
+  '再讓本座失望，便一爪結束這場鬧劇。'
+ ],
+ qinglong:[
+  '山川草木都在告訴吾，你們的每一步。',
+  '龍脈不絕，吾之力量便永不枯竭。',
+  '東方生機並非仁慈，亦可化作無盡殺機。',
+  '爾等身上的木靈之氣，正向吾臣服。',
+  '逆鱗不可觸，你們卻一再挑釁。',
+  '萬木正在收緊，爾等還能退往何處？',
+  '龍威籠罩之地，連呼吸都需吾允許。',
+  '凡人妄圖屠龍，古今皆是笑談。',
+  '吾見過無數天驕，最後都埋骨山河。',
+  '此戰結束後，爾等將化作滋養大地的養分。'
+ ],
+ fenghuang:[
+  '爾等的法力，正在真炎之前迅速蒸發。',
+  '吾每一片火羽，都足以焚滅一座城池。',
+  '涅槃不滅，爾等憑什麼與吾久戰？',
+  '寒風只能讓吾之真火燃燒得更加猛烈。',
+  '你們聞到了嗎？那是神魂被灼燒的氣息。',
+  '敢覬覦鳳凰火羽，便準備以性命交換。',
+  '火焰正在記住你們的氣機。',
+  '吾將讓此地成為永不熄滅的火域。',
+  '凡人的勇氣，在真炎面前只是一瞬。',
+  '再多一息，你們的經脈便會開始燃燒。'
+ ],
+ xuanwu:[
+  '玄冥之水無窮無盡，爾等的法力卻有盡時。',
+  '吾已沉眠萬古，不介意再埋葬一批修士。',
+  '攻擊落在吾甲上，不過如雨滴落海。',
+  '蛇首已繞至爾等身後。',
+  '水壓正在一寸寸壓碎你們的護體靈氣。',
+  '玄冥海域之中，無人能逃。',
+  '你們的腳步越來越沉了。',
+  '吾不需要追趕，深海自會吞噬一切。',
+  '萬法落入玄冥，終究只剩寂靜。',
+  '繼續攻擊吧，讓爾等徹底明白何謂絕望。'
+ ],
+ qilin:[
+  '此地每一寸土地，都在吾的掌控之中。',
+  '貪念越重，地脈反噬便越深。',
+  '祥瑞只庇護有德之人，而非覬覦異寶者。',
+  '你們腳下的山河，正在為吾積蓄力量。',
+  '中央厚土可載萬物，也可埋葬萬靈。',
+  '爾等每一次踏步，都會驚動更深的地脈。',
+  '吾已看見你們仙途盡頭的劫數。',
+  '凡人的刀劍，如何斬得動山河氣運？',
+  '此戰並非機緣，而是爾等自尋的死劫。',
+  '退出此地，尚可留下一線生機。'
+ ]
+};
 function uuid(){
  if(globalThis.crypto?.randomUUID)return crypto.randomUUID();
  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
@@ -54,6 +116,7 @@ function earthReductionPct(){
 }
 function showDialogue(text,skill=''){
  if(!S.root||!text)return;
+ S.lastDialogueAt=Date.now();
  const box=S.root.querySelector('[data-boss-dialogue]');
  box.classList.remove('show');
  void box.offsetWidth;
@@ -61,6 +124,114 @@ function showDialogue(text,skill=''){
  box.classList.add('show');
  setTimeout(()=>box?.classList.remove('show'),4200);
 }
+
+function randomLine(lines=[]){
+ if(!Array.isArray(lines)||!lines.length)return '';
+ return lines[Math.floor(Math.random()*lines.length)]||'';
+}
+function phaseInfo(beast=S.beast){
+ const ratio=num(beast?.current_hp)/Math.max(1,num(beast?.max_hp));
+ if(ratio<=.35)return {key:'berserk',label:'狂暴',tone:'滅世威壓'};
+ if(ratio<=.70)return {key:'enraged',label:'震怒',tone:'神獸震怒'};
+ return {key:'dominant',label:'天威',tone:'天地威壓'};
+}
+function ensureAudio(){
+ try{
+   if(!S.audio){
+     const Ctx=window.AudioContext||window.webkitAudioContext;
+     if(Ctx)S.audio=new Ctx();
+   }
+   if(S.audio?.state==='suspended')S.audio.resume();
+ }catch(_){}
+ return S.audio;
+}
+function playSound(kind='impact'){
+ const ctx=ensureAudio();if(!ctx)return;
+ const now=ctx.currentTime;
+ const gain=ctx.createGain();
+ gain.connect(ctx.destination);
+ if(kind==='telegraph'){
+   const osc=ctx.createOscillator();
+   osc.type='sawtooth';osc.frequency.setValueAtTime(58,now);
+   osc.frequency.exponentialRampToValueAtTime(34,now+.75);
+   gain.gain.setValueAtTime(.0001,now);
+   gain.gain.exponentialRampToValueAtTime(.08,now+.08);
+   gain.gain.exponentialRampToValueAtTime(.0001,now+.85);
+   osc.connect(gain);osc.start(now);osc.stop(now+.9);
+ }else if(kind==='boss'){
+   const osc=ctx.createOscillator();
+   osc.type='square';osc.frequency.setValueAtTime(82,now);
+   osc.frequency.exponentialRampToValueAtTime(28,now+.42);
+   gain.gain.setValueAtTime(.12,now);
+   gain.gain.exponentialRampToValueAtTime(.0001,now+.5);
+   osc.connect(gain);osc.start(now);osc.stop(now+.52);
+ }else{
+   const osc=ctx.createOscillator();
+   osc.type='triangle';osc.frequency.setValueAtTime(720,now);
+   osc.frequency.exponentialRampToValueAtTime(160,now+.18);
+   gain.gain.setValueAtTime(.07,now);
+   gain.gain.exponentialRampToValueAtTime(.0001,now+.22);
+   osc.connect(gain);osc.start(now);osc.stop(now+.24);
+ }
+}
+function setActionsDisabled(disabled){
+ S.root?.querySelectorAll('.v152-raid-action').forEach(b=>{
+   if(!b.dataset.originalDisabled)b.dataset.originalDisabled=b.disabled?'1':'0';
+   b.disabled=!!disabled||(b.dataset.originalDisabled==='1');
+ });
+}
+function updatePhaseDisplay(){
+ if(!S.root)return;
+ const info=phaseInfo();
+ S.root.dataset.phase=info.key;
+ const badge=S.root.querySelector('[data-boss-phase]');
+ if(badge){
+   badge.className=`v152-phase-badge ${info.key}`;
+   badge.innerHTML=`<small>${esc(info.tone)}</small><b>${esc(info.label)}</b>`;
+ }
+}
+function startTaunts(){
+ stopTaunts();
+ const schedule=()=>{
+   const delay=10000+Math.floor(Math.random()*7000);
+   S.tauntTimer=setTimeout(()=>{
+     if(S.active&&Date.now()-S.lastDialogueAt>6500&&!S.castBusy){
+       const line=randomLine(AMBIENT_LINES[String(S.beast?.beast_key||'')]||[]);
+       if(line)showDialogue(line,phaseInfo().tone);
+     }
+     schedule();
+   },delay);
+ };
+ schedule();
+}
+function stopTaunts(){
+ if(S.tauntTimer)clearTimeout(S.tauntTimer);
+ S.tauntTimer=null;
+}
+function telegraphBossAttack(attack={}){
+ if(!S.root)return Promise.resolve();
+ S.castBusy=true;setActionsDisabled(true);updatePhaseDisplay();
+ const root=S.root;
+ const cast=root.querySelector('[data-skill-cast]');
+ const aoe=attack.attack_type==='aoe';
+ const warning=Math.max(650,Math.min(1600,num(attack.warning_ms,900)));
+ root.classList.remove('casting-single','casting-aoe','phase-enraged','phase-berserk');
+ root.classList.add(aoe?'casting-aoe':'casting-single');
+ if(attack.phase==='enraged')root.classList.add('phase-enraged');
+ if(attack.phase==='berserk')root.classList.add('phase-berserk');
+ cast.innerHTML=`<small>${aoe?'全體危險｜所有參戰者':'神獸鎖定｜目前出手者'}</small><b>【${esc(attack.skill_name||'神獸神通')}】</b><i><em></em></i>`;
+ cast.style.setProperty('--warning-ms',`${warning}ms`);
+ cast.classList.remove('show');void cast.offsetWidth;cast.classList.add('show');
+ showDialogue(attack.dialogue||'天地神通降臨！',attack.skill_name||'神獸神通');
+ playSound('telegraph');
+ try{navigator.vibrate?.(aoe?[80,50,120]:[70,40,70])}catch(_){}
+ return new Promise(resolve=>setTimeout(()=>{
+   cast.classList.remove('show');
+   root.classList.remove('casting-single','casting-aoe');
+   resolve();
+ },warning));
+}
+
 function floatDamage(value,kind='player',label=''){
  if(!S.root)return;
  const layer=S.root.querySelector('[data-damage-layer]');
@@ -74,6 +245,7 @@ function floatDamage(value,kind='player',label=''){
 }
 function playerImpact(info={}){
  if(!S.root)return;
+ playSound('impact');
  const root=S.root,fx=root.querySelector('[data-fx-layer]');
  root.classList.remove('fx-player-hit','fx-player-crit');
  void root.offsetWidth;
@@ -87,6 +259,7 @@ function playerImpact(info={}){
 }
 function bossImpact(hit={}){
  if(!S.root)return;
+ playSound('boss');
  const root=S.root,fx=root.querySelector('[data-fx-layer]');
  root.classList.remove('fx-boss-single','fx-boss-aoe');
  void root.offsetWidth;
@@ -118,19 +291,25 @@ async function updateCombatStats(){
  }
 }
 async function requestBossCounter(){
- if(!S.token)return null;
+ if(!S.token||S.castBusy)return null;
  await updateCombatStats();
- const data=await rpc('divine_beast_boss_counterattack',{
-   p_token:S.token,
-   p_action_id:uuid(),
-   p_player_defense:num(window.pDef?.()),
-   p_earth_reduction_pct:earthReductionPct()
- });
- if(data?.attack){
-   showDialogue(data.attack.dialogue,data.attack.skill_name);
+ try{
+   const data=await rpc('divine_beast_boss_counterattack',{
+     p_token:S.token,
+     p_action_id:uuid(),
+     p_player_defense:num(window.pDef?.()),
+     p_earth_reduction_pct:earthReductionPct()
+   });
+   if(data?.attack){
+     await telegraphBossAttack(data.attack);
+     await applyPendingHits();
+   }
+   setTimeout(()=>refresh(true),100);
+   return data;
+ }catch(e){
+   S.castBusy=false;setActionsDisabled(false);
+   throw e;
  }
- setTimeout(()=>refresh(true),120);
- return data;
 }
 async function applyPendingHits(){
  if(S.hitBusy||!S.active||!S.token)return;
@@ -174,7 +353,7 @@ async function applyPendingHits(){
    const m=String(e?.message||e);
    if(!/Could not find|does not exist/i.test(m))
      console.warn('['+BUILD+'] pending boss hit failed',e);
- }finally{S.hitBusy=false}
+ }finally{S.hitBusy=false;S.castBusy=false;setActionsDisabled(false)}
 }
 
 function prompt(data,handlers={}){
@@ -218,7 +397,7 @@ function open(ctx){
  root.className='v152-raid-root';
  root.innerHTML=`<div class="v152-raid-stage-bg" style="background-image:url('${art(b)}')"></div>
  <header class="v152-raid-top">
-  <div><div class="v152-raid-boss-name" data-boss-name>${esc(b.beast_name||'神獸')}</div><div class="v152-raid-sub" data-boss-sub>${esc(DIR[b.direction]||b.direction)}｜${esc(b.coord||'—')}｜世代 ${fmt(b.generation)}</div></div>
+  <div class="v152-boss-identity"><div class="v152-raid-boss-name" data-boss-name>${esc(b.beast_name||'神獸')}</div><div class="v152-raid-sub" data-boss-sub>${esc(DIR[b.direction]||b.direction)}｜${esc(b.coord||'—')}｜世代 ${fmt(b.generation)}</div><div class="v152-phase-badge dominant" data-boss-phase><small>天地威壓</small><b>天威</b></div></div>
   <div class="v152-raid-boss-bars">
    <div class="v152-raid-bar-label"><span>全服共用神獸體力</span><b data-hp-text>${fmt(b.current_hp)} / ${fmt(b.max_hp)}</b></div>
    <div class="v152-raid-bar"><i data-hp-bar style="width:${pct(b.current_hp,b.max_hp)}%"></i></div>
@@ -232,7 +411,7 @@ function open(ctx){
    <div class="v152-raid-panel-title" style="margin-top:14px"><span>目前參戰</span><small data-member-count>0</small></div>
    <div class="v152-raid-list" data-participant-list></div>
   </aside>
-  <section class="v152-raid-center"><div class="v152-boss-dialogue" data-boss-dialogue></div><div class="v152-fx-layer" data-fx-layer></div><div class="v152-damage-layer" data-damage-layer></div><div class="v152-raid-center-caption" data-line>${esc(S.line)}</div></section>
+  <section class="v152-raid-center"><div class="v152-boss-aura"></div><div class="v152-raid-particles"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="v152-skill-cast" data-skill-cast></div><div class="v152-boss-dialogue" data-boss-dialogue></div><div class="v152-fx-layer" data-fx-layer></div><div class="v152-damage-layer" data-damage-layer></div><div class="v152-raid-center-caption" data-line>${esc(S.line)}</div></section>
   <aside class="v152-raid-side right">
    <div class="v152-raid-tabs">
     <button class="on" data-tab="feed">即時戰況</button>
@@ -263,9 +442,12 @@ function open(ctx){
  root.querySelector('[data-toggle-info]').onclick=()=>root.classList.toggle('show-right');
  root.querySelectorAll('[data-tab]').forEach(bn=>bn.onclick=()=>setTab(bn.dataset.tab));
  renderPlayer();
+ updatePhaseDisplay();
+ ensureAudio();
  updateCombatStats();
  setTimeout(()=>showDialogue(INTRO_LINES[String(b.beast_key||'')]||'膽敢踏入吾之領域？','神獸威壓'),350);
  startSync();
+ startTaunts();
 }
 function showTechniques(){
  const list=(window.g?.techniques||[]).map(id=>{
@@ -291,7 +473,7 @@ function renderPlayer(){
 }
 function renderSnapshot(snap){
  if(!S.root||!snap)return;
- S.snapshot=snap;const b=snap.beast||S.beast;S.beast=b;
+ S.snapshot=snap;const b=snap.beast||S.beast;S.beast=b;updatePhaseDisplay();
  S.root.querySelector('[data-hp-text]').textContent=`${fmt(b.current_hp)} / ${fmt(b.max_hp)}`;
  S.root.querySelector('[data-hp-bar]').style.width=`${pct(b.current_hp,b.max_hp)}%`;
  S.root.querySelector('[data-boss-sub]').textContent=`${DIR[b.direction]||b.direction}｜${b.coord||'—'}｜世代 ${fmt(b.generation)}`;
@@ -361,6 +543,7 @@ function startSync(){
  },1000);
 }
 function stopSync(){
+ stopTaunts();
  if(S.poll)clearInterval(S.poll);if(S.countdown)clearInterval(S.countdown);
  S.poll=null;S.countdown=null;
 }
@@ -375,7 +558,7 @@ function close(restore=true){
  if(restore)window.render?.();
 }
 window.V152_RAID={
- build:BUILD,prompt,open,setLine,refresh,finish,close,playerImpact,bossImpact,requestBossCounter,showDialogue,
+ build:BUILD,prompt,open,setLine,refresh,finish,close,playerImpact,bossImpact,requestBossCounter,showDialogue,telegraphBossAttack,
  active:()=>S.active,state:S
 };
 console.info('['+BUILD+'] active');
