@@ -1,9 +1,10 @@
-/* 修仙大逃殺｜專業後台導覽 V14.6 ADMIN UI FIX4
+/* 修仙大逃殺｜專業後台導覽 V14.7 ADMIN UI FIX5
    顯示層插件：真正將功能卡片分派到獨立分類頁；不覆寫原函式、不改欄位 ID、不改 RPC。 */
 (function(){
 'use strict';
 const GROUPS=[
   {id:'overview',label:'總覽',icon:'◈',keys:['世界即時狀態','最近操作']},
+  {id:'players',label:'玩家管理',icon:'♟',keys:['玩家管理與卡點救援']},
   {id:'world',label:'世界控制',icon:'◎',keys:['全服維護與強制離線','黑雲控制','世界天災','活動秘境','地圖放毒','全服公告','世界循環維護']},
   {id:'revenue',label:'收益設定',icon:'◇',keys:['廣告收益與獎勵設定']},
   {id:'auction',label:'萬寶拍賣',icon:'◆',keys:['萬寶拍賣後台']},

@@ -1,0 +1,14 @@
+#playerAdminCard .player-admin-search{display:grid;grid-template-columns:1fr auto;gap:8px}
+#playerAdminCard .player-admin-results{display:grid;gap:8px;max-height:320px;overflow:auto;margin-top:12px}
+#playerAdminCard .player-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;background:#08101a}
+#playerAdminCard .player-row small{display:block;color:var(--muted);margin-top:3px}
+#playerAdminCard .player-row.active{border-color:var(--jade);box-shadow:0 0 0 1px #56d8ce33}
+#playerAdminCard .player-admin-panel{margin-top:14px;display:none}
+#playerAdminCard .player-admin-panel.on{display:block}
+#playerAdminCard .player-summary{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:12px}
+#playerAdminCard .player-actions-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#playerAdminCard .player-action-box{border:1px solid var(--line);border-radius:12px;padding:12px;background:#08101a}
+#playerAdminCard .player-action-box h3{margin:0 0 10px;color:var(--gold);font-size:16px}
+#playerAdminCard .player-log{max-height:260px;overflow:auto;font-size:12px}
+#playerAdminCard .player-log-row{padding:8px 0;border-bottom:1px solid #ffffff12}
+@media(max-width:800px){#playerAdminCard .player-summary{grid-template-columns:1fr 1fr}#playerAdminCard .player-actions-grid{grid-template-columns:1fr}}
