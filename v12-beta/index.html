@@ -696,7 +696,29 @@ function loseFight(){
   const name=fight?.enemy?.name||'未知敵手';fight=null;g.dead=true;closeOv();
   sheet('<h3 style="color:var(--red)">身隕道消</h3><p>你被 '+esc(name)+' 所殺。正式多人版將進入奪舍判定；本原型可重新凝聚道體。</p><button class="btn gold" onclick="localStorage.removeItem(SAVE_KEY);location.reload()">重新入世</button>');
 }
+
+function convertStackedEquipmentCore(){
+  if(!g)return 0;
+  g.inv=(g.inv&&typeof g.inv==='object')?g.inv:{};
+  g.equipment=Array.isArray(g.equipment)?g.equipment:[];
+  let converted=0;
+  Object.keys(g.inv).forEach(id=>{
+    const count=Math.max(0,Math.floor(Number(g.inv[id])||0));
+    if(!count||!isEquipmentId(id))return;
+    for(let i=0;i<count;i++)g.equipment.push(newEquipment(id));
+    delete g.inv[id];
+    converted+=count;
+  });
+  if(converted){
+    repairPlayerEquipment();
+    saveGame(false);
+    toast('已將 '+converted+' 件堆疊裝備轉為可裝備、可強化的獨立裝備');
+  }
+  return converted;
+}
+
 function openBag(tab='bag'){
+  convertStackedEquipmentCore();
   const repaired=repairPlayerEquipment();
   if(repaired>0){saveGame(false);toast('已修復 '+repaired+' 件異常裝備')}
   let h='<h3>行囊與鑄器</h3><div class="tabs"><button class="'+(tab==='bag'?'on':'')+'" onclick="openBag(\'bag\')">道具</button><button class="'+(tab==='equip'?'on':'')+'" onclick="openBag(\'equip\')">裝備</button><button class="'+(tab==='forge'?'on':'')+'" onclick="openBag(\'forge\')">獨立強化</button></div>';
@@ -723,22 +745,62 @@ function useOutside(id){
   g.inv[id]--;log('使用 '+it.name+'。','lg');render();openBag('bag');
 }
 function equipItem(uid){
-  const e=g.equipment.find(x=>x.uid===uid);if(!e)return;
-  if(e.cat==='法器'){g.weaponUid=uid}else if(e.cat==='防具'){g.armorUid=uid}
-  log('裝備 '+e.name+' +'+e.enhance+'。');render();openBag('equip');
+  convertStackedEquipmentCore();
+  const e=g.equipment.find(x=>String(x.uid)===String(uid));
+  if(!e){toast('找不到這件裝備，請重新開啟行囊');return}
+  const base=IT[String(e.itemId)]||null;
+  const cat=(e.cat==='法器'||e.cat==='防具')?e.cat:(base?.cat||'');
+  if(cat==='法器'){
+    g.weaponUid=e.uid;
+  }else if(cat==='防具'){
+    g.armorUid=e.uid;
+  }else{
+    toast('此物品不是可裝備的武器或防具');
+    return;
+  }
+  e.cat=cat;
+  g.equipment.forEach(x=>{
+    const xb=IT[String(x.itemId)]||null;
+    const xcat=(x.cat==='法器'||x.cat==='防具')?x.cat:(xb?.cat||'');
+    if(xcat===cat)x.equipped=String(x.uid)===String(e.uid);
+  });
+  saveGame(false);
+  log('裝備 '+e.name+' +'+e.enhance+'。','lg');
+  render();
+  openBag('equip');
 }
 function enhanceItem(uid){
+  convertStackedEquipmentCore();
   if(!(g.inv['8301']>0)){toast('庚精不足');return}
-  const e=g.equipment.find(x=>x.uid===uid);if(!e)return;g.inv['8301']--;
+  const e=g.equipment.find(x=>String(x.uid)===String(uid));
+  if(!e){toast('找不到這件裝備，請重新開啟行囊');return}
+  const base=IT[String(e.itemId)]||null;
+  const cat=(e.cat==='法器'||e.cat==='防具')?e.cat:(base?.cat||'');
+  if(cat!=='法器'&&cat!=='防具'){toast('此物品不是可強化裝備');return}
+  e.cat=cat;
+  e.enhance=Math.max(0,Math.floor(Number(e.enhance)||0));
+  g.inv['8301']--;
   const rate=e.enhance<6?1:Math.pow(.5,e.enhance-5);
-  if(Math.random()<rate){e.enhance++;log(e.name+' 強化成功，達 +'+e.enhance+'。','lg')}
-  else{
+  if(Math.random()<rate){
+    e.enhance++;
+    log(e.name+' 強化成功，達 +'+e.enhance+'。','lg');
+  }else{
     const roll=Math.random();
-    if(roll<.4){g.equipment=g.equipment.filter(x=>x.uid!==uid);if(g.weaponUid===uid)g.weaponUid=null;if(g.armorUid===uid)g.armorUid=null;log(e.name+' 強化失敗，裝備化為飛灰。','ld')}
-    else if(roll<.7){log(e.name+' 強化失敗，等級維持。','la')}
-    else{e.enhance=Math.max(0,e.enhance-1);log(e.name+' 強化失敗，降為 +'+e.enhance+'。','la')}
+    if(roll<.4){
+      g.equipment=g.equipment.filter(x=>String(x.uid)!==String(uid));
+      if(String(g.weaponUid)===String(uid))g.weaponUid=null;
+      if(String(g.armorUid)===String(uid))g.armorUid=null;
+      log(e.name+' 強化失敗，裝備化為飛灰。','ld');
+    }else if(roll<.7){
+      log(e.name+' 強化失敗，等級維持。','la');
+    }else{
+      e.enhance=Math.max(0,e.enhance-1);
+      log(e.name+' 強化失敗，降為 +'+e.enhance+'。','la');
+    }
   }
-  render();openBag('forge');
+  saveGame(false);
+  render();
+  openBag('forge');
 }
 function openShop(tab='yuanbao'){shopTab=tab;renderShop()}
 function renderShop(){
@@ -789,7 +851,7 @@ function buyTechnique(id){
   if(g.yuanbao<t.price){toast('商城元寶不足');return}
   g.yuanbao-=t.price;g.techniques.push(id);log('研習功法 '+t.name+'。','lg');render();renderShop();
 }
-function buyPremiumItem(id,price){if(g.yuanbao<price){toast('商城元寶不足');return}g.yuanbao-=price;g.inv[id]=(g.inv[id]||0)+1;log('購得 '+IT[id].name+'。','lg');render();renderShop()}
+function buyPremiumItem(id,price){if(g.yuanbao<price){toast('商城元寶不足');return}g.yuanbao-=price;if(isEquipmentId(id))g.equipment.push(newEquipment(id));else g.inv[id]=(g.inv[id]||0)+1;saveGame(false);log('購得 '+IT[id].name+'。','lg');render();renderShop()}
 function exchangeYuanbao(){
   const n=Math.floor(Number($('exchangeAmount').value));if(!(n>0)||n>g.yuanbao){toast('元寶數量不正確');return}
   g.yuanbao-=n;g.lingshi+=n*P.yuanbao_exchange_lingshi;log('兌換 '+n+' 元寶為 '+(n*P.yuanbao_exchange_lingshi)+' 靈石。','lg');render();renderShop();
@@ -863,7 +925,5 @@ function confirmReset(){
 <script src="v14_8_corpse_world.js?v=20260722-v148-phase2"></script>
 <script src="v14_9_item_effects_and_meditation.js?v=20260722-v149-fix1"></script>
 <script src="v15_0_equipment_integrity_fix.js?v=20260722-v150-eq-fix1"></script>
-<script src="v15_0_equipment_instance_fix.js?v=20260722-v150-eq-fix2"></script>
-<script src="v15_0_equipment_action_fix.js?v=20260722-v150-eq-fix3"></script>
 </body>
 </html>
