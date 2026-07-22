@@ -578,7 +578,7 @@ function explore(){
   render();
 }
 function pickItem(id){
-  if(isEquipmentId(id))g.equipment.push(newEquipment(id));else g.inv[id]=(g.inv[id]||0)+1;
+  if(isEquipmentId(id)||IT[String(id)]?.cat==='法器'||IT[String(id)]?.cat==='防具')g.equipment.push(newEquipment(String(id)));else g.inv[id]=(g.inv[id]||0)+1;
   log('獲得 '+IT[id].name+'。','lg');closeOv();render();
 }
 function rollEncounter(source){
@@ -704,8 +704,10 @@ function convertStackedEquipmentCore(){
   let converted=0;
   Object.keys(g.inv).forEach(id=>{
     const count=Math.max(0,Math.floor(Number(g.inv[id])||0));
-    if(!count||!isEquipmentId(id))return;
-    for(let i=0;i<count;i++)g.equipment.push(newEquipment(id));
+    const base=IT[String(id)]||null;
+    const equipLike=isEquipmentId(id)||base?.cat==='法器'||base?.cat==='防具';
+    if(!count||!equipLike)return;
+    for(let i=0;i<count;i++)g.equipment.push(newEquipment(String(id)));
     delete g.inv[id];
     converted+=count;
   });

@@ -149,6 +149,7 @@ function itemEffectText(it,record=null){
 function renderBag(tab='bag'){
   try{
     ensureCanonicalItems();
+    if(typeof convertStackedEquipmentCore==='function')convertStackedEquipmentCore();
     const repaired=repairEquipmentRecords();
     if(repaired>0){
       try{saveGame(false)}catch(_){}
@@ -231,7 +232,7 @@ function install(){
   }catch(err){console.error('[Equipment FIX] override failed',err)}
   window.XIANXIA_ITEM_EFFECT_TEXT=itemEffectText;
   try{render()}catch(_){}
-  console.info(`[${PATCH_ID}] active; enhancement=${ENHANCE_RATE*100}% per level`);
+  console.info(`[${PATCH_ID}] active; enhancement=${ENHANCE_RATE*100}% per level; stacked-equipment bridge=FIX5`);
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,0));
