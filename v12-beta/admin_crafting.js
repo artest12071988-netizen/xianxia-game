@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const VERSION='V14.8-ADMIN-CRAFT-CONFIG-RESTORE-FINAL2';
+  const VERSION='V14.8-ADMIN-CRAFT-FIXED-MOUNT-FINAL4';
   const cardId='craftConfigCardV145B';
   const categories=['alchemy','equipment','legendary'];
   const categoryLabel={alchemy:'煉丹',equipment:'煉器',legendary:'絕世鍛造'};
@@ -156,7 +156,16 @@
   function inject(){
     injectStyle();const main=document.getElementById('adminMain');if(!main)return false;let card=document.getElementById(cardId);
     const old=document.getElementById('craftConfigCardV135');if(old)old.remove();
-    if(!card){card=document.createElement('section');card.className='card';card.id=cardId;card.dataset.uiGroup='craft';card.addEventListener('click',handleClick);card.addEventListener('input',e=>{if(e.target.closest?.('.v145b-param-grid'))markDirty();else updateField(e.target)});card.addEventListener('change',e=>{if(e.target.closest?.('.v145b-param-grid'))markDirty();else updateField(e.target)});(document.querySelector('#adminMain .admin-ui-pane[data-group="craft"]')||main).appendChild(card);window.dispatchEvent(new CustomEvent('xianxia:admin-card-added',{detail:{id:cardId,group:'craft'}}))}
+    if(!card){card=document.createElement('section');card.className='card';card.id=cardId;card.dataset.uiGroup='craft';main.prepend(card)}
+    card.style.display='';
+    if(!card.dataset.craftEventsReady){
+      card.dataset.craftEventsReady='1';
+      card.addEventListener('click',handleClick);
+      card.addEventListener('input',e=>{if(e.target.closest?.('.v145b-param-grid'))markDirty();else updateField(e.target)});
+      card.addEventListener('change',e=>{if(e.target.closest?.('.v145b-param-grid'))markDirty();else updateField(e.target)});
+    }
+    card.dataset.uiGroup='craft';
+    window.dispatchEvent(new CustomEvent('xianxia:admin-card-added',{detail:{id:cardId,group:'craft'}}));
     loadFromDraft(false);if(!draft())render();return true;
   }
   function boot(){inject();clearInterval(refreshTimer);refreshTimer=setInterval(()=>{inject();loadFromDraft(false)},900)}

@@ -17,6 +17,8 @@ const state={active:localStorage.getItem('xianxia_admin_ui_group')||'overview',s
 const normalize=s=>(s||'').replace(/\s+/g,' ').trim();
 const headingText=node=>normalize(Array.from(node.querySelectorAll(':scope > h2,:scope > .head h2')).map(x=>x.textContent).join(' '));
 function groupFor(text,card){
+  const explicit=card?.dataset?.uiGroup;
+  if(explicit&&GROUPS.some(g=>g.id===explicit&&g.id!=='all'))return explicit;
   if(card?.id==='recipeFormCard'||card?.querySelector?.('#recipeAdminList'))return 'craft';
   if(card?.id==='aiAcceptanceCard')return 'ai';
   if(card?.id==='playerAdminCard')return 'players';
