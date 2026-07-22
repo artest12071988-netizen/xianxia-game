@@ -290,6 +290,33 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 <script>
 const $ = id => document.getElementById(id);
 let C, P, R, IT, g=null, ai=[], fight=null, shopTab='yuanbao', tickTimer=null, aiTimer=null, tutorialIndex=0, corpse=null;
+
+// V15.0 CORE STATE BRIDGE FIX1
+// 讓外部經典腳本讀到核心以 let 宣告的狀態；避免 window.g / window.IT 永遠為 undefined。
+(function installXianxiaCoreStateBridge(){
+  const bindings={
+    C:{get:()=>C,set:v=>{C=v}},
+    P:{get:()=>P,set:v=>{P=v}},
+    R:{get:()=>R,set:v=>{R=v}},
+    IT:{get:()=>IT,set:v=>{IT=v}},
+    g:{get:()=>g,set:v=>{g=v}},
+    ai:{get:()=>ai,set:v=>{ai=v}},
+    fight:{get:()=>fight,set:v=>{fight=v}},
+    corpse:{get:()=>corpse,set:v=>{corpse=v}}
+  };
+  for(const [name,access] of Object.entries(bindings)){
+    const old=Object.getOwnPropertyDescriptor(window,name);
+    if(old&&!old.configurable)continue;
+    Object.defineProperty(window,name,{
+      configurable:true,
+      enumerable:false,
+      get:access.get,
+      set:access.set
+    });
+  }
+  window.__XIANXIA_CORE_STATE_BRIDGE='V15.0-FIX1';
+  console.info('[V15.0-CORE-STATE-BRIDGE] installed: g/IT/P/R/C shared with external modules');
+})();
 const SAVE_KEY='xianxia_v12_legacy_cache';
 
 async function boot(){
@@ -914,7 +941,7 @@ function confirmReset(){
 <script src="v13_5_craft_engine.js?v=20260721-v145b-fix1"></script>
 <script src="v14_3_fix1_ui_map.js?v=20260720-fix4g"></script>
 <script src="v14_2_auction.js?v=20260720-142"></script>
-<script src="v14_3_artifact.js?v=20260720-143"></script>
+<script src="v14_3_artifact.js?v=20260722-corebridge-fix1"></script>
 <script src="v14_4_black_cloud.js?v=20260721-fix4h-loopfix"></script>
 <script src="v14_4_beast_tide.js?v=20260721-fix4i-reload"></script>
 <script src="v14_4_great_tribulation.js?v=20260720-fix4c"></script>
@@ -926,6 +953,6 @@ function confirmReset(){
 <script src="v14_6_meditation_immersion.js?v=20260721-v146-fix1"></script>
 <script src="v14_8_corpse_world.js?v=20260722-v148-phase2"></script>
 <script src="v14_9_item_effects_and_meditation.js?v=20260722-v149-fix1"></script>
-<script src="v15_0_equipment_integrity_fix.js?v=20260722-v150-eq-fix1"></script>
+<script src="v15_0_equipment_integrity_fix.js?v=20260722-corebridge-fix1"></script>
 </body>
 </html>
