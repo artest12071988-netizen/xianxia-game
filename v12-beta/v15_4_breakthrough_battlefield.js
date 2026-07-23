@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.4-PHASE3-STAGE1-IMMERSIVE-UI-SHELL-20260723';
+const BUILD='V15.4-PHASE3-STAGE2-BATTLEFIELD-ANOMALY-20260723';
 const ROOT_ID='v154BreakthroughBattlefield';
 const FAILURE_ID='v154BreakthroughFailureFx';
 const state={
@@ -67,6 +67,16 @@ function stageDots(info){
   return `<div class="v154-stage-dots">${[0,1,2,3].map(i=>`<i class="${i<=info.index?'on':''}"></i>`).join('')}</div>`;
 }
 function columnsFor(count){return count<=3?1:count<=8?2:3}
+function anomalyMarkup(info){
+  const colors=['#72e7ff','#8fffd1','#ffe28a','#c09bff','#7eb8ff','#ff9aa6'];
+  const qi=Array.from({length:16},(_,i)=>{const side=i%2===0?'left':'right',y=17+(i*7)%66,width=26+(i*9)%25,tilt=side==='left'?(4+(i%4)*4):(176-(i%4)*4);return `<i class="v154-qi-stream ${side}" style="--y:${y}%;--w:${width}vw;--tilt:${tilt}deg;--delay:${-(i*.31).toFixed(2)}s;--dur:${(2.4+(i%5)*.24).toFixed(2)}s;--qi:${colors[i%colors.length]}"></i>`}).join('');
+  const bolts=Array.from({length:7},(_,i)=>`<i class="v154-lightning b${i+1}" style="--bolt-delay:${-(i*.83).toFixed(2)}s"></i>`).join('');
+  return `<div class="v154-anomaly-field stage-${Math.min(3,info.index)}" aria-hidden="true"><div class="v154-sky-vortex"></div><div class="v154-thunder-flash"></div>${bolts}<div class="v154-qi-streams">${qi}</div><div class="v154-island-pulse"></div></div>`;
+}
+function aerialFormation(faction){
+  const count=Math.min(8,activeMembers(faction).length),slots=faction==='guardian'?[[12,20],[23,31],[8,43],[25,52],[14,64],[31,70],[5,78],[22,84]]:[[88,19],[76,30],[92,42],[74,52],[86,63],[69,70],[95,77],[78,84]];
+  return `<div class="v154-air-formation ${faction}" aria-hidden="true">${slots.slice(0,count).map((p,i)=>`<i class="v154-air-unit" style="--ax:${p[0]}%;--ay:${p[1]}%;--ad:${-(i*.37).toFixed(2)}s;--as:${(.72+(i%4)*.1).toFixed(2)}"></i>`).join('')}</div>`;
+}
 function logKey(x){return `${x?.at||''}|${x?.actor||''}|${x?.action||''}|${x?.target||''}|${x?.amount||0}`}
 
 function personCard(p){
@@ -127,6 +137,8 @@ function currentSpeech(){
 function render(){
   const el=root();if(!el||!state.data)return;
   const e=state.data.event||{},sec=secondsLeft(),ended=e.battle_status==='ended',info=stageInfo();
+  el.dataset.stage=String(Math.min(4,info.index));
+  el.classList.toggle('v154-anomaly-peak',!e.breakthrough_result&&info.index>=3);
   if(state.selected&&!targetAllowed(state.selected))state.selected=null;
   const targetName=state.selected==='owner'?state.data.owner?.name:(state.data.participants||[]).find(p=>p.key===state.selected)?.name;
   const act=myCanAct(),phase=e.breakthrough_result?(ended?'戰場結束':'突破者已出關'):'天象異變同步中';
@@ -136,7 +148,7 @@ function render(){
     <button class="flee" data-action="flee" ${!act?'disabled':''}><span class="v154-action-icon">➜</span><b>遁走</b><small>暫離孤島</small></button>
     <div class="v154-target-note">${act?(targetName?`已鎖定：${esc(targetName)}`:'點選敵方修士作為攻擊目標'):(state.role==='owner'&&!e.breakthrough_result?'突破尚未結束，暫時無法行動':'目前無法行動')}</div>`;
   el.innerHTML=`
-    <div class="v154-btf-bg"></div><div class="v154-btf-qi"></div>
+    <div class="v154-btf-bg"></div><div class="v154-btf-qi"></div>${anomalyMarkup(info)}
     <header class="v154-btf-top">
       <div class="v154-btf-title"><div class="v154-title-seal">異</div><div><h2>孤島天象異變</h2><p>天地異變，群雄爭鋒；護法或襲擊，皆為天道一戰。</p></div></div>
       <div class="v154-btf-clock"><small>${e.breakthrough_result?'突破結果':'剩餘時間'}</small><strong>${e.breakthrough_result?(e.breakthrough_result==='success'?'成功':'失敗'):sec.toFixed(sec<10?1:0)}</strong><span>${esc(info.label)}</span></div>
@@ -144,7 +156,7 @@ function render(){
     </header>
     <main class="v154-btf-arena">
       ${roster('guardian')}
-      <section class="v154-center">${ownerCard()}<div class="v154-speech">${esc(currentSpeech())}</div></section>
+      <section class="v154-center">${aerialFormation('guardian')}${aerialFormation('attacker')}${ownerCard()}<div class="v154-speech">${esc(currentSpeech())}</div></section>
       ${roster('attacker')}
     </main>
     <div class="v154-result-fx"></div>
