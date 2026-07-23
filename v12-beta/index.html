@@ -621,37 +621,77 @@ function rollEncounter(source){
   }
   const monsterChance=source==='move'?.25:.42;if(Math.random()<monsterChance)startFightMonster(pickMonster(z));
 }
-function pickMonster(z){
-  if(window.V153MonsterEcology?.pickForZone){
-    const selected=window.V153MonsterEcology.pickForZone(z,{tide:!!window.V14BeastTide?.isActive?.()});
-    if(selected)return selected;
-  }
-  const coord=z?.coord||coordOf(g.pos.r,g.pos.c);
-  const tagMap={
-    'A-1':['新手','草原','荒野'],'J-2':['新手','草原','荒野'],
-    'C-3':['城鎮周邊','荒野'],'C-4':['城鎮周邊','荒野'],
-    'C-5':['靈地','山地'],'D-4':['水域','靈地','森林'],
-    'E-5':['秘境','山地','森林','遺跡'],'F-2':['廢墟'],
-    'B-4':['廢墟'],'G-6':['山地','廢墟'],'H-4':['森林','沼澤'],
-    'I-10':['海岸','海域'],'A-6':['安全區'],'B-7':['森林'],
-    'D-8':['沙漠'],'F-7':['古戰場'],'H-8':['遺跡','廢墟'],
-    'B-9':['崑崙','山地'],'A-10':['天宮','冰原','山地'],
-    'C-10':['冰原'],'F-10':['海域'],'H-10':['冰火島','火山','冰原'],
+function monsterHabitatTags(z){
+  const text=((z&&z.name)||'')+' '+((z&&z.type)||'');
+  if(/赤砂荒漠|沙漠/.test(text))return ['沙漠'];
+  if(/萬木森域|迷霧林|森林/.test(text))return ['森林','沼澤'];
+  if(/玄霜冰原|冰原/.test(text))return ['冰原'];
+  if(/北天宮|天宮/.test(text))return ['天宮','冰原','山地'];
+  if(/滄溟外海/.test(text))return ['海域'];
+  if(/陰陽海/.test(text))return ['陰陽海','海域'];
+  if(/鎮海燈塔/.test(text))return ['海岸','海域'];
+  if(/冰火島/.test(text))return ['冰火島','火山','冰原'];
+  if(/太古戰場|古戰場/.test(text))return ['古戰場'];
+  if(/上古遺跡|古代遺跡|遺跡/.test(text))return ['遺跡','廢墟'];
+  if(/崑崙仙山|崑崙/.test(text))return ['崑崙','山地'];
+  if(/中央秘境|秘境/.test(text))return ['秘境','山地','森林','遺跡'];
+  if(/靈泉|靈地/.test(text))return ['水域','靈地','森林'];
+  if(/青牛谷|練氣坊|新手村/.test(text))return ['新手','草原','荒野'];
+  if(/舊居|廢墟/.test(text))return ['廢墟'];
+  if(/神祠|山地/.test(text))return ['山地','廢墟'];
+
+  const coord=(z&&z.coord)||coordOf(g.pos.r,g.pos.c);
+  const fallback={
+    'A-1':['新手','草原','荒野'],
+    'J-2':['新手','草原','荒野'],
+    'C-3':['城鎮周邊','荒野'],
+    'C-4':['城鎮周邊','荒野'],
+    'C-5':['靈地','山地'],
+    'D-4':['水域','靈地','森林'],
+    'E-5':['秘境','山地','森林','遺跡'],
+    'F-2':['廢墟'],
+    'B-4':['廢墟'],
+    'G-6':['山地','廢墟'],
+    'H-4':['森林','沼澤'],
+    'I-10':['海岸','海域'],
+    'A-6':['安全區'],
+    'B-7':['森林'],
+    'D-8':['沙漠'],
+    'F-7':['古戰場'],
+    'H-8':['遺跡','廢墟'],
+    'B-9':['崑崙','山地'],
+    'A-10':['天宮','冰原','山地'],
+    'C-10':['冰原'],
+    'F-10':['海域'],
+    'H-10':['冰火島','火山','冰原'],
     'J-10':['陰陽海','海域']
   };
-  const tags=tagMap[coord]||['荒野'];
-  let cand=C.monsters.filter(m=>!['活動王','古魔'].includes(m.cat));
-  cand=cand.filter(m=>m.ecologyLocked===false||!Array.isArray(m.habitats)||!m.habitats.length||m.habitats.some(h=>tags.includes(h)));
-  if(z?.novice){
-    const novice=cand.filter(m=>m.lv<=3&&m.lv<=g.lv+1);
-    if(novice.length)cand=novice;
-  }else{
-    const near=cand.filter(m=>Math.abs(Number(m.lv)-Number(g.lv))<=3);
-    if(near.length)cand=near;
+  return fallback[coord]||['荒野'];
+}
+function localMonsterPool(z){
+  const tags=monsterHabitatTags(z);
+  return C.monsters.filter(m=>{
+    if(['活動王','古魔'].includes(m.cat))return false;
+    if(m.ecologyLocked===false)return true;
+    if(!Array.isArray(m.habitats)||!m.habitats.length)return true;
+    return m.habitats.some(h=>tags.includes(h));
+  });
+}
+function pickMonster(z){
+  const pool=localMonsterPool(z);
+  if(!pool.length){
+    console.warn('[V15.3 FIX3] 當地怪物池為空',z&&z.name,monsterHabitatTags(z));
+    const fallback=C.monsters.filter(m=>!['活動王','古魔'].includes(m.cat));
+    return JSON.parse(JSON.stringify(rnd(fallback)));
   }
-  const regional=cand.filter(m=>Number(m.id)>=9401&&Number(m.id)<=9415);
-  const pool=regional.length&&Math.random()<.75?regional:cand;
-  return JSON.parse(JSON.stringify(rnd(pool.length?pool:C.monsters.filter(m=>!['活動王','古魔'].includes(m.cat)))));
+  const selected=rnd(pool);
+  console.info('[V15.3 FIX3] 地域隨機遭遇',{
+    zone:z&&z.name,
+    tags:monsterHabitatTags(z),
+    pool:pool.map(m=>m.name),
+    selected:selected&&selected.name
+  });
+  return JSON.parse(JSON.stringify(selected));
 }
 function startAiEncounter(a){
   sheet('<h3>神識遭遇</h3><p>你察覺到修士 <b style="color:var(--gold)">'+esc(a.name)+'</b> 的氣息。</p><div class="money"><div><span>境界</span><b>'+a.realm+' Lv'+a.lv+'</b></div><div><span>性格</span><b style="font-size:14px">'+a.personality+'</b></div></div><div class="row" style="margin-top:12px"><button class="btn red" onclick="startFightAi('+a.id+')">攔截鬥法</button><button class="btn" onclick="closeOv()">避開</button></div>');
@@ -987,6 +1027,6 @@ function confirmReset(){
 <script src="v15_1_phase2_enchant_and_beast_combat.js?v=20260723-v152-p3-fix2-items"></script>
 <script src="v15_1_phase3_ai_beast_bridge.js?v=20260722-v151-p3"></script>
 <script src="v15_2_immersive_raid.js?v=20260723-v152-p3-fix2-items"></script>
-<script src="v15_3_monster_ecology.js?v=20260723-v153-p1-fix2-core"></script>
+<script src="v15_3_monster_ecology.js?v=20260723-v153-p1-fix3-random-local"></script>
 </body>
 </html>

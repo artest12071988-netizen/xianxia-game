@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.3-PHASE1-FIX2-CORE-ENCOUNTER';
+const BUILD='V15.3-PHASE1-FIX3-RANDOM-LOCAL';
 if(window.__V153MonsterEcologyFix2Loaded)return;
 window.__V153MonsterEcologyFix2Loaded=true;
 
@@ -18,7 +18,7 @@ const ZONE_TAGS={
  'C-10':['冰原'],'F-10':['海域'],'H-10':['冰火島','火山','冰原'],
  'J-10':['陰陽海','海域']
 };
-const state={installed:false,legacyStreak:{},lastMonster:{}};
+const state={installed:false};
 const get=name=>{try{return Function('return typeof '+name+'!=="undefined"?'+name+':null')()}catch(_){return null}};
 const set=(name,value)=>{try{Function('v',name+'=v')(value);return true}catch(_){try{window[name]=value;return true}catch(__){return false}}};
 const num=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d};
@@ -29,19 +29,25 @@ const currentConfig=()=>get('C');
 const currentZone=()=>{const g=currentGame(),zoneAt=get('zoneAt');return g&&typeof zoneAt==='function'?zoneAt(g.pos.r,g.pos.c):null};
 const currentCoord=()=>{const g=currentGame(),coordOf=get('coordOf');return g&&typeof coordOf==='function'?coordOf(g.pos.r,g.pos.c):''};
 function tagsFor(z=currentZone()){
+ const text=String(z?.name||'')+' '+String(z?.type||'');
+ if(/赤砂荒漠|沙漠/.test(text))return ['沙漠'];
+ if(/萬木森域|迷霧林|森林/.test(text))return ['森林','沼澤'];
+ if(/玄霜冰原|冰原/.test(text))return ['冰原'];
+ if(/北天宮|天宮/.test(text))return ['天宮','冰原','山地'];
+ if(/滄溟外海/.test(text))return ['海域'];
+ if(/陰陽海/.test(text))return ['陰陽海','海域'];
+ if(/鎮海燈塔/.test(text))return ['海岸','海域'];
+ if(/冰火島/.test(text))return ['冰火島','火山','冰原'];
+ if(/太古戰場|古戰場/.test(text))return ['古戰場'];
+ if(/上古遺跡|古代遺跡|遺跡/.test(text))return ['遺跡','廢墟'];
+ if(/崑崙仙山|崑崙/.test(text))return ['崑崙','山地'];
+ if(/中央秘境|秘境/.test(text))return ['秘境','山地','森林','遺跡'];
+ if(/靈泉|靈地/.test(text))return ['水域','靈地','森林'];
+ if(/青牛谷|練氣坊|新手村/.test(text))return ['新手','草原','荒野'];
+ if(/舊居|廢墟/.test(text))return ['廢墟'];
+ if(/神祠|山地/.test(text))return ['山地','廢墟'];
  const coord=z?.coord||currentCoord();
- if(ZONE_TAGS[coord])return ZONE_TAGS[coord].slice();
- const text=String(z?.name||'')+' '+String(z?.type||''),tags=[];
- if(/森林|林/.test(text))tags.push('森林');
- if(/沙漠|赤砂/.test(text))tags.push('沙漠');
- if(/冰原|玄霜/.test(text))tags.push('冰原');
- if(/陰陽海/.test(text))tags.push('陰陽海','海域');else if(/海|燈塔/.test(text))tags.push('海岸','海域');
- if(/遺跡/.test(text))tags.push('遺跡');
- if(/廢墟/.test(text))tags.push('廢墟');
- if(/戰場/.test(text))tags.push('古戰場');
- if(/崑崙/.test(text))tags.push('崑崙','山地');
- if(/天宮/.test(text))tags.push('天宮','冰原');
- return tags.length?tags:['荒野'];
+ return ZONE_TAGS[coord]?.slice()||['荒野'];
 }
 function compatible(m,z=currentZone()){
  if(!m)return false;
@@ -49,54 +55,35 @@ function compatible(m,z=currentZone()){
  const tags=tagsFor(z);
  return m.habitats.some(h=>tags.includes(h));
 }
-function weighted(list){
- if(!list.length)return null;
- const total=list.reduce((s,m)=>s+Math.max(.1,num(m.spawnWeight,1)),0);
- let r=Math.random()*total;
- for(const m of list){r-=Math.max(.1,num(m.spawnWeight,1));if(r<=0)return m}
- return list[list.length-1];
+function randomOne(list){
+ if(!Array.isArray(list)||!list.length)return null;
+ return list[Math.floor(Math.random()*list.length)]||null;
 }
-function localPool(z=currentZone(),{tide=false}={}){
- const C=currentConfig(),g=currentGame();
- let pool=(C?.monsters||[]).filter(m=>!['活動王','古魔'].includes(m.cat)&&compatible(m,z));
- if(tide){
-   const regular=pool.filter(m=>String(m.spawn||'').includes('獸潮')&&!String(m.spawn||'').includes('獸潮5%'));
-   if(regular.length)pool=regular;
- }
- if(z?.novice){
-   const novice=pool.filter(m=>num(m.lv)<=3&&num(m.lv)<=num(g?.lv)+1);
-   if(novice.length)pool=novice;
- }else{
-   const near=pool.filter(m=>Math.abs(num(m.lv)-num(g?.lv))<=3);
-   if(near.length)pool=near;
- }
- return pool;
+function localPool(z=currentZone(),opts={}){
+ const C=currentConfig();
+ return (C?.monsters||[]).filter(m=>
+   !['活動王','古魔'].includes(m.cat)&&compatible(m,z)
+ );
 }
 function choose(z=currentZone(),opts={}){
- const C=currentConfig(),coord=z?.coord||currentCoord();
- let pool=localPool(z,opts);
- if(opts.tide){
-   const bosses=(C?.monsters||[]).filter(m=>String(m.spawn||'').includes('獸潮5%')&&compatible(m,z));
-   if(bosses.length&&Math.random()<.05){
-     const g=currentGame();
-     bosses.sort((a,b)=>Math.abs(num(a.lv)-num(g?.lv))-Math.abs(num(b.lv)-num(g?.lv)));
-     return clone(weighted(bosses.slice(0,Math.min(2,bosses.length))));
-   }
+ const C=currentConfig();
+ let pool=localPool(z);
+ if(!pool.length){
+   console.warn(`[${BUILD}] empty local pool`,{
+     zone:z?.name,
+     type:z?.type,
+     coord:z?.coord||currentCoord(),
+     tags:tagsFor(z)
+   });
+   pool=(C?.monsters||[]).filter(m=>!['活動王','古魔'].includes(m.cat));
  }
- if(!pool.length)pool=(C?.monsters||[]).filter(m=>!['活動王','古魔'].includes(m.cat)&&compatible(m,z));
- const regional=pool.filter(m=>num(m.id)>=9401&&num(m.id)<=9415);
- const forceRegional=regional.length&&num(state.legacyStreak[coord])>=2;
- let candidatePool=(regional.length&&(forceRegional||Math.random()<.75))?regional:pool;
- const last=state.lastMonster[coord];
- if(candidatePool.length>1&&last!=null){
-   const noRepeat=candidatePool.filter(m=>String(m.id)!==String(last));
-   if(noRepeat.length)candidatePool=noRepeat;
- }
- const selected=weighted(candidatePool)||weighted(pool);
- if(selected){
-   state.lastMonster[coord]=selected.id;
-   state.legacyStreak[coord]=num(selected.id)>=9401&&num(selected.id)<=9415?0:num(state.legacyStreak[coord])+1;
- }
+ const selected=randomOne(pool);
+ console.info(`[${BUILD}] random local encounter`,{
+   zone:z?.name,
+   tags:tagsFor(z),
+   pool:pool.map(m=>`${m.id}:${m.name}`),
+   selected:selected?`${selected.id}:${selected.name}`:null
+ });
  return clone(selected);
 }
 function weaponElement(){const g=currentGame();const e=(g?.equipment||[]).find(x=>String(x.uid)===String(g?.weaponUid));return e?.elementEnchant?.key||null}
@@ -116,7 +103,7 @@ function install(){
  const oldStart=get('startFightMonster'),oldRender=get('renderFight'),oldAttack=get('attackTurn'),oldEnemy=get('enemyTurn'),oldDex=get('openMonsterDex');
  const zoneAt=get('zoneAt'),coordOf=get('coordOf'),rnd=get('rnd');
 
- set('pickMonster',function(z){return choose(z,{tide:!!window.V14BeastTide?.isActive?.()})});
+ set('pickMonster',function(z){return choose(z)});
  set('rollEncounter',function(source){
    const g=currentGame(),ai=get('ai')||[],startAiEncounter=get('startAiEncounter'),startFightMonster=get('startFightMonster');
    const z=typeof zoneAt==='function'?zoneAt(g.pos.r,g.pos.c):null;
@@ -127,13 +114,12 @@ function install(){
      if(!list.length)list=ai.filter(a=>a.alive&&Math.abs(num(a.lv)-num(g.lv))<=2);
      if(list.length)return startAiEncounter(typeof rnd==='function'?rnd(list):list[Math.floor(Math.random()*list.length)]);
    }
-   const tide=!!window.V14BeastTide?.isActive?.();
-   const chance=tide?(source==='move'?.50:.70):(source==='move'?.25:.42);
-   if(Math.random()<chance){const m=choose(z,{tide});if(m)return startFightMonster(m)}
+   const chance=source==='move'?.25:.42;
+   if(Math.random()<chance){const m=choose(z);if(m)return startFightMonster(m)}
  });
  set('startFightMonster',function(m){
    const z=currentZone();let selected=m;
-   if(!compatible(selected,z))selected=choose(z,{tide:!!window.V14BeastTide?.isActive?.()});
+   if(!compatible(selected,z))selected=choose(z);
    return oldStart(selected);
  });
  set('renderFight',function(line,speech={}){
@@ -178,9 +164,23 @@ function install(){
  });
  state.installed=true;
  window.V153MonsterEcology={
-   build:BUILD,pickForZone:(z,opts={})=>choose(z,opts),pick:()=>choose(currentZone(),{tide:!!window.V14BeastTide?.isActive?.()}),
-   compatible,zoneTags:()=>tagsFor(),localPool:()=>localPool(currentZone(),{tide:!!window.V14BeastTide?.isActive?.()}).map(m=>({id:m.id,name:m.name,habitats:m.habitats})),
-   diagnose:()=>({installed:state.installed,zone:currentZone()?.name,coord:currentCoord(),tags:tagsFor(),monsterCount:currentConfig()?.monsters?.length||0,localPool:localPool().map(m=>`${m.id}:${m.name}`),legacyStreak:state.legacyStreak[currentCoord()]||0}),relation
+   build:BUILD,
+   pickForZone:(z)=>choose(z),
+   pick:()=>choose(currentZone()),
+   compatible,
+   zoneTags:()=>tagsFor(),
+   localPool:()=>localPool(currentZone()).map(m=>({id:m.id,name:m.name,habitats:m.habitats})),
+   diagnose:()=>({
+     installed:state.installed,
+     zone:currentZone()?.name,
+     type:currentZone()?.type,
+     coord:currentCoord(),
+     tags:tagsFor(),
+     monsterCount:currentConfig()?.monsters?.length||0,
+     selectionRule:'當地合法怪物等機率，不依玩家或怪物等級',
+     localPool:localPool().map(m=>`${m.id}:${m.name}`)
+   }),
+   relation
  };
  console.info(`[${BUILD}] installed`,window.V153MonsterEcology.diagnose());return true;
 }
