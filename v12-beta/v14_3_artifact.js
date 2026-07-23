@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.3-PHASE2-FIX3-FOUR-FORGE-SYSTEMS-20260723';
+const BUILD='V15.3-PHASE2-FIX5-INLINE-ENHANCE-20260723';
 
 const MATS={
   '8301':{
@@ -250,7 +250,26 @@ function eqCard(e){
 
       <div class="v143-card-summary">
         <span>下次強化 ${nextRate.toFixed(nextRate<10?2:0)}%</span>
-        <span>淬鍊增幅器紋</span>
+        <span>每次消耗庚精 1</span>
+      </div>
+
+      <div class="v143-inline-enhance">
+        <label class="${inv('8410')>0?'':'is-disabled'}">
+          <input
+            type="checkbox"
+            data-v143-inline-stabilizer="${esc(e.uid)}"
+            ${inv('8410')>0?'':'disabled'}
+          >
+          <span>淬器石保階</span>
+        </label>
+        <label class="${inv('8411')>0?'':'is-disabled'}">
+          <input
+            type="checkbox"
+            data-v143-inline-guard="${esc(e.uid)}"
+            ${inv('8411')>0?'':'disabled'}
+          >
+          <span>保護符防碎</span>
+        </label>
       </div>
 
       <div class="v143-actions">
@@ -397,7 +416,16 @@ function bind(){
     .forEach(
       b=>b.addEventListener(
         'click',
-        ()=>chooseEnhance(b.dataset.v143Enhance)
+        ()=>{
+          const uid=b.dataset.v143Enhance;
+          const useStabilizer=!!document.querySelector(
+            `[data-v143-inline-stabilizer="${CSS.escape(uid)}"]`
+          )?.checked;
+          const useGuard=!!document.querySelector(
+            `[data-v143-inline-guard="${CSS.escape(uid)}"]`
+          )?.checked;
+          enhance(uid,useStabilizer,useGuard);
+        }
       )
     );
 
@@ -833,15 +861,10 @@ function enhance(uid,useStabilizer,useGuard){
 
   const rate=enhanceRate(e.enhance);
 
-  if(!confirm(
-    `${e.name} +${e.enhance} → +${e.enhance+1}\n`+
-    `成功率 ${(
-      rate*100
-    ).toFixed(rate*100<10?2:0)}%。\n`+
-    `${protectionText(useStabilizer,useGuard)}\n`+
-    '是否開始強化？'
-  ))return;
-
+  /*
+   * 強化頁面已完整顯示材料、成功率與失敗風險。
+   * 按下強化按鈕後直接執行，不再跳出瀏覽器二次確認。
+   */
   window.g.inv['8301']--;
   if(useStabilizer)window.g.inv['8410']--;
   if(useGuard)window.g.inv['8411']--;
@@ -1079,7 +1102,11 @@ function patch(){
    */
   window.enhanceItem=function(uid){
     open();
-    setTimeout(()=>chooseEnhance(uid),30);
+    setTimeout(()=>{
+      document.querySelector(
+        `[data-v143-card="${CSS.escape(String(uid))}"]`
+      )?.scrollIntoView({behavior:'smooth',block:'center'});
+    },50);
   };
 
   return true;

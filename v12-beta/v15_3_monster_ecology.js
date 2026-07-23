@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.3-PHASE2-FIX1-COMBAT-EFFECT-ANIMATIONS';
+const BUILD='V15.3-PHASE2-FIX5-QINGNIU-NOVICE-RING';
 if(window.__V153MonsterEcologyFix2Loaded)return;
 window.__V153MonsterEcologyFix2Loaded=true;
 
@@ -20,6 +20,15 @@ const ZONE_TAGS={
 };
 const state={installed:false};
 const TERRAIN_POOLS={"desert":[9401,9402,9403,9413],"forest":[9001,9002,9404,9405,9406],"ice":[9407,9408,9409],"northpalace":[9407,9408,9409],"sea":[9410,9411,9412],"yinyang":[9410,9411,9412],"icefire":[9408,9413],"battle":[9414,9415],"ruin":[9404,9414,9415],"kunlun":[9406,9415],"mountain":[9001,9002,9406,9415],"village":[9001,9002],"lighthouse":[9410,9412],"abyss":[9414,9415],"market":[]};
+const QINGNIU_NOVICE_COORDS=new Set([
+ 'D-3','D-4','D-5',
+ 'E-3','E-4','E-5',
+ 'F-3','F-4','F-5'
+]);
+const QINGNIU_LOW_MONSTER_IDS=[9001,9002];
+function isQingniuNoviceCoord(coord){
+ return QINGNIU_NOVICE_COORDS.has(String(coord||''));
+}
 const BEAST_TIDE_ONLY_IDS=new Set([9004,9005,9006,9101,9102,9103]);
 const REQUIRED_NEW_IDS=[...Array.from({length:15},(_,i)=>9401+i),9421,9422,9423,9424,9425];
 const ELITE_CHANCE=.05;
@@ -84,14 +93,23 @@ function monsterById(id){
  return (currentConfig()?.monsters||[]).find(m=>Number(m.id)===Number(id))||null;
 }
 function localPool(z=null){
- const region=resolveTerrain(z),ids=TERRAIN_POOLS[region.type];
+ const region=resolveTerrain(z);
+ const ids=isQingniuNoviceCoord(region.coord)
+   ?QINGNIU_LOW_MONSTER_IDS
+   :TERRAIN_POOLS[region.type];
  if(!Array.isArray(ids))return [];
- return ids.map(monsterById).filter(Boolean).filter(m=>m.normalEncounter!==false);
+ return ids
+   .map(monsterById)
+   .filter(Boolean)
+   .filter(m=>m.normalEncounter!==false);
 }
 function choose(z=null){
  const region=resolveTerrain(z);
  if(region.type==='market')return null;
- const ids=TERRAIN_POOLS[region.type];
+ const noviceArea=isQingniuNoviceCoord(region.coord);
+ const ids=noviceArea
+   ?QINGNIU_LOW_MONSTER_IDS
+   :TERRAIN_POOLS[region.type];
  if(!Array.isArray(ids)){
    console.error(`[${BUILD}] undefined terrain pool`,region);
    const toast=get('toast');if(typeof toast==='function')toast('目前地貌尚未設定怪物生態：'+region.name);
@@ -104,7 +122,7 @@ function choose(z=null){
    const toast=get('toast');if(typeof toast==='function')toast(missing.length?'怪物設定缺少 ID：'+missing.join('、'):'目前地貌沒有可遭遇怪物。');
    return null;
  }
- const eliteId=ELITE_BY_TERRAIN[region.type];
+ const eliteId=noviceArea?null:ELITE_BY_TERRAIN[region.type];
  const elite=eliteId?monsterById(eliteId):null;
  const selected=(elite&&Math.random()<ELITE_CHANCE)?elite:randomOne(pool);
  console.info(`[${BUILD}] fixed-map terrain encounter`,{region,eliteRoll:!!(selected?.elite),pool:pool.map(m=>`${m.id}:${m.name}`),selected:selected?`${selected.id}:${selected.name}`:null});
@@ -120,7 +138,9 @@ function validateIncoming(monster,z=null){
    console.warn(`[${BUILD}] blocked black-cloud/tide monster`,{id,name:monster.name,region});return choose(z);
  }
  if(monster.normalEncounter===false)return monster;
- const eliteId=ELITE_BY_TERRAIN[region.type];
+ const eliteId=isQingniuNoviceCoord(region.coord)
+   ?null
+   :ELITE_BY_TERRAIN[region.type];
  if(monster.elite===true&&Number(eliteId)===id)return monster;
  const allowed=localPool(z).some(m=>Number(m.id)===id);
  if(!allowed){console.warn(`[${BUILD}] replaced wrong-terrain monster`,{id,name:monster.name,region});return choose(z)}

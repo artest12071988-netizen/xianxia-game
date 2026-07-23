@@ -129,7 +129,7 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="v14_3_fix1_ui_map.css?v=20260720-fix4g">
 <link rel="stylesheet" href="v14_2_auction.css?v=20260720-142">
-<link rel="stylesheet" href="v14_3_artifact.css?v=20260723-v153-p2-fix3-four-forge">
+<link rel="stylesheet" href="v14_3_artifact.css?v=20260723-v153-p2-fix5-inline">
 <link rel="stylesheet" href="v14_4_black_cloud.css?v=20260720-fix4a">
 <link rel="stylesheet" href="v14_4_beast_tide.css?v=20260720-fix4b">
 <link rel="stylesheet" href="v14_4_great_tribulation.css?v=20260720-fix4c">
@@ -225,7 +225,7 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
         <div class="panel-head"><strong>當前地域</strong><span>WORLD DOMAIN</span></div>
         <div class="world-scene">
           <div class="stars"></div><div class="moon"></div><div class="mountain"></div>
-          <div class="scene-content"><div class="scene-zone" id="sceneZone">青牛谷</div><div class="scene-coord" id="sceneCoord">A-1 · 新手村</div><div class="scene-copy" id="sceneCopy">新手結界壓制高階妖魔，適合累積第一桶修為。</div></div>
+          <div class="scene-content"><div class="scene-zone" id="sceneZone">青牛谷</div><div class="scene-coord" id="sceneCoord">E-4 · 青牛谷</div><div class="scene-copy" id="sceneCopy">新手結界壓制高階妖魔，適合累積第一桶修為。</div></div>
         </div>
         <div class="action-grid">
           <button class="btn action-tile jade" onclick="openWorldMap()"><span class="rune">圖</span><span><strong>御風移動</strong><small>從地圖選擇目的地</small></span></button>
@@ -324,7 +324,7 @@ const SAVE_KEY='xianxia_v12_legacy_cache';
 
 async function boot(){
   try{
-    const r=await fetch('xianxia_config_V12.json?v=20260723-v153-p2-status-elites',{cache:'no-store'});
+    const r=await fetch('xianxia_config_V12.json?v=20260723-v153-p2-fix5-qingniu',{cache:'no-store'});
     if(!r.ok)throw new Error('config '+r.status);
     C=await r.json();
     const requiredMonsterIds=[...Array.from({length:15},(_,i)=>9401+i),9421,9422,9423,9424,9425];
@@ -431,7 +431,7 @@ function initAi(){
   });
 }
 function freshGame(name){
-  const r0=realmOf(1),st=coordRC('A-1');
+  const r0=realmOf(1),st=coordRC('E-4');
   return {
     name,lv:1,big:'練氣期',exp:0,hp:r0.hp,hpMax:r0.hp,mp:P.start_stamina,mpMax:P.start_stamina,
     pos:st,lingshi:0,yuanbao:0,boundStone:0,inv:{'1001':3,'1002':3},equipment:[],weaponUid:null,armorUid:null,
@@ -643,6 +643,16 @@ function rollEncounter(source){
   }
 }
 const V153_TERRAIN_POOLS={"desert":[9401,9402,9403,9413],"forest":[9001,9002,9404,9405,9406],"ice":[9407,9408,9409],"northpalace":[9407,9408,9409],"sea":[9410,9411,9412],"yinyang":[9410,9411,9412],"icefire":[9408,9413],"battle":[9414,9415],"ruin":[9404,9414,9415],"kunlun":[9406,9415],"mountain":[9001,9002,9406,9415],"village":[9001,9002],"lighthouse":[9410,9412],"abyss":[9414,9415],"market":[]};
+const V153_QINGNIU_CENTER='E-4';
+const V153_QINGNIU_NOVICE_COORDS=new Set([
+  'D-3','D-4','D-5',
+  'E-3','E-4','E-5',
+  'F-3','F-4','F-5'
+]);
+const V153_QINGNIU_LOW_MONSTER_IDS=[9001,9002];
+function v153IsQingniuNoviceCoord(coord){
+  return V153_QINGNIU_NOVICE_COORDS.has(String(coord||''));
+}
 const V153_BEAST_TIDE_ONLY_IDS=new Set([9004,9005,9006,9101,9102,9103]);
 const V153_ELITE_CHANCE=.05;
 const V153_ELITE_BY_TERRAIN={desert:9421,ice:9422,northpalace:9422,forest:9423,sea:9424,yinyang:9424,lighthouse:9424,battle:9425};
@@ -696,14 +706,22 @@ function v153BlackCloudActiveHere(){
 }
 function localMonsterPool(z=null){
   const region=v153ResolveTerrain(z);
-  const ids=V153_TERRAIN_POOLS[region.type];
+  const ids=v153IsQingniuNoviceCoord(region.coord)
+    ?V153_QINGNIU_LOW_MONSTER_IDS
+    :V153_TERRAIN_POOLS[region.type];
   if(!Array.isArray(ids))return [];
-  return ids.map(v153MonsterById).filter(Boolean).filter(m=>m.normalEncounter!==false);
+  return ids
+    .map(v153MonsterById)
+    .filter(Boolean)
+    .filter(m=>m.normalEncounter!==false);
 }
 function pickMonster(z=null){
   const region=v153ResolveTerrain(z);
   if(region.type==='market')return null;
-  const ids=V153_TERRAIN_POOLS[region.type];
+  const noviceArea=v153IsQingniuNoviceCoord(region.coord);
+  const ids=noviceArea
+    ?V153_QINGNIU_LOW_MONSTER_IDS
+    :V153_TERRAIN_POOLS[region.type];
   if(!Array.isArray(ids)){
     console.error('[V15.3 FIX5] 未定義地貌怪物池',region);
     toast('目前地貌尚未設定怪物生態：'+region.name);
@@ -716,7 +734,7 @@ function pickMonster(z=null){
     toast(missing.length?'怪物設定缺少 ID：'+missing.join('、'):'目前地貌沒有可遭遇怪物。');
     return null;
   }
-  const eliteId=V153_ELITE_BY_TERRAIN[region.type];
+  const eliteId=noviceArea?null:V153_ELITE_BY_TERRAIN[region.type];
   const elite=eliteId?v153MonsterById(eliteId):null;
   const selected=(elite&&Math.random()<V153_ELITE_CHANCE)?elite:rnd(pool);
   console.info('[V15.3 FIX5] 固定地圖地貌隨機遭遇',{region,pool:pool.map(m=>m.id+':'+m.name),selected:selected?.id+':'+selected?.name});
@@ -735,7 +753,9 @@ function v153ValidateMonsterForCurrentZone(monster){
     return pickMonster();
   }
   if(monster.normalEncounter===false)return monster;
-  const eliteId=V153_ELITE_BY_TERRAIN[region.type];
+  const eliteId=v153IsQingniuNoviceCoord(region.coord)
+    ?null
+    :V153_ELITE_BY_TERRAIN[region.type];
   if(monster.elite===true&&Number(eliteId)===id)return monster;
   const allowed=localMonsterPool().some(m=>Number(m.id)===id);
   if(!allowed){
@@ -1064,9 +1084,9 @@ function confirmReset(){
 <script src="v13_world_orchestrator.js?v=20260719-fix2-1"></script>
 <script src="v13_5_world_expansion.js?v=20260719-fix2-1"></script>
 <script src="v13_5_craft_engine.js?v=20260721-v145b-fix1"></script>
-<script src="v14_3_fix1_ui_map.js?v=20260720-fix4g"></script>
+<script src="v14_3_fix1_ui_map.js?v=20260723-v153-p2-fix5-qingniu"></script>
 <script src="v14_2_auction.js?v=20260720-142"></script>
-<script src="v14_3_artifact.js?v=20260723-v153-p2-fix3-four-forge"></script>
+<script src="v14_3_artifact.js?v=20260723-v153-p2-fix5-inline"></script>
 <script src="v14_4_black_cloud.js?v=20260721-fix4h-loopfix"></script>
 <script src="v14_4_beast_tide.js?v=20260721-fix4i-reload"></script>
 <script src="v14_4_great_tribulation.js?v=20260720-fix4c"></script>
@@ -1084,6 +1104,6 @@ function confirmReset(){
 <script src="v15_1_phase2_enchant_and_beast_combat.js?v=20260723-v152-p3-fix2-items"></script>
 <script src="v15_1_phase3_ai_beast_bridge.js?v=20260722-v151-p3"></script>
 <script src="v15_2_immersive_raid.js?v=20260723-v152-p3-fix2-items"></script>
-<script src="v15_3_monster_ecology.js?v=20260723-v153-p2-fix1-animations"></script>
+<script src="v15_3_monster_ecology.js?v=20260723-v153-p2-fix5-qingniu"></script>
 </body>
 </html>

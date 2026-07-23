@@ -255,3 +255,33 @@
     align-items:flex-start
   }
 }
+
+
+/* V15.3 Phase 2 FIX5：強化直接在裝備卡片操作 */
+.v143-inline-enhance{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin:8px 0 2px
+}
+.v143-inline-enhance label{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 9px;
+  border:1px solid rgba(86,125,148,.42);
+  border-radius:999px;
+  background:rgba(9,22,31,.66);
+  color:#bdcbd5;
+  font-size:11px;
+  cursor:pointer
+}
+.v143-inline-enhance input{
+  width:15px;
+  height:15px;
+  margin:0
+}
+.v143-inline-enhance label.is-disabled{
+  opacity:.40;
+  cursor:not-allowed
+}

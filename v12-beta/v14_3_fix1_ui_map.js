@@ -1,7 +1,7 @@
 /* 修仙大逃殺 V14.4 FIX4｜固定格子世界地圖（僅替換視覺與地貌標示，不改移動/戰鬥核心） */
 (function(){
 'use strict';
-const VERSION='14.4-fix4g-exact-10x10';
+const VERSION='15.3-fix5-qingniu-spawn';
 const ASSET='assets/world_map/';
 const FILES={forest:'forest.webp',desert:'desert.webp',ice:'ice.webp',northpalace:'north_palace.webp',sea:'sea.webp',yinyang:'yinyang_sea.webp',icefire:'icefire_island.webp',kunlun:'kunlun.webp',mountain:'kunlun.webp',ruin:'ancient_ruins.webp',battle:'ancient_battlefield.webp',market:'market.webp',village:'village.webp',abyss:'ancient_battlefield.webp',lighthouse:'sea.webp'};
 const TERRAIN_LABEL={forest:'樹海',desert:'沙漠',ice:'冰原',northpalace:'北寒天宮',sea:'海',yinyang:'陰陽海',icefire:'冰火島',kunlun:'崑崙山',mountain:'山域',ruin:'上古遺跡',battle:'古戰場',market:'萬寶交易所',village:'青牛谷',abyss:'魔淵',lighthouse:'鎮海海域'};
@@ -12,7 +12,7 @@ const BLUEPRINT=[
 [['冰原','ice'],['冰原','ice'],['樹海','forest'],['萬木森域','forest'],['樹海','forest'],['沙漠','desert'],['太古戰場','battle'],['沙漠','desert'],['沙漠','desert'],['遠古戰場','battle']],
 [['冰原','ice'],['冰原','ice'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['沙漠','desert'],['赤沙荒漠','desert'],['沙漠','desert'],['沙漠','desert'],['沙漠','desert']],
 [['冰原','ice'],['冰原','ice'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['樹海','forest']],
-[['冰原','ice'],['冰原','ice'],['樹海','forest'],['清牛谷','village'],['樹海','forest'],['萬寶交易所','market'],['樹海','forest'],['樹海','forest'],['上古遺跡','ruin'],['樹海','forest']],
+[['冰原','ice'],['冰原','ice'],['樹海','forest'],['青牛谷','village'],['樹海','forest'],['萬寶交易所','market'],['樹海','forest'],['樹海','forest'],['上古遺跡','ruin'],['樹海','forest']],
 [['冰原','ice'],['冰原','ice'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['樹海','forest'],['樹海','forest']],
 [['冰原','ice'],['冰原','ice'],['山','mountain'],['山','mountain'],['山','mountain'],['樹海','forest'],['海','sea'],['海','sea'],['海','sea'],['海','sea']],
 [['冰原','ice'],['冰原','ice'],['山','mountain'],['山','mountain'],['山','mountain'],['山','mountain'],['海','sea'],['海','sea'],['海','sea'],['海','sea']],

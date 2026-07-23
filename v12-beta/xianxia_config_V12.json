@@ -3434,7 +3434,7 @@
     },
     {
       "id": 12,
-      "coord": "A-1",
+      "coord": "E-4",
       "name": "青牛谷",
       "type": "新手村",
       "pool": [
@@ -4015,7 +4015,7 @@
       "action": "shop"
     }
   ],
-  "version": "V15.3-PHASE2-STATUS-ELITES-CORPSE-FIX",
+  "version": "V15.3-PHASE2-FIX5-QINGNIU-SPAWN",
   "aiCultivators": [
     {
       "id": 200001,
