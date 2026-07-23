@@ -12,3 +12,13 @@
 .v153-dex-card span{display:flex!important;align-items:center;gap:6px;flex-wrap:wrap}
 .v153-dex-card .v153-element{padding:2px 6px;font-size:9px}
 @media(max-width:680px){.v153-fight-meta>span{font-size:10px}.v153-trait{font-size:11px}}
+
+
+/* V15.3 Phase 2 — 異常狀態與地域精英 */
+.v153-elite{display:inline-flex!important;align-items:center;padding:5px 9px!important;border:1px solid #d54b40!important;border-radius:999px;background:linear-gradient(135deg,rgba(110,17,13,.75),rgba(44,9,12,.78))!important;color:#ff9a70!important;font-size:11px!important;font-weight:900;box-shadow:0 0 16px rgba(234,65,47,.18)}
+.v153-elite-title{display:inline-block;padding:2px 7px;border:1px solid #d54b40;border-radius:999px;color:#ff8f6a;font-size:11px;font-style:normal;vertical-align:middle}
+.v153-status{display:inline-flex!important;align-items:center;padding:5px 9px!important;border-radius:999px;font-size:11px!important;font-weight:800}
+.v153-status.poison{border:1px solid #6d9d42!important;background:rgba(43,83,22,.35)!important;color:#a9e66e!important}
+.v153-status.burn{border:1px solid #c55336!important;background:rgba(103,34,20,.38)!important;color:#ff9776!important}
+.v153-status.slow{border:1px solid #4388a5!important;background:rgba(24,70,92,.40)!important;color:#8edcf5!important}
+.v153-dex-card .v153-elite{padding:2px 6px!important;font-size:9px!important}

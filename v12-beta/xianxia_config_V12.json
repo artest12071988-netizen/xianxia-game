@@ -1858,7 +1858,7 @@
         "沙漠"
       ],
       "trait": "赤砂劇毒",
-      "traitText": "外甲堅硬，格擋略高",
+      "traitText": "外甲堅硬，格擋略高；戰鬥中可能觸發【赤砂蠍毒】",
       "blockBonus": 0.05,
       "spawnWeight": 12,
       "element": "土",
@@ -1887,7 +1887,16 @@
         "再用力一點。"
       ],
       "normalEncounter": true,
-      "encounterMode": "normal"
+      "encounterMode": "normal",
+      "combatEffect": {
+        "type": "poison",
+        "label": "赤砂蠍毒",
+        "chance": 0.3,
+        "turns": 3,
+        "damagePct": 0.015,
+        "minDamage": 8,
+        "maxDamage": 500
+      }
     },
     {
       "id": 9402,
@@ -1915,7 +1924,7 @@
         "沙漠"
       ],
       "trait": "蟻群啃噬",
-      "traitText": "群體外殼使減傷提高",
+      "traitText": "群體外殼使減傷提高；戰鬥中可能觸發【蟻群連噬】",
       "damageReduction": 0.07,
       "spawnWeight": 11,
       "element": "金",
@@ -1944,7 +1953,15 @@
         "再用力一點。"
       ],
       "normalEncounter": true,
-      "encounterMode": "normal"
+      "encounterMode": "normal",
+      "combatEffect": {
+        "type": "multi_hit",
+        "label": "蟻群連噬",
+        "chance": 0.35,
+        "minHits": 2,
+        "maxHits": 4,
+        "hitMultiplier": 0.45
+      }
     },
     {
       "id": 9403,
@@ -1972,7 +1989,7 @@
         "沙漠"
       ],
       "trait": "沙甲偽裝",
-      "traitText": "閃避與格擋略高",
+      "traitText": "閃避與格擋略高；戰鬥中可能觸發【沙火灼痕】",
       "evasionBonus": 0.04,
       "blockBonus": 0.04,
       "spawnWeight": 9,
@@ -2002,7 +2019,16 @@
         "再用力一點。"
       ],
       "normalEncounter": true,
-      "encounterMode": "normal"
+      "encounterMode": "normal",
+      "combatEffect": {
+        "type": "burn",
+        "label": "沙火灼痕",
+        "chance": 0.28,
+        "turns": 3,
+        "damagePct": 0.018,
+        "minDamage": 8,
+        "maxDamage": 550
+      }
     },
     {
       "id": 9404,
@@ -2207,7 +2233,7 @@
         "天宮"
       ],
       "trait": "霜影獵殺",
-      "traitText": "閃避與暴擊提高",
+      "traitText": "閃避與暴擊提高；戰鬥中可能觸發【玄霜寒氣】",
       "evasionBonus": 0.06,
       "critBonus": 0.04,
       "spawnWeight": 10,
@@ -2237,7 +2263,15 @@
         "再用力一點。"
       ],
       "normalEncounter": true,
-      "encounterMode": "normal"
+      "encounterMode": "normal",
+      "combatEffect": {
+        "type": "slow",
+        "label": "玄霜寒氣",
+        "chance": 0.28,
+        "turns": 2,
+        "damageMultiplier": 0.75,
+        "missBonus": 0.1
+      }
     },
     {
       "id": 9408,
@@ -2267,7 +2301,7 @@
         "遺跡"
       ],
       "trait": "寒晶蛛網",
-      "traitText": "外殼減傷並提高閃避",
+      "traitText": "外殼減傷並提高閃避；戰鬥中可能觸發【寒晶蛛網】",
       "damageReduction": 0.06,
       "evasionBonus": 0.04,
       "spawnWeight": 8,
@@ -2297,7 +2331,15 @@
         "再用力一點。"
       ],
       "normalEncounter": true,
-      "encounterMode": "normal"
+      "encounterMode": "normal",
+      "combatEffect": {
+        "type": "slow",
+        "label": "寒晶蛛網",
+        "chance": 0.35,
+        "turns": 2,
+        "damageMultiplier": 0.72,
+        "missBonus": 0.12
+      }
     },
     {
       "id": 9409,
@@ -2326,7 +2368,7 @@
         "天宮"
       ],
       "trait": "冰甲熊威",
-      "traitText": "高減傷與重擊",
+      "traitText": "高減傷與重擊；戰鬥中可能觸發【冰原威壓】",
       "damageReduction": 0.09,
       "damageBonus": 0.08,
       "spawnWeight": 5,
@@ -2356,7 +2398,15 @@
         "再用力一點。"
       ],
       "normalEncounter": true,
-      "encounterMode": "normal"
+      "encounterMode": "normal",
+      "combatEffect": {
+        "type": "slow",
+        "label": "冰原威壓",
+        "chance": 0.32,
+        "turns": 2,
+        "damageMultiplier": 0.75,
+        "missBonus": 0.1
+      }
     },
     {
       "id": 9410,
@@ -2386,7 +2436,7 @@
         "陰陽海"
       ],
       "trait": "破浪穿刺",
-      "traitText": "攻擊與閃避略高",
+      "traitText": "攻擊與閃避略高；戰鬥中可能觸發【破浪潮擊】",
       "damageBonus": 0.06,
       "evasionBonus": 0.05,
       "spawnWeight": 10,
@@ -2416,7 +2466,13 @@
         "再用力一點。"
       ],
       "normalEncounter": true,
-      "encounterMode": "normal"
+      "encounterMode": "normal",
+      "combatEffect": {
+        "type": "tide",
+        "label": "破浪潮擊",
+        "chance": 0.3,
+        "bonusDamage": 0.25
+      }
     },
     {
       "id": 9411,
@@ -2445,7 +2501,7 @@
         "陰陽海"
       ],
       "trait": "雷鰻電擊",
-      "traitText": "暴擊率提高",
+      "traitText": "暴擊率提高；戰鬥中可能觸發【雷鰻吸精】",
       "critBonus": 0.07,
       "spawnWeight": 7,
       "element": "金",
@@ -2474,7 +2530,15 @@
         "再用力一點。"
       ],
       "normalEncounter": true,
-      "encounterMode": "normal"
+      "encounterMode": "normal",
+      "combatEffect": {
+        "type": "drain_mp",
+        "label": "雷鰻吸精",
+        "chance": 0.35,
+        "mpPct": 0.06,
+        "minDrain": 12,
+        "maxDrain": 700
+      }
     },
     {
       "id": 9412,
@@ -2504,7 +2568,7 @@
         "陰陽海"
       ],
       "trait": "玄潮重甲",
-      "traitText": "極高格擋與減傷",
+      "traitText": "極高格擋與減傷；戰鬥中可能觸發【玄潮重浪】",
       "blockBonus": 0.11,
       "damageReduction": 0.11,
       "spawnWeight": 4,
@@ -2534,7 +2598,13 @@
         "再用力一點。"
       ],
       "normalEncounter": true,
-      "encounterMode": "normal"
+      "encounterMode": "normal",
+      "combatEffect": {
+        "type": "tide",
+        "label": "玄潮重浪",
+        "chance": 0.3,
+        "bonusDamage": 0.3
+      }
     },
     {
       "id": 9413,
@@ -2563,7 +2633,7 @@
         "沙漠"
       ],
       "trait": "熔岩灼甲",
-      "traitText": "攻擊與減傷提高",
+      "traitText": "攻擊與減傷提高；戰鬥中可能觸發【熔岩灼燒】",
       "damageBonus": 0.09,
       "damageReduction": 0.05,
       "spawnWeight": 7,
@@ -2593,7 +2663,16 @@
         "再用力一點。"
       ],
       "normalEncounter": true,
-      "encounterMode": "normal"
+      "encounterMode": "normal",
+      "combatEffect": {
+        "type": "burn",
+        "label": "熔岩灼燒",
+        "chance": 0.38,
+        "turns": 3,
+        "damagePct": 0.025,
+        "minDamage": 12,
+        "maxDamage": 750
+      }
     },
     {
       "id": 9414,
@@ -2713,6 +2792,393 @@
       ],
       "normalEncounter": true,
       "encounterMode": "normal"
+    },
+    {
+      "id": 9421,
+      "name": "砂海蠍王",
+      "cat": "地域精英",
+      "lv": 12,
+      "hp": 12000,
+      "mp": 600,
+      "atk": 1050,
+      "def": 820,
+      "exp": 8500,
+      "drops": [
+        [
+          "4003",
+          1.0
+        ],
+        [
+          "4002",
+          0.45
+        ],
+        [
+          "8301",
+          0.06
+        ]
+      ],
+      "spawn": "沙漠｜低機率精英",
+      "elementKey": "earth",
+      "element": "土",
+      "weakTo": "木",
+      "strongAgainst": "水",
+      "habitats": [
+        "沙漠"
+      ],
+      "trait": "砂海王毒",
+      "traitText": "精英妖王；蠍毒更深，持續時間更長",
+      "evasionBonus": 0.04,
+      "blockBonus": 0.08,
+      "critBonus": 0.04,
+      "damageBonus": 0.08,
+      "damageReduction": 0.08,
+      "spawnWeight": 1,
+      "ecologyLocked": true,
+      "normalEncounter": true,
+      "encounterMode": "elite",
+      "elite": true,
+      "eliteTerrain": "desert",
+      "eliteChance": 0.05,
+      "combatEffect": {
+        "type": "poison",
+        "label": "砂海王毒",
+        "chance": 0.45,
+        "turns": 4,
+        "damagePct": 0.025,
+        "minDamage": 18,
+        "maxDamage": 900
+      },
+      "image": "assets/monsters/9421.svg?v=20260723-v153-p2",
+      "attackLines": [
+        "此地由本王鎮守！",
+        "凡修也敢挑戰精英妖王？",
+        "受死！"
+      ],
+      "hitLines": [
+        "竟能傷到本王！",
+        "好膽！",
+        "本王要將你撕碎！"
+      ],
+      "critLines": [
+        "妖王震怒！",
+        "一擊葬仙！",
+        "血肉俱滅！"
+      ],
+      "blockLines": [
+        "精英妖甲未破。",
+        "這點力道不夠。",
+        "本王毫髮無傷。"
+      ]
+    },
+    {
+      "id": 9422,
+      "name": "寒晶巨狼",
+      "cat": "地域精英",
+      "lv": 14,
+      "hp": 15000,
+      "mp": 850,
+      "atk": 1250,
+      "def": 1050,
+      "exp": 10500,
+      "drops": [
+        [
+          "4004",
+          1.0
+        ],
+        [
+          "4003",
+          0.7
+        ],
+        [
+          "8301",
+          0.06
+        ]
+      ],
+      "spawn": "冰原／北天宮｜低機率精英",
+      "elementKey": "water",
+      "element": "水",
+      "weakTo": "土",
+      "strongAgainst": "火",
+      "habitats": [
+        "冰原",
+        "天宮"
+      ],
+      "trait": "寒晶狼域",
+      "traitText": "精英妖王；寒氣大幅壓制身法與攻勢",
+      "evasionBonus": 0.08,
+      "blockBonus": 0.05,
+      "critBonus": 0.07,
+      "damageBonus": 0.08,
+      "damageReduction": 0.08,
+      "spawnWeight": 1,
+      "ecologyLocked": true,
+      "normalEncounter": true,
+      "encounterMode": "elite",
+      "elite": true,
+      "eliteTerrain": "ice",
+      "eliteChance": 0.05,
+      "combatEffect": {
+        "type": "slow",
+        "label": "寒晶狼域",
+        "chance": 0.45,
+        "turns": 3,
+        "damageMultiplier": 0.65,
+        "missBonus": 0.15
+      },
+      "image": "assets/monsters/9422.svg?v=20260723-v153-p2",
+      "attackLines": [
+        "此地由本王鎮守！",
+        "凡修也敢挑戰精英妖王？",
+        "受死！"
+      ],
+      "hitLines": [
+        "竟能傷到本王！",
+        "好膽！",
+        "本王要將你撕碎！"
+      ],
+      "critLines": [
+        "妖王震怒！",
+        "一擊葬仙！",
+        "血肉俱滅！"
+      ],
+      "blockLines": [
+        "精英妖甲未破。",
+        "這點力道不夠。",
+        "本王毫髮無傷。"
+      ]
+    },
+    {
+      "id": 9423,
+      "name": "噬魂古藤妖",
+      "cat": "地域精英",
+      "lv": 15,
+      "hp": 16000,
+      "mp": 1600,
+      "atk": 1300,
+      "def": 980,
+      "exp": 11500,
+      "drops": [
+        [
+          "4001",
+          1.0
+        ],
+        [
+          "4003",
+          0.75
+        ],
+        [
+          "8301",
+          0.05
+        ]
+      ],
+      "spawn": "樹海／森林｜低機率精英",
+      "elementKey": "wood",
+      "element": "木",
+      "weakTo": "金",
+      "strongAgainst": "土",
+      "habitats": [
+        "森林",
+        "沼澤"
+      ],
+      "trait": "噬魂藤纏",
+      "traitText": "精英妖王；藤蔓纏身並吞噬精力",
+      "evasionBonus": 0.05,
+      "blockBonus": 0.06,
+      "critBonus": 0.04,
+      "damageBonus": 0.1,
+      "damageReduction": 0.07,
+      "spawnWeight": 1,
+      "ecologyLocked": true,
+      "normalEncounter": true,
+      "encounterMode": "elite",
+      "elite": true,
+      "eliteTerrain": "forest",
+      "eliteChance": 0.05,
+      "combatEffect": {
+        "type": "entangle",
+        "label": "噬魂藤纏",
+        "chance": 0.42,
+        "turns": 2,
+        "damageMultiplier": 0.72,
+        "missBonus": 0.1,
+        "mpPct": 0.05,
+        "minDrain": 15,
+        "maxDrain": 650
+      },
+      "image": "assets/monsters/9423.svg?v=20260723-v153-p2",
+      "attackLines": [
+        "此地由本王鎮守！",
+        "凡修也敢挑戰精英妖王？",
+        "受死！"
+      ],
+      "hitLines": [
+        "竟能傷到本王！",
+        "好膽！",
+        "本王要將你撕碎！"
+      ],
+      "critLines": [
+        "妖王震怒！",
+        "一擊葬仙！",
+        "血肉俱滅！"
+      ],
+      "blockLines": [
+        "精英妖甲未破。",
+        "這點力道不夠。",
+        "本王毫髮無傷。"
+      ]
+    },
+    {
+      "id": 9424,
+      "name": "深淵鮫將",
+      "cat": "地域精英",
+      "lv": 16,
+      "hp": 18000,
+      "mp": 1800,
+      "atk": 1450,
+      "def": 1150,
+      "exp": 13000,
+      "drops": [
+        [
+          "4003",
+          1.0
+        ],
+        [
+          "4004",
+          0.55
+        ],
+        [
+          "8301",
+          0.06
+        ]
+      ],
+      "spawn": "海域／陰陽海｜低機率精英",
+      "elementKey": "water",
+      "element": "水",
+      "weakTo": "土",
+      "strongAgainst": "火",
+      "habitats": [
+        "海域",
+        "陰陽海",
+        "海岸"
+      ],
+      "trait": "深淵潮噬",
+      "traitText": "精英妖王；潮汐重創並吸取精力",
+      "evasionBonus": 0.06,
+      "blockBonus": 0.07,
+      "critBonus": 0.06,
+      "damageBonus": 0.11,
+      "damageReduction": 0.09,
+      "spawnWeight": 1,
+      "ecologyLocked": true,
+      "normalEncounter": true,
+      "encounterMode": "elite",
+      "elite": true,
+      "eliteTerrain": "sea",
+      "eliteChance": 0.05,
+      "combatEffect": {
+        "type": "abyssal_tide",
+        "label": "深淵潮噬",
+        "chance": 0.42,
+        "bonusDamage": 0.35,
+        "mpPct": 0.08,
+        "minDrain": 20,
+        "maxDrain": 900
+      },
+      "image": "assets/monsters/9424.svg?v=20260723-v153-p2",
+      "attackLines": [
+        "此地由本王鎮守！",
+        "凡修也敢挑戰精英妖王？",
+        "受死！"
+      ],
+      "hitLines": [
+        "竟能傷到本王！",
+        "好膽！",
+        "本王要將你撕碎！"
+      ],
+      "critLines": [
+        "妖王震怒！",
+        "一擊葬仙！",
+        "血肉俱滅！"
+      ],
+      "blockLines": [
+        "精英妖甲未破。",
+        "這點力道不夠。",
+        "本王毫髮無傷。"
+      ]
+    },
+    {
+      "id": 9425,
+      "name": "殘甲戰魂",
+      "cat": "地域精英",
+      "lv": 17,
+      "hp": 20000,
+      "mp": 2200,
+      "atk": 1600,
+      "def": 1350,
+      "exp": 15000,
+      "drops": [
+        [
+          "4002",
+          1.0
+        ],
+        [
+          "4003",
+          0.8
+        ],
+        [
+          "8301",
+          0.08
+        ]
+      ],
+      "spawn": "太古戰場｜低機率精英",
+      "elementKey": "metal",
+      "element": "金",
+      "weakTo": "火",
+      "strongAgainst": "木",
+      "habitats": [
+        "古戰場"
+      ],
+      "trait": "殘軍戰意",
+      "traitText": "精英戰魂；低機率發動戰魂重斬",
+      "evasionBonus": 0.06,
+      "blockBonus": 0.1,
+      "critBonus": 0.08,
+      "damageBonus": 0.12,
+      "damageReduction": 0.1,
+      "spawnWeight": 1,
+      "ecologyLocked": true,
+      "normalEncounter": true,
+      "encounterMode": "elite",
+      "elite": true,
+      "eliteTerrain": "battle",
+      "eliteChance": 0.05,
+      "combatEffect": {
+        "type": "heavy_strike",
+        "label": "戰魂重斬",
+        "chance": 0.38,
+        "bonusDamage": 0.5
+      },
+      "image": "assets/monsters/9425.svg?v=20260723-v153-p2",
+      "attackLines": [
+        "此地由本王鎮守！",
+        "凡修也敢挑戰精英妖王？",
+        "受死！"
+      ],
+      "hitLines": [
+        "竟能傷到本王！",
+        "好膽！",
+        "本王要將你撕碎！"
+      ],
+      "critLines": [
+        "妖王震怒！",
+        "一擊葬仙！",
+        "血肉俱滅！"
+      ],
+      "blockLines": [
+        "精英妖甲未破。",
+        "這點力道不夠。",
+        "本王毫髮無傷。"
+      ]
     }
   ],
   "zones": [
@@ -3549,7 +4015,7 @@
       "action": "shop"
     }
   ],
-  "version": "V15.3-PHASE1-FIX4-EXACT-ZONE-POOLS",
+  "version": "V15.3-PHASE2-STATUS-ELITES-CORPSE-FIX",
   "aiCultivators": [
     {
       "id": 200001,
@@ -5463,6 +5929,15 @@
       "沙漠專屬毒蠍、蟻群、沙蜥",
       "活動王與魔界事件不受地域篩選"
     ],
-    "selectionRule": "一般探索使用明確地域怪物名單；獸潮專屬怪不進入一般探索。"
+    "selectionRule": "一般探索使用明確地域怪物名單；獸潮專屬怪不進入一般探索。",
+    "eliteChance": 0.05,
+    "eliteRule": "指定地貌每次怪物遭遇有5%機率改為地域精英；未觸發時從一般地域池等機率抽取。",
+    "statusRules": {
+      "poison": "每回合持續扣除體力，不疊加，只刷新較強效果",
+      "burn": "每回合持續灼燒，不疊加，只刷新較強效果",
+      "slow": "降低玩家攻擊傷害並提高落空率",
+      "multi_hit": "一次反擊造成2至4段連擊",
+      "sea": "海域怪物可能吸取精力或追加潮汐傷害"
+    }
   }
 }

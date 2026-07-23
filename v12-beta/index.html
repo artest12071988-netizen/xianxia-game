@@ -139,7 +139,7 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 <link rel="stylesheet" href="v14_5d_maintenance_gate.css?v=20260721-v145d-1">
 <link rel="stylesheet" href="v15_1_phase2_enchant_and_beast_combat.css?v=20260722-v151-p2">
 <link rel="stylesheet" href="v15_2_immersive_raid.css?v=20260723-v152-p3-boss">
-<link rel="stylesheet" href="v15_3_monster_ecology.css?v=20260723-v153-p1">
+<link rel="stylesheet" href="v15_3_monster_ecology.css?v=20260723-v153-p2-status-elites">
 </head>
 <body>
 <div id="app">
@@ -324,13 +324,13 @@ const SAVE_KEY='xianxia_v12_legacy_cache';
 
 async function boot(){
   try{
-    const r=await fetch('xianxia_config_V12.json?v=20260723-v153-fix4-exact-pools',{cache:'no-store'});
+    const r=await fetch('xianxia_config_V12.json?v=20260723-v153-p2-status-elites',{cache:'no-store'});
     if(!r.ok)throw new Error('config '+r.status);
     C=await r.json();
-    const requiredMonsterIds=Array.from({length:15},(_,i)=>9401+i);
+    const requiredMonsterIds=[...Array.from({length:15},(_,i)=>9401+i),9421,9422,9423,9424,9425];
     const loadedMonsterIds=new Set((C.monsters||[]).map(m=>Number(m.id)));
     const missingMonsterIds=requiredMonsterIds.filter(id=>!loadedMonsterIds.has(id));
-    if((C.monsters||[]).length<32||missingMonsterIds.length){
+    if((C.monsters||[]).length<37||missingMonsterIds.length){
       throw new Error(
         'V15.3 怪物設定未更新：目前 '+(C.monsters||[]).length+
         ' 種，缺少 '+missingMonsterIds.join('、')+
@@ -644,6 +644,8 @@ function rollEncounter(source){
 }
 const V153_TERRAIN_POOLS={"desert":[9401,9402,9403,9413],"forest":[9001,9002,9404,9405,9406],"ice":[9407,9408,9409],"northpalace":[9407,9408,9409],"sea":[9410,9411,9412],"yinyang":[9410,9411,9412],"icefire":[9408,9413],"battle":[9414,9415],"ruin":[9404,9414,9415],"kunlun":[9406,9415],"mountain":[9001,9002,9406,9415],"village":[9001,9002],"lighthouse":[9410,9412],"abyss":[9414,9415],"market":[]};
 const V153_BEAST_TIDE_ONLY_IDS=new Set([9004,9005,9006,9101,9102,9103]);
+const V153_ELITE_CHANCE=.05;
+const V153_ELITE_BY_TERRAIN={desert:9421,ice:9422,northpalace:9422,forest:9423,sea:9424,yinyang:9424,lighthouse:9424,battle:9425};
 function v153ResolveTerrain(z=null){
   try{
     const fixed=window.V144_FIXED_MAP?.infoFor?.(g.pos.r,g.pos.c);
@@ -710,11 +712,13 @@ function pickMonster(z=null){
   const pool=localMonsterPool(z);
   if(!pool.length){
     const missing=ids.filter(id=>!v153MonsterById(id));
-    console.error('[V15.3 FIX5] 地貌怪物池載入失敗',{region,ids,missing,catalogCount:C?.monsters?.length});
+    console.error('[V15.3 PHASE2] 地貌怪物池載入失敗',{region,ids,missing,catalogCount:C?.monsters?.length});
     toast(missing.length?'怪物設定缺少 ID：'+missing.join('、'):'目前地貌沒有可遭遇怪物。');
     return null;
   }
-  const selected=rnd(pool);
+  const eliteId=V153_ELITE_BY_TERRAIN[region.type];
+  const elite=eliteId?v153MonsterById(eliteId):null;
+  const selected=(elite&&Math.random()<V153_ELITE_CHANCE)?elite:rnd(pool);
   console.info('[V15.3 FIX5] 固定地圖地貌隨機遭遇',{region,pool:pool.map(m=>m.id+':'+m.name),selected:selected?.id+':'+selected?.name});
   return JSON.parse(JSON.stringify(selected));
 }
@@ -731,6 +735,8 @@ function v153ValidateMonsterForCurrentZone(monster){
     return pickMonster();
   }
   if(monster.normalEncounter===false)return monster;
+  const eliteId=V153_ELITE_BY_TERRAIN[region.type];
+  if(monster.elite===true&&Number(eliteId)===id)return monster;
   const allowed=localMonsterPool().some(m=>Number(m.id)===id);
   if(!allowed){
     console.warn('[V15.3 FIX5] 阻擋錯誤地貌怪物',{id,name:monster.name,region});
@@ -1070,7 +1076,7 @@ function confirmReset(){
 <script src="v14_5b_crafting_codex.js?v=20260721-fix4h-loopfix"></script>
 <script src="v14_5d_maintenance_gate.js?v=20260721-v145d-1"></script>
 <script src="v14_6_meditation_immersion.js?v=20260721-v146-fix1"></script>
-<script src="v14_8_corpse_world.js?v=20260722-v148-phase2"></script>
+<script src="v14_8_corpse_world.js?v=20260723-v153-p2-corpse-client"></script>
 <script src="v14_9_item_effects_and_meditation.js?v=20260723-v152-p3-fix2-exp1s"></script>
 <script src="v15_0_equipment_integrity_fix.js?v=20260722-corebridge-fix1"></script>
 <script src="v15_1_five_element_materials.js?v=20260722-v151-p1"></script>
@@ -1078,6 +1084,6 @@ function confirmReset(){
 <script src="v15_1_phase2_enchant_and_beast_combat.js?v=20260723-v152-p3-fix2-items"></script>
 <script src="v15_1_phase3_ai_beast_bridge.js?v=20260722-v151-p3"></script>
 <script src="v15_2_immersive_raid.js?v=20260723-v152-p3-fix2-items"></script>
-<script src="v15_3_monster_ecology.js?v=20260723-v153-fix5-fixed-map-terrain"></script>
+<script src="v15_3_monster_ecology.js?v=20260723-v153-p2-status-elites"></script>
 </body>
 </html>

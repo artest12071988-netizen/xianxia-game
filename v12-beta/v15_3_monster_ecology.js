@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.3-PHASE1-FIX5-FIXED-MAP-TERRAIN';
+const BUILD='V15.3-PHASE2-STATUS-ELITES-CORPSE-FIX';
 if(window.__V153MonsterEcologyFix2Loaded)return;
 window.__V153MonsterEcologyFix2Loaded=true;
 
@@ -21,7 +21,9 @@ const ZONE_TAGS={
 const state={installed:false};
 const TERRAIN_POOLS={"desert":[9401,9402,9403,9413],"forest":[9001,9002,9404,9405,9406],"ice":[9407,9408,9409],"northpalace":[9407,9408,9409],"sea":[9410,9411,9412],"yinyang":[9410,9411,9412],"icefire":[9408,9413],"battle":[9414,9415],"ruin":[9404,9414,9415],"kunlun":[9406,9415],"mountain":[9001,9002,9406,9415],"village":[9001,9002],"lighthouse":[9410,9412],"abyss":[9414,9415],"market":[]};
 const BEAST_TIDE_ONLY_IDS=new Set([9004,9005,9006,9101,9102,9103]);
-const REQUIRED_NEW_IDS=Array.from({length:15},(_,i)=>9401+i);
+const REQUIRED_NEW_IDS=[...Array.from({length:15},(_,i)=>9401+i),9421,9422,9423,9424,9425];
+const ELITE_CHANCE=.05;
+const ELITE_BY_TERRAIN={desert:9421,ice:9422,northpalace:9422,forest:9423,sea:9424,yinyang:9424,lighthouse:9424,battle:9425};
 
 const get=name=>{try{return Function('return typeof '+name+'!=="undefined"?'+name+':null')()}catch(_){return null}};
 const set=(name,value)=>{try{Function('v',name+'=v')(value);return true}catch(_){try{window[name]=value;return true}catch(__){return false}}};
@@ -102,8 +104,10 @@ function choose(z=null){
    const toast=get('toast');if(typeof toast==='function')toast(missing.length?'怪物設定缺少 ID：'+missing.join('、'):'目前地貌沒有可遭遇怪物。');
    return null;
  }
- const selected=randomOne(pool);
- console.info(`[${BUILD}] fixed-map terrain encounter`,{region,pool:pool.map(m=>`${m.id}:${m.name}`),selected:selected?`${selected.id}:${selected.name}`:null});
+ const eliteId=ELITE_BY_TERRAIN[region.type];
+ const elite=eliteId?monsterById(eliteId):null;
+ const selected=(elite&&Math.random()<ELITE_CHANCE)?elite:randomOne(pool);
+ console.info(`[${BUILD}] fixed-map terrain encounter`,{region,eliteRoll:!!(selected?.elite),pool:pool.map(m=>`${m.id}:${m.name}`),selected:selected?`${selected.id}:${selected.name}`:null});
  return clone(selected);
 }
 function validateIncoming(monster,z=null){
@@ -116,6 +120,8 @@ function validateIncoming(monster,z=null){
    console.warn(`[${BUILD}] blocked black-cloud/tide monster`,{id,name:monster.name,region});return choose(z);
  }
  if(monster.normalEncounter===false)return monster;
+ const eliteId=ELITE_BY_TERRAIN[region.type];
+ if(monster.elite===true&&Number(eliteId)===id)return monster;
  const allowed=localPool(z).some(m=>Number(m.id)===id);
  if(!allowed){console.warn(`[${BUILD}] replaced wrong-terrain monster`,{id,name:monster.name,region});return choose(z)}
  return monster;
@@ -131,10 +137,70 @@ function relation(attacker,defender){
 }
 function elementBadge(m){const key=ELEMENT_CLASS[m?.elementKey]||'none';return `<span class="v153-element ${key}">${esc2(m?.element||'無')}屬性</span>`}
 function habitatText(m){return Array.isArray(m?.habitats)?m.habitats.join('／'):'不受地域限制'}
+function ensureCombatState(fight){
+ if(!fight)return null;
+ if(!fight.v153Status||typeof fight.v153Status!=='object')fight.v153Status={poison:null,burn:null,slow:null};
+ return fight.v153Status;
+}
+function statusText(fight){
+ const s=ensureCombatState(fight),out=[];
+ if(s?.poison?.turns>0)out.push(`<span class="v153-status poison">中毒 ${s.poison.turns}回合</span>`);
+ if(s?.burn?.turns>0)out.push(`<span class="v153-status burn">灼燒 ${s.burn.turns}回合</span>`);
+ if(s?.slow?.turns>0)out.push(`<span class="v153-status slow">寒緩 ${s.slow.turns}回合</span>`);
+ return out.join('');
+}
+function effectDescription(e){
+ const x=e?.combatEffect;if(!x)return '';
+ const names={poison:'中毒',burn:'灼燒',slow:'緩速',multi_hit:'群體連擊',tide:'潮汐傷害',drain_mp:'吸取精力',abyssal_tide:'潮汐傷害＋吸精',entangle:'藤纏緩速＋吸精',heavy_strike:'戰魂重斬'};
+ return names[x.type]||x.label||'';
+}
+function dotDamage(g,effect){
+ return Math.max(num(effect?.minDamage,1),Math.min(num(effect?.maxDamage,999999),Math.round(num(g?.hpMax)*num(effect?.damagePct))));
+}
+function applyTimedStatus(fight,key,effect){
+ const s=ensureCombatState(fight),current=s[key];
+ if(!current||num(effect.turns)>num(current.turns)||num(effect.damagePct)>num(current.damagePct))s[key]={...effect};
+ else current.turns=Math.max(num(current.turns),num(effect.turns));
+}
+function tickDots(fight,g){
+ const s=ensureCombatState(fight),parts=[];let total=0;
+ for(const key of ['poison','burn']){
+   const x=s[key];if(!x||num(x.turns)<=0)continue;
+   const dmg=dotDamage(g,x);g.hp-=dmg;total+=dmg;x.turns--;
+   parts.push(`${key==='poison'?'毒素':'灼火'}發作，受到 ${dmg} 傷害`);
+   if(x.turns<=0)s[key]=null;
+ }
+ return {total,parts};
+}
+function applySpecialAfterHit(fight,g,e,baseDamage){
+ const x=e?.combatEffect;if(!x||Math.random()>=num(x.chance))return {extraDamage:0,mpDrain:0,parts:[]};
+ const parts=[];let extraDamage=0,mpDrain=0;
+ if(x.type==='poison'){applyTimedStatus(fight,'poison',x);parts.push(`陷入【${x.label}】`)}
+ else if(x.type==='burn'){applyTimedStatus(fight,'burn',x);parts.push(`陷入【${x.label}】`)}
+ else if(x.type==='slow'){applyTimedStatus(fight,'slow',x);parts.push(`受到【${x.label}】影響`)}
+ else if(x.type==='tide'||x.type==='heavy_strike'){
+   extraDamage=Math.max(1,Math.round(baseDamage*num(x.bonusDamage)));parts.push(`【${x.label}】追加 ${extraDamage} 傷害`);
+ }
+ else if(x.type==='drain_mp'){
+   mpDrain=Math.max(num(x.minDrain,1),Math.min(num(x.maxDrain,999999),Math.round(num(g.mpMax)*num(x.mpPct))));g.mp=Math.max(0,num(g.mp)-mpDrain);parts.push(`【${x.label}】吸取 ${mpDrain} 精力`);
+ }
+ else if(x.type==='abyssal_tide'){
+   extraDamage=Math.max(1,Math.round(baseDamage*num(x.bonusDamage)));
+   mpDrain=Math.max(num(x.minDrain,1),Math.min(num(x.maxDrain,999999),Math.round(num(g.mpMax)*num(x.mpPct))));g.mp=Math.max(0,num(g.mp)-mpDrain);
+   parts.push(`【${x.label}】追加 ${extraDamage} 傷害並吸取 ${mpDrain} 精力`);
+ }
+ else if(x.type==='entangle'){
+   applyTimedStatus(fight,'slow',x);
+   mpDrain=Math.max(num(x.minDrain,1),Math.min(num(x.maxDrain,999999),Math.round(num(g.mpMax)*num(x.mpPct))));g.mp=Math.max(0,num(g.mp)-mpDrain);
+   parts.push(`【${x.label}】纏住身法並吸取 ${mpDrain} 精力`);
+ }
+ return {extraDamage,mpDrain,parts};
+}
+
 function ready(){
  const C=currentConfig(),g=currentGame();
  const ids=new Set((C?.monsters||[]).map(m=>Number(m.id)));
- const catalogReady=Array.isArray(C?.monsters)&&C.monsters.length>=32&&REQUIRED_NEW_IDS.every(id=>ids.has(id));
+ const catalogReady=Array.isArray(C?.monsters)&&C.monsters.length>=37&&REQUIRED_NEW_IDS.every(id=>ids.has(id));
  return catalogReady&&!!g&&typeof get('startFightMonster')==='function';
 }
 function install(){
@@ -162,47 +228,67 @@ function install(){
  set('startFightMonster',function(m){
    const selected=validateIncoming(m,currentConfigZone());
    if(!selected)return;
-   return oldStart(selected);
+   const result=oldStart(selected);
+   const currentFight=get('fight');if(currentFight?.kind==='monster')ensureCombatState(currentFight);
+   return result;
  });
  set('renderFight',function(line,speech={}){
    const fight=get('fight'),g=currentGame(),P=get('P'),clamp=get('clamp'),sheet=get('sheet'),fighterPortrait=get('fighterPortrait'),showFightSpeech=get('showFightSpeech');
    if(fight?.kind!=='monster')return oldRender(line,speech);
    const e=fight.enemy,enemyHp=`體力 ${Math.max(0,Math.round(fight.hp))} / ${fight.hpMax}`;
    const enemyBar=`<div class="bar"><i class="enemy-hpf" style="width:${clamp(fight.hp/fight.hpMax*100,0,100)}%"></i></div>`;
-   const meta=`<div class="v153-fight-meta">${elementBadge(e)}<span>${esc2(e.trait||'普通妖獸')}</span><span>棲地：${esc2(habitatText(e))}</span></div>`;
-   sheet(`<h3>鬥法 · ${esc2(e.name)}</h3><div class="fight-stage"><div class="fighter" id="playerFighter">${fighterPortrait('assets/player_cultivator.svg',g.name)}<strong>${esc2(g.name)}</strong><div class="small">體力 ${Math.max(0,Math.round(g.hp))} / ${g.hpMax}</div></div><div class="fighter enemy" id="enemyFighter">${fighterPortrait(e.image||('assets/monsters/'+e.id+'.svg'),e.name)}<strong>${esc2(e.name)}</strong><div class="small">${enemyHp}</div></div></div>${enemyBar}${meta}<div class="v153-trait"><b>${esc2(e.trait||'妖獸本能')}</b>：${esc2(e.traitText||'無特殊能力')}｜弱點：${esc2(e.weakTo||'無')}</div><p class="small fight-line">${line}</p><div class="row"><button class="btn red" onclick="attackTurn()">攻擊 −${P.normal_attack_mp_cost}精力</button><button class="btn jade" onclick="openCombatItems()">道具／丹藥</button><button class="btn" onclick="fleeTurn()">遁走</button></div>`);
+   const eliteBadge=e.elite?'<span class="v153-elite">地域精英 · 5%</span>':'';
+   const meta=`<div class="v153-fight-meta">${eliteBadge}${elementBadge(e)}<span>${esc2(e.trait||'普通妖獸')}</span><span>棲地：${esc2(habitatText(e))}</span>${statusText(fight)}</div>`;
+   sheet(`<h3>鬥法 · ${esc2(e.name)}${e.elite?' <em class="v153-elite-title">精英</em>':''}</h3><div class="fight-stage"><div class="fighter" id="playerFighter">${fighterPortrait('assets/player_cultivator.svg',g.name)}<strong>${esc2(g.name)}</strong><div class="small">體力 ${Math.max(0,Math.round(g.hp))} / ${g.hpMax}</div></div><div class="fighter enemy" id="enemyFighter">${fighterPortrait(e.image||('assets/monsters/'+e.id+'.svg'),e.name)}<strong>${esc2(e.name)}</strong><div class="small">${enemyHp}</div></div></div>${enemyBar}${meta}<div class="v153-trait"><b>${esc2(e.trait||'妖獸本能')}</b>：${esc2(e.traitText||'無特殊能力')}｜弱點：${esc2(e.weakTo||'無')}${effectDescription(e)?'｜異能：'+esc2(effectDescription(e)):''}</div><p class="small fight-line">${line}</p><div class="row"><button class="btn red" onclick="attackTurn()">攻擊 −${P.normal_attack_mp_cost}精力</button><button class="btn jade" onclick="openCombatItems()">道具／丹藥</button><button class="btn" onclick="fleeTurn()">遁走</button></div>`);
    if(speech.player)setTimeout(()=>showFightSpeech('playerFighter',speech.player,speech.playerType||'normal'),80);
    if(speech.enemy)setTimeout(()=>showFightSpeech('enemyFighter',speech.enemy,speech.enemyType||'normal'),120);
  });
  set('attackTurn',function(){
    const fight=get('fight'),g=currentGame(),P=get('P');if(fight?.kind!=='monster')return oldAttack();
    const renderFight=get('renderFight'),animateStrike=get('animateStrike'),animateDamage=get('animateDamage'),calcDmg=get('calcDmg'),pAtk=get('pAtk'),calcBlockChance=get('calcBlockChance'),clamp=get('clamp'),rnd=get('rnd'),winFight=get('winFight'),getEnemyLine=get('getEnemyLine');
+   const status=ensureCombatState(fight),slow=status.slow&&num(status.slow.turns)>0?status.slow:null;
    if(g.mp<P.normal_attack_mp_cost){renderFight('精力不足，無法出手。請使用回精丹或遁走。');return}
    g.mp-=P.normal_attack_mp_cost;const e=fight.enemy,C=currentConfig();
    const attackLine=Math.random()<(P.combat_speech_normal_chance||.42)?rnd(C.combatSpeech.playerAttack):'';
-   if(Math.random()<clamp(num(P.encounter_miss_rate)+num(e.evasionBonus),0,.75)){renderFight(`你的攻擊被${e.name}避開。`,{player:attackLine});setTimeout(()=>animateStrike('playerFighter'),40);return setTimeout(()=>get('enemyTurn')(),500)}
+   const missChance=clamp(num(P.encounter_miss_rate)+num(e.evasionBonus)+(slow?num(slow.missBonus):0),0,.80);
+   if(Math.random()<missChance){
+     if(slow){slow.turns--;if(slow.turns<=0)status.slow=null}
+     renderFight(`你的攻擊被${e.name}避開${slow?'，寒緩令身法遲滯':''}。`,{player:attackLine});setTimeout(()=>animateStrike('playerFighter'),40);return setTimeout(()=>get('enemyTurn')(),500)
+   }
    let mult=1,crit=false,rate=P.base_crit_rate+(g.techniques.includes('lightning_breath')?.10:0);if(Math.random()<rate){crit=true;mult=P.base_crit_min+Math.random()*(P.base_crit_max-P.base_crit_min)}
    let dmg=calcDmg(pAtk(),e.def,mult);if(crit&&g.techniques.includes('lightning_breath'))dmg+=50;
-   const elem=relation(weaponElement(),e.elementKey);dmg=Math.max(1,Math.round(dmg*elem.mult*(1-num(e.damageReduction))));
+   const elem=relation(weaponElement(),e.elementKey);dmg=Math.max(1,Math.round(dmg*elem.mult*(1-num(e.damageReduction))*(slow?num(slow.damageMultiplier,.75):1)));
    const blocked=Math.random()<clamp(calcBlockChance(e.def,pAtk())+num(e.blockBonus),.04,.60);if(blocked)dmg=Math.max(1,Math.round(dmg*(P.block_damage_multiplier||.35)));
+   if(slow){slow.turns--;if(slow.turns<=0)status.slow=null}
    fight.hp-=dmg;const speech={player:crit?rnd(C.combatSpeech.playerCrit):attackLine,playerType:crit?'crit':'normal'};
    if(blocked){speech.enemy=getEnemyLine('blockLines');speech.enemyType='block'}else if(Math.random()<.35){speech.enemy=getEnemyLine('hitLines');speech.enemyType='hit'}
-   renderFight(`你造成 ${dmg} 傷害${crit?'（暴擊）':''}${blocked?'，但對方成功格擋':''}${elem.label?'，'+elem.label+' ×'+elem.mult.toFixed(2):''}。`,speech);
+   renderFight(`你造成 ${dmg} 傷害${crit?'（暴擊）':''}${blocked?'，但對方成功格擋':''}${elem.label?'，'+elem.label+' ×'+elem.mult.toFixed(2):''}${slow?'；寒緩使傷害降低':''}。`,speech);
    setTimeout(()=>animateStrike('playerFighter'),40);animateDamage('enemyFighter',dmg,{crit,blocked});if(fight.hp<=0)return setTimeout(winFight,720);setTimeout(()=>get('enemyTurn')(),780);
  });
  set('enemyTurn',function(){
    const fight=get('fight'),g=currentGame(),P=get('P');if(fight?.kind!=='monster')return oldEnemy();if(!fight)return;
-   const e=fight.enemy,renderFight=get('renderFight'),getEnemyLine=get('getEnemyLine'),calcDmg=get('calcDmg'),pDef=get('pDef'),calcBlockChance=get('calcBlockChance'),animateStrike=get('animateStrike'),animateDamage=get('animateDamage'),render=get('render'),loseFight=get('loseFight'),rnd=get('rnd'),C=currentConfig();
-   const attackLine=Math.random()<.48?getEnemyLine('attackLines'):'';if(Math.random()<P.encounter_miss_rate){renderFight(`${e.name}的攻擊被你避開。`,{enemy:attackLine});return}
+   const e=fight.enemy,renderFight=get('renderFight'),getEnemyLine=get('getEnemyLine'),calcDmg=get('calcDmg'),pDef=get('pDef'),calcBlockChance=get('calcBlockChance'),animateStrike=get('animateStrike'),animateDamage=get('animateDamage'),render=get('render'),loseFight=get('loseFight'),rnd=get('rnd'),C=currentConfig(),clamp=get('clamp');
+   const dot=tickDots(fight,g);
+   if(g.hp<=0){renderFight(dot.parts.join('；')+'。');animateDamage('playerFighter',dot.total,{crit:false,blocked:false});render();return setTimeout(loseFight,520)}
+   const attackLine=Math.random()<.48?getEnemyLine('attackLines'):'';
+   if(Math.random()<P.encounter_miss_rate){renderFight(`${dot.parts.length?dot.parts.join('；')+'；':''}${e.name}的攻擊被你避開。`,{enemy:attackLine});render();return}
    const crit=Math.random()<Math.max(.04,P.base_crit_rate*.65)+num(e.critBonus);const mult=crit?(P.base_crit_min+Math.random()*(P.base_crit_max-P.base_crit_min)):1;
-   let dmg=calcDmg(e.atk,pDef(),mult);const elem=relation(e.elementKey,armorElement());dmg=Math.max(1,Math.round(dmg*elem.mult*(1+num(e.damageBonus))));
-   const blocked=Math.random()<calcBlockChance(pDef(),e.atk);if(blocked)dmg=Math.max(1,Math.round(dmg*(P.block_damage_multiplier||.35)));g.hp-=dmg;
+   let base=calcDmg(e.atk,pDef(),mult);const elem=relation(e.elementKey,armorElement());base=Math.max(1,Math.round(base*elem.mult*(1+num(e.damageBonus))));
+   const effect=e.combatEffect||null;let hits=1,dmg=base,specialParts=[];
+   if(effect?.type==='multi_hit'&&Math.random()<num(effect.chance)){
+     hits=Math.floor(num(effect.minHits,2)+Math.random()*(num(effect.maxHits,4)-num(effect.minHits,2)+1));
+     dmg=Math.max(1,Math.round(base*num(effect.hitMultiplier,.45)))*hits;specialParts.push(`【${effect.label}】連擊 ${hits} 次`);
+   }
+   const blocked=Math.random()<calcBlockChance(pDef(),e.atk);if(blocked)dmg=Math.max(1,Math.round(dmg*(P.block_damage_multiplier||.35)));
+   const special=applySpecialAfterHit(fight,g,e,dmg);dmg+=special.extraDamage;specialParts.push(...special.parts);
+   g.hp-=dmg;
    const speech={enemy:crit?getEnemyLine('critLines'):attackLine,enemyType:crit?'crit':'normal'};if(blocked){speech.player=rnd(C.combatSpeech.playerBlock);speech.playerType='block'}else if(Math.random()<.38){speech.player=rnd(C.combatSpeech.playerHit);speech.playerType='hit'}
-   renderFight(`${e.name}反擊，造成 ${dmg} 傷害${crit?'（暴擊）':''}${blocked?'，你傲然格擋':''}${elem.label?'，'+elem.label+' ×'+elem.mult.toFixed(2):''}。`,speech);setTimeout(()=>animateStrike('enemyFighter'),40);animateDamage('playerFighter',dmg,{crit,blocked});render();if(g.hp<=0)return setTimeout(loseFight,720);
+   const pieces=[];if(dot.parts.length)pieces.push(dot.parts.join('；'));pieces.push(`${e.name}反擊，造成 ${dmg} 傷害${crit?'（暴擊）':''}${blocked?'，你傲然格擋':''}${elem.label?'，'+elem.label+' ×'+elem.mult.toFixed(2):''}`);if(specialParts.length)pieces.push(specialParts.join('；'));
+   renderFight(pieces.join('；')+'。',speech);setTimeout(()=>animateStrike('enemyFighter'),40);animateDamage('playerFighter',dmg+dot.total,{crit,blocked});render();if(g.hp<=0)return setTimeout(loseFight,720);
  });
- set('openMonsterDex',function(){
-   const C=currentConfig(),sheet=get('sheet');const rows=C.monsters.map(m=>`<div class="monster-card v153-dex-card"><img src="${esc2(m.image||('assets/monsters/'+m.id+'.svg'))}" alt="${esc2(m.name)}"><div><strong>${esc2(m.name)}</strong><span>${esc2(m.cat)} · Lv${m.lv} ${elementBadge(m)}</span><small>體力 ${m.hp}｜攻擊 ${m.atk}｜防禦 ${m.def}<br>特性：${esc2(m.trait||'—')}｜弱點：${esc2(m.weakTo||'—')}<br>出沒：${esc2(m.spawn)}</small></div></div>`).join('');
-   sheet(`<h3>妖獸圖鑑 · 地域生態版</h3><p class="small">目前共 ${C.monsters.length} 種怪物。一般探索與獸潮都依所在地棲地篩選。</p><div class="monster-grid">${rows}</div><button class="btn" style="width:100%;margin-top:10px" onclick="closeOv()">關閉圖鑑</button>`);
+ set('openMonsterDex' ,function(){
+   const C=currentConfig(),sheet=get('sheet');const rows=C.monsters.map(m=>`<div class="monster-card v153-dex-card"><img src="${esc2(m.image||('assets/monsters/'+m.id+'.svg'))}" alt="${esc2(m.name)}"><div><strong>${esc2(m.name)}</strong><span>${esc2(m.cat)} · Lv${m.lv} ${m.elite?'<span class="v153-elite">精英</span>':''} ${elementBadge(m)}</span><small>體力 ${m.hp}｜攻擊 ${m.atk}｜防禦 ${m.def}<br>特性：${esc2(m.trait||'—')}｜弱點：${esc2(m.weakTo||'—')}<br>出沒：${esc2(m.spawn)}</small></div></div>`).join('');
+   sheet(`<h3>妖獸圖鑑 · 地域生態版</h3><p class="small">目前共 ${C.monsters.length} 種怪物。地域精英在指定地貌以 5% 機率出現；未增加任何新物品。</p><div class="monster-grid">${rows}</div><button class="btn" style="width:100%;margin-top:10px" onclick="closeOv()">關閉圖鑑</button>`);
  });
  state.installed=true;
  window.V153MonsterEcology={
@@ -220,7 +306,8 @@ function install(){
      region:resolveTerrain(currentConfigZone()),
      coord:currentCoord(),
      beastTideActive:tideActive(),
-     selectionRule:'以十方山海圖地貌為唯一來源；地貌池內等機率；獸潮專屬怪隔離',
+     selectionRule:'以十方山海圖地貌為唯一來源；5%地域精英，其餘一般池等機率；獸潮專屬怪隔離',
+     eliteChance:ELITE_CHANCE,
      localPool:localPool(currentConfigZone()).map(m=>`${m.id}:${m.name}`)
    }),
    relation
