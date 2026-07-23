@@ -1,0 +1,13 @@
+/* V15.3 Phase 2 FIX9 — 功法實效、降靈術戰鬥操作 */
+.v153-tech-combat-bar{display:grid;gap:7px;margin:9px 0 10px;padding:9px;border:1px solid rgba(215,184,96,.22);border-radius:11px;background:rgba(7,16,24,.72)}
+.v153-tech-chips,.v153-tech-buttons{display:flex;gap:6px;flex-wrap:wrap}.v153-tech-buttons .btn{flex:1 1 130px;min-height:42px}
+.v153-tech-chip{display:inline-flex;align-items:center;padding:4px 8px;border:1px solid rgba(78,189,178,.38);border-radius:999px;background:rgba(20,78,76,.20);color:#82e0d5;font-size:10px}
+.v153-descent{border-color:#c34650!important;color:#ff8c91!important;background:linear-gradient(135deg,rgba(115,18,29,.42),rgba(40,8,14,.70))!important}.v153-descent.active{box-shadow:0 0 20px rgba(242,46,67,.34);animation:v153DescentPulse 1.25s ease-in-out infinite}.v153-descent.backlash{color:#b5a4aa!important;filter:saturate(.4)}
+.v153-descent-aura:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:18;border:2px solid rgba(255,47,68,.28);box-shadow:inset 0 0 55px rgba(173,0,27,.30),0 0 26px rgba(173,0,27,.20);animation:v153DescentAura 1.35s ease-in-out infinite}
+.v152-raid-root.v153-descent-aura:after{position:fixed}.v153-raid-descent{border-color:#c34650!important;color:#ff9298!important}
+.v153-tech-note{display:block;margin-top:4px;font-weight:800}.v153-tech-note.guard{color:#70dfcc}.v153-tech-note.good{color:#f0cc6f}
+.v153-tech-list{display:grid;gap:8px}.v153-tech-row{display:flex;justify-content:space-between;gap:12px;padding:10px;border:1px solid rgba(89,120,140,.30);border-radius:10px;background:rgba(9,20,29,.60)}.v153-tech-row>div{display:grid;gap:4px;min-width:0}.v153-tech-row b{color:#e6ca76}.v153-tech-row small{color:#a9b7c1;line-height:1.55}.v153-tech-row>span{align-self:center;white-space:nowrap;color:#65d8c6;font-size:11px}
+@keyframes v153DescentPulse{0%,100%{filter:brightness(.82)}50%{filter:brightness(1.25)}}
+@keyframes v153DescentAura{0%,100%{opacity:.35}50%{opacity:.92}}
+@media(max-width:600px){.v153-tech-buttons{display:grid;grid-template-columns:1fr 1fr}.v153-tech-buttons .btn{min-width:0}.v153-tech-row{flex-direction:column}.v153-tech-row>span{align-self:flex-start}.v152-raid-actions .v153-raid-descent{grid-column:1/-1}}
+@media(max-width:360px){.v153-tech-buttons{grid-template-columns:1fr}}
