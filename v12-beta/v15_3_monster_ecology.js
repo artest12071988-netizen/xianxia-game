@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.3-PHASE1-MONSTER-ECOLOGY';
+const BUILD='V15.3-PHASE1-FIX1-MONSTER-MODULE-BOOT';
 if(window.__V153MonsterEcologyLoaded)return;
 window.__V153MonsterEcologyLoaded=true;
 
@@ -86,7 +86,11 @@ function candidates(z,{tide=false}={}){
 }
 function pick(z=currentZone(),opts={}){
   const pool=candidates(z,opts);
-  return clone(weighted(pool)||(C?.monsters||[]).find(m=>m.id===9001));
+  const regional=pool.filter(m=>num(m.id)>=9401&&num(m.id)<=9415);
+  const selected=(regional.length&&Math.random()<.65)
+    ?weighted(regional)
+    :weighted(pool);
+  return clone(selected||(C?.monsters||[]).find(m=>m.id===9001));
 }
 function weaponElement(){
   const e=(g?.equipment||[]).find(x=>String(x.uid)===String(g?.weaponUid));
@@ -110,8 +114,17 @@ function elementBadge(m){
 function habitatText(m){return Array.isArray(m?.habitats)?m.habitats.join('／'):'不受地域限制'}
 
 let installed=false;
+function runtimeReady(){
+  try{
+    return typeof C!=='undefined'
+      &&Array.isArray(C?.monsters)
+      &&typeof g!=='undefined'
+      &&!!g
+      &&typeof window.startFightMonster==='function';
+  }catch(_){return false}
+}
 function install(){
-  if(installed||!window.C||!Array.isArray(C.monsters)||!window.g)return;
+  if(installed||!runtimeReady())return false;
   installed=true;
   const oldStart=window.startFightMonster;
   const oldRender=window.renderFight;
@@ -213,18 +226,34 @@ function install(){
     build:BUILD,
     zoneTags:()=>zoneTags(),
     compatible:(monster,zone)=>compatible(monster,zone),
-    localPool:()=>candidates(currentZone(),{tide:!!window.V14BeastTide?.isActive?.()}).map(m=>m.id),
+    localPool:()=>candidates(currentZone(),{tide:!!window.V14BeastTide?.isActive?.()}).map(m=>({id:m.id,name:m.name,habitats:m.habitats})),
     pick:()=>pick(currentZone(),{tide:!!window.V14BeastTide?.isActive?.()}),
+    diagnose:()=>({installed,zone:currentZone()?.name,tags:zoneTags(),monsterCount:C.monsters.length,localPool:candidates(currentZone(),{}).map(m=>`${m.id}:${m.name}`)}),
     relation,
   };
-  console.info(`[${BUILD}] installed; monsters=${C.monsters.length}; zone=${currentZone()?.name||'荒野'}`);
+  const local=candidates(currentZone(),{tide:!!window.V14BeastTide?.isActive?.()});
+  console.info(`[${BUILD}] installed`,{
+    monsters:C.monsters.length,
+    zone:currentZone()?.name||'荒野',
+    tags:zoneTags(),
+    localPool:local.map(m=>`${m.id}:${m.name}`),
+    regionalPriority:'65%'
+  });
+  return true;
 }
 
+let attempts=0;
 const timer=setInterval(()=>{
+  attempts++;
   try{
-    if(window.C&&Array.isArray(C.monsters)&&window.g&&typeof window.startFightMonster==='function'){
-      install();
-      if(installed)clearInterval(timer);
+    if(runtimeReady()&&install())clearInterval(timer);
+    else if(installed)clearInterval(timer);
+    else if(attempts===80){
+      console.warn(`[${BUILD}] still waiting`,{
+        hasConfig:typeof C!=='undefined'&&Array.isArray(C?.monsters),
+        hasGame:typeof g!=='undefined'&&!!g,
+        hasStartFight:typeof window.startFightMonster==='function'
+      });
     }
   }catch(e){console.warn(`[${BUILD}]`,e)}
 },250);
