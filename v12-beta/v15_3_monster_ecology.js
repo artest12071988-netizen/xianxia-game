@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.3-PHASE2-STATUS-ELITES-CORPSE-FIX';
+const BUILD='V15.3-PHASE2-FIX1-COMBAT-EFFECT-ANIMATIONS';
 if(window.__V153MonsterEcologyFix2Loaded)return;
 window.__V153MonsterEcologyFix2Loaded=true;
 
@@ -163,17 +163,18 @@ function applyTimedStatus(fight,key,effect){
  else current.turns=Math.max(num(current.turns),num(effect.turns));
 }
 function tickDots(fight,g){
- const s=ensureCombatState(fight),parts=[];let total=0;
+ const s=ensureCombatState(fight),parts=[],ticks=[];let total=0;
  for(const key of ['poison','burn']){
    const x=s[key];if(!x||num(x.turns)<=0)continue;
    const dmg=dotDamage(g,x);g.hp-=dmg;total+=dmg;x.turns--;
    parts.push(`${key==='poison'?'毒素':'灼火'}發作，受到 ${dmg} 傷害`);
+   ticks.push({type:key,damage:dmg});
    if(x.turns<=0)s[key]=null;
  }
- return {total,parts};
+ return {total,parts,ticks};
 }
 function applySpecialAfterHit(fight,g,e,baseDamage){
- const x=e?.combatEffect;if(!x||Math.random()>=num(x.chance))return {extraDamage:0,mpDrain:0,parts:[]};
+ const x=e?.combatEffect;if(!x||x.type==='multi_hit'||Math.random()>=num(x.chance))return {extraDamage:0,mpDrain:0,parts:[],effectType:null,label:''};
  const parts=[];let extraDamage=0,mpDrain=0;
  if(x.type==='poison'){applyTimedStatus(fight,'poison',x);parts.push(`陷入【${x.label}】`)}
  else if(x.type==='burn'){applyTimedStatus(fight,'burn',x);parts.push(`陷入【${x.label}】`)}
@@ -194,7 +195,157 @@ function applySpecialAfterHit(fight,g,e,baseDamage){
    mpDrain=Math.max(num(x.minDrain,1),Math.min(num(x.maxDrain,999999),Math.round(num(g.mpMax)*num(x.mpPct))));g.mp=Math.max(0,num(g.mp)-mpDrain);
    parts.push(`【${x.label}】纏住身法並吸取 ${mpDrain} 精力`);
  }
- return {extraDamage,mpDrain,parts};
+ return {extraDamage,mpDrain,parts,effectType:x.type,label:x.label||''};
+}
+
+
+function battleFxMarkup(fight){
+ const s=ensureCombatState(fight);
+ const poison=!!(s?.poison&&num(s.poison.turns)>0);
+ const burn=!!(s?.burn&&num(s.burn.turns)>0);
+ const slow=!!(s?.slow&&num(s.slow.turns)>0);
+ const flames=Array.from({length:12},(_,i)=>`<i style="--i:${i}"></i>`).join('');
+ const ice=Array.from({length:9},(_,i)=>`<i style="--i:${i}"></i>`).join('');
+ return `<div class="v153-battle-fx ${poison?'poison-active':''} ${burn?'burn-active':''} ${slow?'slow-active':''}">
+   <div class="v153-poison-ambience"></div>
+   <div class="v153-burn-floor">${flames}</div>
+   <div class="v153-ice-floor">${ice}</div>
+   <div class="v153-transient-fx" data-v153-transient></div>
+ </div>`;
+}
+function fxStage(){
+ return document.querySelector('.fight-stage');
+}
+function transientLayer(){
+ return document.querySelector('[data-v153-transient]');
+}
+function safeVibrate(pattern){
+ try{navigator.vibrate?.(pattern)}catch(_){}
+}
+function pulseClass(target,className,duration=420){
+ if(!target)return;
+ target.classList.remove(className);
+ void target.offsetWidth;
+ target.classList.add(className);
+ setTimeout(()=>target?.classList.remove(className),duration);
+}
+function spawnFloat(value,kind='damage',index=0,delay=0,label=''){
+ setTimeout(()=>{
+   const layer=transientLayer();if(!layer)return;
+   const positions=[
+     [26,34],[35,47],[20,55],[39,28],
+     [30,61],[17,40],[42,56],[24,24]
+   ];
+   const [x,y]=positions[index%positions.length];
+   const el=document.createElement('div');
+   el.className=`v153-fx-number ${kind}`;
+   el.style.left=x+'%';
+   el.style.top=y+'%';
+   el.innerHTML=`${label?`<small>${esc2(label)}</small>`:''}<b>${esc2(value)}</b>`;
+   layer.appendChild(el);
+   setTimeout(()=>el.remove(),1150);
+ },delay);
+}
+function microShake(delay=0,strong=false){
+ setTimeout(()=>{
+   const fighter=document.getElementById('playerFighter');
+   const stage=fxStage();
+   pulseClass(fighter,strong?'v153-hit-shake-strong':'v153-hit-shake',strong?360:210);
+   if(strong)pulseClass(stage,'v153-stage-shake',440);
+   safeVibrate(strong?[28,20,38]:18);
+ },delay);
+}
+function playMultiHitVisual(hitDamages=[],crit=false,startDelay=40){
+ const animateStrike=get('animateStrike');
+ hitDamages.forEach((damage,i)=>{
+   const delay=startDelay+i*190;
+   setTimeout(()=>{if(typeof animateStrike==='function')animateStrike('enemyFighter')},delay);
+   spawnFloat('-'+Math.max(1,Math.round(damage)),crit?'crit':'damage',i,delay,`${i+1} HIT`);
+   microShake(delay, i===hitDamages.length-1);
+ });
+}
+function playDotTicks(ticks=[],startDelay=30){
+ ticks.forEach((tick,i)=>{
+   const delay=startDelay+i*230;
+   const kind=tick.type==='burn'?'burn':'poison';
+   const label=tick.type==='burn'?'灼燒':'毒傷';
+   spawnFloat('-'+Math.round(tick.damage),kind,i,delay,label);
+   microShake(delay,false);
+   setTimeout(()=>{
+     const stage=fxStage();
+     pulseClass(stage,tick.type==='burn'?'v153-burn-tick':'v153-poison-tick',620);
+   },delay);
+ });
+}
+function playStatusApplyVisual(type,delay=0){
+ setTimeout(()=>{
+   const stage=fxStage();if(!stage)return;
+   if(type==='poison'){
+     pulseClass(stage,'v153-poison-apply',900);
+     spawnFloat('中毒','status-poison',0,0,'異常狀態');
+   }else if(type==='burn'){
+     pulseClass(stage,'v153-burn-apply',900);
+     spawnFloat('灼燒','status-burn',1,0,'異常狀態');
+   }else if(type==='slow'){
+     pulseClass(stage,'v153-slow-apply',1000);
+     spawnFloat('寒緩','status-slow',2,0,'異常狀態');
+   }
+ },delay);
+}
+function playTideVisual(damage,delay=0,label='潮汐傷害'){
+ setTimeout(()=>{
+   const layer=transientLayer();if(!layer)return;
+   const wave=document.createElement('div');
+   wave.className='v153-tide-wave';
+   wave.innerHTML='<i></i><i></i><i></i>';
+   layer.appendChild(wave);
+   pulseClass(fxStage(),'v153-tide-impact',820);
+   safeVibrate([35,30,55]);
+   setTimeout(()=>wave.remove(),1000);
+   if(num(damage)>0)spawnFloat('-'+Math.round(damage),'tide',3,270,label);
+ },delay);
+}
+function playDrainVisual(mpDrain,delay=0){
+ setTimeout(()=>{
+   const layer=transientLayer();if(!layer)return;
+   const orb=document.createElement('div');
+   orb.className='v153-drain-orb';
+   orb.innerHTML='<i></i><span></span>';
+   layer.appendChild(orb);
+   spawnFloat('-'+Math.round(mpDrain)+' 精力','drain',4,180,'吸取');
+   safeVibrate(22);
+   setTimeout(()=>orb.remove(),1100);
+ },delay);
+}
+function playHeavyStrikeVisual(damage,delay=0){
+ setTimeout(()=>{
+   const layer=transientLayer();if(!layer)return;
+   const slash=document.createElement('div');
+   slash.className='v153-heavy-slash';
+   layer.appendChild(slash);
+   pulseClass(fxStage(),'v153-stage-shake',520);
+   safeVibrate([45,20,65]);
+   if(num(damage)>0)spawnFloat('-'+Math.round(damage),'heavy',5,120,'追加重擊');
+   setTimeout(()=>slash.remove(),720);
+ },delay);
+}
+function playSpecialVisual(effectType,extraDamage=0,mpDrain=0,delay=0){
+ if(!effectType)return;
+ if(effectType==='poison'||effectType==='burn'||effectType==='slow'){
+   playStatusApplyVisual(effectType,delay);
+ }else if(effectType==='tide'){
+   playTideVisual(extraDamage,delay);
+ }else if(effectType==='drain_mp'){
+   playDrainVisual(mpDrain,delay);
+ }else if(effectType==='abyssal_tide'){
+   playTideVisual(extraDamage,delay,'深淵潮噬');
+   playDrainVisual(mpDrain,delay+300);
+ }else if(effectType==='entangle'){
+   playStatusApplyVisual('slow',delay);
+   playDrainVisual(mpDrain,delay+220);
+ }else if(effectType==='heavy_strike'){
+   playHeavyStrikeVisual(extraDamage,delay);
+ }
 }
 
 function ready(){
@@ -238,8 +389,9 @@ function install(){
    const e=fight.enemy,enemyHp=`體力 ${Math.max(0,Math.round(fight.hp))} / ${fight.hpMax}`;
    const enemyBar=`<div class="bar"><i class="enemy-hpf" style="width:${clamp(fight.hp/fight.hpMax*100,0,100)}%"></i></div>`;
    const eliteBadge=e.elite?'<span class="v153-elite">地域精英 · 5%</span>':'';
+   const sceneFx=battleFxMarkup(fight);
    const meta=`<div class="v153-fight-meta">${eliteBadge}${elementBadge(e)}<span>${esc2(e.trait||'普通妖獸')}</span><span>棲地：${esc2(habitatText(e))}</span>${statusText(fight)}</div>`;
-   sheet(`<h3>鬥法 · ${esc2(e.name)}${e.elite?' <em class="v153-elite-title">精英</em>':''}</h3><div class="fight-stage"><div class="fighter" id="playerFighter">${fighterPortrait('assets/player_cultivator.svg',g.name)}<strong>${esc2(g.name)}</strong><div class="small">體力 ${Math.max(0,Math.round(g.hp))} / ${g.hpMax}</div></div><div class="fighter enemy" id="enemyFighter">${fighterPortrait(e.image||('assets/monsters/'+e.id+'.svg'),e.name)}<strong>${esc2(e.name)}</strong><div class="small">${enemyHp}</div></div></div>${enemyBar}${meta}<div class="v153-trait"><b>${esc2(e.trait||'妖獸本能')}</b>：${esc2(e.traitText||'無特殊能力')}｜弱點：${esc2(e.weakTo||'無')}${effectDescription(e)?'｜異能：'+esc2(effectDescription(e)):''}</div><p class="small fight-line">${line}</p><div class="row"><button class="btn red" onclick="attackTurn()">攻擊 −${P.normal_attack_mp_cost}精力</button><button class="btn jade" onclick="openCombatItems()">道具／丹藥</button><button class="btn" onclick="fleeTurn()">遁走</button></div>`);
+   sheet(`<h3>鬥法 · ${esc2(e.name)}${e.elite?' <em class="v153-elite-title">精英</em>':''}</h3><div class="fight-stage"><div class="fighter" id="playerFighter">${fighterPortrait('assets/player_cultivator.svg',g.name)}<strong>${esc2(g.name)}</strong><div class="small">體力 ${Math.max(0,Math.round(g.hp))} / ${g.hpMax}</div></div><div class="fighter enemy" id="enemyFighter">${fighterPortrait(e.image||('assets/monsters/'+e.id+'.svg'),e.name)}<strong>${esc2(e.name)}</strong><div class="small">${enemyHp}</div></div>${sceneFx}</div>${enemyBar}${meta}<div class="v153-trait"><b>${esc2(e.trait||'妖獸本能')}</b>：${esc2(e.traitText||'無特殊能力')}｜弱點：${esc2(e.weakTo||'無')}${effectDescription(e)?'｜異能：'+esc2(effectDescription(e)):''}</div><p class="small fight-line">${line}</p><div class="row"><button class="btn red" onclick="attackTurn()">攻擊 −${P.normal_attack_mp_cost}精力</button><button class="btn jade" onclick="openCombatItems()">道具／丹藥</button><button class="btn" onclick="fleeTurn()">遁走</button></div>`);
    if(speech.player)setTimeout(()=>showFightSpeech('playerFighter',speech.player,speech.playerType||'normal'),80);
    if(speech.enemy)setTimeout(()=>showFightSpeech('enemyFighter',speech.enemy,speech.enemyType||'normal'),120);
  });
@@ -267,24 +419,111 @@ function install(){
  });
  set('enemyTurn',function(){
    const fight=get('fight'),g=currentGame(),P=get('P');if(fight?.kind!=='monster')return oldEnemy();if(!fight)return;
-   const e=fight.enemy,renderFight=get('renderFight'),getEnemyLine=get('getEnemyLine'),calcDmg=get('calcDmg'),pDef=get('pDef'),calcBlockChance=get('calcBlockChance'),animateStrike=get('animateStrike'),animateDamage=get('animateDamage'),render=get('render'),loseFight=get('loseFight'),rnd=get('rnd'),C=currentConfig(),clamp=get('clamp');
+   const e=fight.enemy,renderFight=get('renderFight'),getEnemyLine=get('getEnemyLine'),calcDmg=get('calcDmg'),pDef=get('pDef'),calcBlockChance=get('calcBlockChance'),animateStrike=get('animateStrike'),animateDamage=get('animateDamage'),render=get('render'),loseFight=get('loseFight'),rnd=get('rnd'),C=currentConfig();
    const dot=tickDots(fight,g);
-   if(g.hp<=0){renderFight(dot.parts.join('；')+'。');animateDamage('playerFighter',dot.total,{crit:false,blocked:false});render();return setTimeout(loseFight,520)}
-   const attackLine=Math.random()<.48?getEnemyLine('attackLines'):'';
-   if(Math.random()<P.encounter_miss_rate){renderFight(`${dot.parts.length?dot.parts.join('；')+'；':''}${e.name}的攻擊被你避開。`,{enemy:attackLine});render();return}
-   const crit=Math.random()<Math.max(.04,P.base_crit_rate*.65)+num(e.critBonus);const mult=crit?(P.base_crit_min+Math.random()*(P.base_crit_max-P.base_crit_min)):1;
-   let base=calcDmg(e.atk,pDef(),mult);const elem=relation(e.elementKey,armorElement());base=Math.max(1,Math.round(base*elem.mult*(1+num(e.damageBonus))));
-   const effect=e.combatEffect||null;let hits=1,dmg=base,specialParts=[];
-   if(effect?.type==='multi_hit'&&Math.random()<num(effect.chance)){
-     hits=Math.floor(num(effect.minHits,2)+Math.random()*(num(effect.maxHits,4)-num(effect.minHits,2)+1));
-     dmg=Math.max(1,Math.round(base*num(effect.hitMultiplier,.45)))*hits;specialParts.push(`【${effect.label}】連擊 ${hits} 次`);
+   if(g.hp<=0){
+     renderFight(dot.parts.join('；')+'。');
+     setTimeout(()=>playDotTicks(dot.ticks||[]),30);
+     render();
+     return setTimeout(loseFight,650);
    }
-   const blocked=Math.random()<calcBlockChance(pDef(),e.atk);if(blocked)dmg=Math.max(1,Math.round(dmg*(P.block_damage_multiplier||.35)));
-   const special=applySpecialAfterHit(fight,g,e,dmg);dmg+=special.extraDamage;specialParts.push(...special.parts);
-   g.hp-=dmg;
-   const speech={enemy:crit?getEnemyLine('critLines'):attackLine,enemyType:crit?'crit':'normal'};if(blocked){speech.player=rnd(C.combatSpeech.playerBlock);speech.playerType='block'}else if(Math.random()<.38){speech.player=rnd(C.combatSpeech.playerHit);speech.playerType='hit'}
-   const pieces=[];if(dot.parts.length)pieces.push(dot.parts.join('；'));pieces.push(`${e.name}反擊，造成 ${dmg} 傷害${crit?'（暴擊）':''}${blocked?'，你傲然格擋':''}${elem.label?'，'+elem.label+' ×'+elem.mult.toFixed(2):''}`);if(specialParts.length)pieces.push(specialParts.join('；'));
-   renderFight(pieces.join('；')+'。',speech);setTimeout(()=>animateStrike('enemyFighter'),40);animateDamage('playerFighter',dmg+dot.total,{crit,blocked});render();if(g.hp<=0)return setTimeout(loseFight,720);
+   const attackLine=Math.random()<.48?getEnemyLine('attackLines'):'';
+   if(Math.random()<P.encounter_miss_rate){
+     renderFight(`${dot.parts.length?dot.parts.join('；')+'；':''}${e.name}的攻擊被你避開。`,{enemy:attackLine});
+     setTimeout(()=>playDotTicks(dot.ticks||[]),30);
+     render();
+     return;
+   }
+
+   const crit=Math.random()<Math.max(.04,P.base_crit_rate*.65)+num(e.critBonus);
+   const mult=crit?(P.base_crit_min+Math.random()*(P.base_crit_max-P.base_crit_min)):1;
+   let base=calcDmg(e.atk,pDef(),mult);
+   const elem=relation(e.elementKey,armorElement());
+   base=Math.max(1,Math.round(base*elem.mult*(1+num(e.damageBonus))));
+
+   const effect=e.combatEffect||null;
+   let hitDamages=null;
+   let directDamage=base;
+   let hitCount=1;
+   const specialParts=[];
+
+   if(effect?.type==='multi_hit'&&Math.random()<num(effect.chance)){
+     hitCount=Math.floor(
+       num(effect.minHits,2)+
+       Math.random()*(num(effect.maxHits,4)-num(effect.minHits,2)+1)
+     );
+     const perHit=Math.max(1,Math.round(base*num(effect.hitMultiplier,.45)));
+     hitDamages=Array.from({length:hitCount},()=>perHit);
+     directDamage=hitDamages.reduce((sum,v)=>sum+v,0);
+     specialParts.push(`【${effect.label}】連擊 ${hitCount} 次`);
+   }
+
+   const blocked=Math.random()<calcBlockChance(pDef(),e.atk);
+   if(blocked){
+     if(hitDamages){
+       hitDamages=hitDamages.map(v=>Math.max(1,Math.round(v*(P.block_damage_multiplier||.35))));
+       directDamage=hitDamages.reduce((sum,v)=>sum+v,0);
+     }else{
+       directDamage=Math.max(1,Math.round(directDamage*(P.block_damage_multiplier||.35)));
+     }
+   }
+
+   const special=applySpecialAfterHit(fight,g,e,directDamage);
+   const totalDamage=directDamage+special.extraDamage;
+   specialParts.push(...special.parts);
+   g.hp-=totalDamage;
+
+   const speech={
+     enemy:crit?getEnemyLine('critLines'):attackLine,
+     enemyType:crit?'crit':'normal'
+   };
+   if(blocked){
+     speech.player=rnd(C.combatSpeech.playerBlock);
+     speech.playerType='block';
+   }else if(Math.random()<.38){
+     speech.player=rnd(C.combatSpeech.playerHit);
+     speech.playerType='hit';
+   }
+
+   const pieces=[];
+   if(dot.parts.length)pieces.push(dot.parts.join('；'));
+   pieces.push(
+     `${e.name}反擊，造成 ${totalDamage} 傷害${crit?'（暴擊）':''}`+
+     `${blocked?'，你傲然格擋':''}`+
+     `${elem.label?'，'+elem.label+' ×'+elem.mult.toFixed(2):''}`
+   );
+   if(specialParts.length)pieces.push(specialParts.join('；'));
+
+   renderFight(pieces.join('；')+'。',speech);
+   render();
+
+   const dotDelay=30;
+   const attackDelay=(dot.ticks||[]).length?360:60;
+   setTimeout(()=>playDotTicks(dot.ticks||[]),dotDelay);
+
+   if(hitDamages){
+     playMultiHitVisual(hitDamages,crit,attackDelay);
+   }else{
+     setTimeout(()=>{
+       if(typeof animateStrike==='function')animateStrike('enemyFighter');
+       if(typeof animateDamage==='function')animateDamage('playerFighter',directDamage,{crit,blocked});
+       microShake(0,crit);
+     },attackDelay);
+   }
+
+   const directDuration=hitDamages?hitDamages.length*190+140:300;
+   playSpecialVisual(
+     special.effectType,
+     special.extraDamage,
+     special.mpDrain,
+     attackDelay+directDuration
+   );
+
+   if(g.hp<=0){
+     const totalVisualTime=attackDelay+directDuration+
+       (special.effectType==='abyssal_tide'?900:550);
+     return setTimeout(loseFight,totalVisualTime);
+   }
  });
  set('openMonsterDex' ,function(){
    const C=currentConfig(),sheet=get('sheet');const rows=C.monsters.map(m=>`<div class="monster-card v153-dex-card"><img src="${esc2(m.image||('assets/monsters/'+m.id+'.svg'))}" alt="${esc2(m.name)}"><div><strong>${esc2(m.name)}</strong><span>${esc2(m.cat)} · Lv${m.lv} ${m.elite?'<span class="v153-elite">精英</span>':''} ${elementBadge(m)}</span><small>體力 ${m.hp}｜攻擊 ${m.atk}｜防禦 ${m.def}<br>特性：${esc2(m.trait||'—')}｜弱點：${esc2(m.weakTo||'—')}<br>出沒：${esc2(m.spawn)}</small></div></div>`).join('');

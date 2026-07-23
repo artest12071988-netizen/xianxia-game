@@ -22,3 +22,123 @@
 .v153-status.burn{border:1px solid #c55336!important;background:rgba(103,34,20,.38)!important;color:#ff9776!important}
 .v153-status.slow{border:1px solid #4388a5!important;background:rgba(24,70,92,.40)!important;color:#8edcf5!important}
 .v153-dex-card .v153-elite{padding:2px 6px!important;font-size:9px!important}
+
+
+/* V15.3 Phase 2 FIX1 — 異常狀態與特殊攻擊動畫 */
+.fight-stage{overflow:hidden;isolation:isolate}
+.fight-stage .fighter{z-index:3}
+.v153-battle-fx{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;border-radius:12px}
+.v153-transient-fx{position:absolute;inset:0;z-index:12;pointer-events:none}
+
+/* 中毒：中央暗紅色慢速脈動 */
+.v153-poison-ambience{position:absolute;left:50%;top:50%;width:68%;height:82%;transform:translate(-50%,-50%);border-radius:50%;opacity:0;background:radial-gradient(circle,rgba(180,16,25,.32),rgba(86,0,12,.18) 42%,transparent 72%);filter:blur(7px)}
+.poison-active .v153-poison-ambience{animation:v153PoisonBreath 2.6s ease-in-out infinite}
+@keyframes v153PoisonBreath{
+  0%,100%{opacity:.16;transform:translate(-50%,-50%) scale(.86)}
+  50%{opacity:.72;transform:translate(-50%,-50%) scale(1.08)}
+}
+.v153-poison-apply:after,.v153-poison-tick:after{
+  content:"";position:absolute;inset:0;z-index:20;pointer-events:none;
+  background:radial-gradient(circle at 50% 48%,rgba(225,32,42,.42),rgba(104,0,18,.25) 43%,transparent 73%);
+  animation:v153RedPulse .85s ease-out forwards
+}
+@keyframes v153RedPulse{0%{opacity:0}28%{opacity:1}100%{opacity:0}}
+
+/* 灼燒：下方火焰持續燃燒 */
+.v153-burn-floor{position:absolute;left:0;right:0;bottom:-7px;height:34%;opacity:0;filter:drop-shadow(0 -7px 14px rgba(255,72,20,.38))}
+.v153-burn-floor i{position:absolute;left:calc(var(--i)*8.5%);bottom:-15px;width:34px;height:76px;border-radius:50% 50% 42% 42%;background:linear-gradient(0deg,#ff2d16 8%,#ff8a26 55%,#ffd768 100%);transform-origin:50% 100%;clip-path:polygon(50% 0,72% 28%,93% 56%,77% 100%,22% 100%,7% 56%,31% 30%);animation:v153Flame 1.25s ease-in-out infinite;animation-delay:calc(var(--i)*-.11s)}
+.burn-active .v153-burn-floor{opacity:.62}
+@keyframes v153Flame{
+  0%,100%{transform:translateY(12px) scale(.72) rotate(-5deg);opacity:.35}
+  50%{transform:translateY(-6px) scale(1.12) rotate(7deg);opacity:1}
+}
+.v153-burn-apply .v153-burn-floor,.v153-burn-tick .v153-burn-floor{opacity:1!important;filter:drop-shadow(0 -10px 24px rgba(255,54,18,.75))}
+
+/* 寒緩：下方冰晶＋藍色慢速閃爍 */
+.v153-ice-floor{position:absolute;left:0;right:0;bottom:0;height:32%;opacity:0;background:linear-gradient(0deg,rgba(38,151,218,.24),transparent)}
+.v153-ice-floor i{position:absolute;left:calc(5% + var(--i)*11%);bottom:-4px;width:38px;height:54px;background:linear-gradient(145deg,rgba(189,242,255,.92),rgba(49,145,213,.62));clip-path:polygon(50% 0,92% 35%,76% 100%,18% 92%,0 42%);box-shadow:0 0 15px rgba(100,211,255,.7);animation:v153IceBob 2.8s ease-in-out infinite;animation-delay:calc(var(--i)*-.17s)}
+.slow-active .v153-ice-floor{opacity:.70;animation:v153BlueBreath 2.4s ease-in-out infinite}
+@keyframes v153IceBob{0%,100%{transform:translateY(11px) scale(.82)}50%{transform:translateY(-2px) scale(1.04)}}
+@keyframes v153BlueBreath{0%,100%{filter:brightness(.65)}50%{filter:brightness(1.35)}}
+.v153-slow-apply .v153-ice-floor{opacity:1!important;filter:drop-shadow(0 -8px 24px rgba(72,192,255,.75))}
+
+/* 分段傷害浮字 */
+.v153-fx-number{position:absolute;z-index:30;transform:translate(-50%,-50%);text-align:center;animation:v153FxNumber 1.05s ease-out forwards;text-shadow:0 3px 10px #000,0 0 14px currentColor}
+.v153-fx-number small{display:block;font-size:9px;font-weight:900;letter-spacing:.08em}
+.v153-fx-number b{font:1000 25px/1 system-ui}
+.v153-fx-number.damage{color:#ff796f}
+.v153-fx-number.crit{color:#ffd969}.v153-fx-number.crit b{font-size:31px}
+.v153-fx-number.poison{color:#db5365}
+.v153-fx-number.burn{color:#ff812e}
+.v153-fx-number.tide{color:#67d8ff}
+.v153-fx-number.drain{color:#66d9ff}
+.v153-fx-number.heavy{color:#ff4e45}
+.v153-fx-number.status-poison{color:#ff5361}
+.v153-fx-number.status-burn{color:#ff8a37}
+.v153-fx-number.status-slow{color:#71d8ff}
+@keyframes v153FxNumber{
+  0%{opacity:0;transform:translate(-50%,-15%) scale(.55)}
+  18%{opacity:1;transform:translate(-50%,-50%) scale(1.18)}
+  100%{opacity:0;transform:translate(-50%,-145%) scale(.90)}
+}
+
+/* 每次命中小震動 */
+.v153-hit-shake{animation:v153MicroShake .20s linear}
+.v153-hit-shake-strong{animation:v153MicroShakeStrong .34s linear}
+.v153-stage-shake{animation:v153StageShake .44s linear}
+@keyframes v153MicroShake{
+  0%,100%{transform:translate(0)}
+  28%{transform:translate(-4px,2px)}
+  58%{transform:translate(5px,-2px)}
+  78%{transform:translate(-2px,1px)}
+}
+@keyframes v153MicroShakeStrong{
+  0%,100%{transform:translate(0)}
+  18%{transform:translate(-8px,4px)}
+  38%{transform:translate(9px,-4px)}
+  58%{transform:translate(-7px,-3px)}
+  78%{transform:translate(6px,3px)}
+}
+@keyframes v153StageShake{
+  0%,100%{transform:translate(0)}
+  18%{transform:translate(-7px,3px)}
+  38%{transform:translate(8px,-4px)}
+  58%{transform:translate(-6px,-2px)}
+  78%{transform:translate(5px,2px)}
+}
+
+/* 潮汐：由敵方拍向我方 */
+.v153-tide-wave{position:absolute;inset:0;z-index:18;overflow:hidden}
+.v153-tide-wave i{position:absolute;right:-18%;top:31%;width:74%;height:46%;border-radius:50%;border-top:15px solid rgba(121,226,255,.92);background:linear-gradient(180deg,rgba(60,173,224,.12),rgba(22,111,178,.58));box-shadow:0 -8px 25px rgba(108,220,255,.72);transform:translateX(20%) rotate(-8deg);animation:v153WaveHit .78s ease-in forwards}
+.v153-tide-wave i:nth-child(2){top:40%;animation-delay:.08s;opacity:.72}
+.v153-tide-wave i:nth-child(3){top:49%;animation-delay:.15s;opacity:.45}
+@keyframes v153WaveHit{
+  0%{transform:translateX(35%) rotate(-8deg) scaleY(.65);opacity:0}
+  28%{opacity:1}
+  100%{transform:translateX(-135%) rotate(-8deg) scaleY(1.25);opacity:0}
+}
+.v153-tide-impact:after{content:"";position:absolute;inset:0;z-index:22;background:rgba(56,181,235,.25);animation:v153TideFlash .8s ease-out forwards}
+@keyframes v153TideFlash{0%,100%{opacity:0}40%{opacity:1}}
+
+/* 吸取精力：藍色光球由我方飛向敵方 */
+.v153-drain-orb{position:absolute;inset:0;z-index:24}
+.v153-drain-orb i{position:absolute;left:26%;top:46%;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle,#efffff 0 18%,#62e7ff 35%,#1674df 72%,transparent 74%);box-shadow:0 0 18px #65e6ff,0 0 38px #1b73e8;animation:v153DrainFly .88s cubic-bezier(.2,.8,.25,1) forwards}
+.v153-drain-orb span{position:absolute;left:27%;top:49%;width:48%;height:4px;background:linear-gradient(90deg,rgba(76,221,255,.12),rgba(92,222,255,.85),rgba(65,118,255,.1));filter:blur(1px);transform-origin:left center;animation:v153DrainTrail .88s ease-out forwards}
+@keyframes v153DrainFly{
+  0%{left:26%;top:49%;transform:scale(.55);opacity:0}
+  18%{opacity:1}
+  72%{left:70%;top:43%;transform:scale(1.15);opacity:1}
+  100%{left:73%;top:42%;transform:scale(.18);opacity:0}
+}
+@keyframes v153DrainTrail{0%{transform:scaleX(0);opacity:0}35%{opacity:1}100%{transform:scaleX(1);opacity:0}}
+
+/* 戰魂重擊 */
+.v153-heavy-slash{position:absolute;left:22%;top:12%;width:72%;height:13px;background:linear-gradient(90deg,transparent,#fff 32%,#ff4438 52%,transparent);box-shadow:0 0 20px #ff392e,0 0 44px #7e0000;transform:rotate(35deg) translateX(75%);animation:v153HeavySlash .65s ease-out forwards}
+@keyframes v153HeavySlash{to{transform:rotate(35deg) translateX(-105%);opacity:0}}
+
+@media(max-width:680px){
+  .v153-fx-number b{font-size:20px}
+  .v153-fx-number.crit b{font-size:25px}
+  .v153-burn-floor i{width:24px;height:54px}
+  .v153-ice-floor i{width:28px;height:40px}
+}
