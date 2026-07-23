@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.3-PHASE1-FIX3-RANDOM-LOCAL';
+const BUILD='V15.3-PHASE1-FIX4-EXACT-ZONE-POOLS';
 if(window.__V153MonsterEcologyFix2Loaded)return;
 window.__V153MonsterEcologyFix2Loaded=true;
 
@@ -19,6 +19,10 @@ const ZONE_TAGS={
  'J-10':['陰陽海','海域']
 };
 const state={installed:false};
+const EXACT_ZONE_POOLS={"青牛谷":[9001,9002],"練氣坊":[9001,9002],"青雲坊市":[9001,9002],"傳訊台":[9001,9002],"丹房":[9001,9002,9405],"靈泉":[9404,9405],"中央秘境":[9405,9406,9415],"西村舊居":[9414,9415],"北村舊居":[9414,9415],"南嶽神祠":[9406,9415],"迷霧林":[9001,9002,9404,9405,9406],"鎮海燈塔":[9410,9412],"萬木森域":[9001,9002,9404,9405,9406],"赤砂荒漠":[9401,9402,9403,9413],"太古戰場":[9414,9415],"上古遺跡":[9404,9414,9415],"崑崙仙山":[9406,9415],"北天宮":[9407,9408,9409],"玄霜冰原":[9407,9408,9409],"滄溟外海":[9410,9411,9412],"冰火島":[9408,9413],"陰陽海":[9410,9411,9412]};
+const BEAST_TIDE_ONLY_IDS=new Set([9004,9005,9006,9101,9102,9103]);
+const REQUIRED_NEW_IDS=Array.from({length:15},(_,i)=>9401+i);
+
 const get=name=>{try{return Function('return typeof '+name+'!=="undefined"?'+name+':null')()}catch(_){return null}};
 const set=(name,value)=>{try{Function('v',name+'=v')(value);return true}catch(_){try{window[name]=value;return true}catch(__){return false}}};
 const num=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d};
@@ -59,32 +63,62 @@ function randomOne(list){
  if(!Array.isArray(list)||!list.length)return null;
  return list[Math.floor(Math.random()*list.length)]||null;
 }
-function localPool(z=currentZone(),opts={}){
- const C=currentConfig();
- return (C?.monsters||[]).filter(m=>
-   !['活動王','古魔'].includes(m.cat)&&compatible(m,z)
- );
+function tideActive(){
+ try{return window.V14BeastTide?.isActive?.()===true}catch(_){return false}
 }
-function choose(z=currentZone(),opts={}){
- const C=currentConfig();
- let pool=localPool(z);
+function blackCloudActiveHere(){
+ try{return window.V14BlackCloud?.isInside?.()===true}catch(_){return false}
+}
+function monsterById(id){
+ return (currentConfig()?.monsters||[]).find(m=>Number(m.id)===Number(id))||null;
+}
+function localPool(z=currentZone()){
+ const ids=EXACT_ZONE_POOLS[String(z?.name||'')]||[];
+ return ids
+   .map(monsterById)
+   .filter(Boolean)
+   .filter(m=>m.normalEncounter!==false);
+}
+function choose(z=currentZone()){
+ const pool=localPool(z);
  if(!pool.length){
-   console.warn(`[${BUILD}] empty local pool`,{
+   console.error(`[${BUILD}] exact zone pool empty`,{
      zone:z?.name,
-     type:z?.type,
-     coord:z?.coord||currentCoord(),
-     tags:tagsFor(z)
+     catalogCount:currentConfig()?.monsters?.length||0,
+     version:currentConfig()?.version
    });
-   pool=(C?.monsters||[]).filter(m=>!['活動王','古魔'].includes(m.cat));
+   const toast=get('toast');
+   if(typeof toast==='function')toast('地域怪物資料未完整載入，請重新覆蓋設定檔。');
+   return null;
  }
  const selected=randomOne(pool);
- console.info(`[${BUILD}] random local encounter`,{
+ console.info(`[${BUILD}] exact local encounter`,{
    zone:z?.name,
-   tags:tagsFor(z),
    pool:pool.map(m=>`${m.id}:${m.name}`),
    selected:selected?`${selected.id}:${selected.name}`:null
  });
  return clone(selected);
+}
+function validateIncoming(monster,z=currentZone()){
+ if(!monster)return null;
+ const id=Number(monster.id);
+ if(BEAST_TIDE_ONLY_IDS.has(id)&&!tideActive()){
+   console.warn(`[${BUILD}] blocked beast-tide-only monster`,id,monster.name);
+   return choose(z);
+ }
+ if(id===9003&&!tideActive()&&!blackCloudActiveHere()){
+   console.warn(`[${BUILD}] blocked black-cloud/tide monster`,id,monster.name);
+   return choose(z);
+ }
+ if(monster.normalEncounter===false)return monster;
+ const allowed=localPool(z).some(m=>Number(m.id)===id);
+ if(!allowed){
+   console.warn(`[${BUILD}] replaced wrong-zone monster`,{
+     id,name:monster.name,zone:z?.name
+   });
+   return choose(z);
+ }
+ return monster;
 }
 function weaponElement(){const g=currentGame();const e=(g?.equipment||[]).find(x=>String(x.uid)===String(g?.weaponUid));return e?.elementEnchant?.key||null}
 function armorElement(){const g=currentGame();const e=(g?.equipment||[]).find(x=>String(x.uid)===String(g?.armorUid));return e?.elementEnchant?.key||null}
@@ -97,7 +131,12 @@ function relation(attacker,defender){
 }
 function elementBadge(m){const key=ELEMENT_CLASS[m?.elementKey]||'none';return `<span class="v153-element ${key}">${esc2(m?.element||'無')}屬性</span>`}
 function habitatText(m){return Array.isArray(m?.habitats)?m.habitats.join('／'):'不受地域限制'}
-function ready(){const C=currentConfig(),g=currentGame();return Array.isArray(C?.monsters)&&C.monsters.length>=32&&!!g&&typeof get('startFightMonster')==='function'}
+function ready(){
+ const C=currentConfig(),g=currentGame();
+ const ids=new Set((C?.monsters||[]).map(m=>Number(m.id)));
+ const catalogReady=Array.isArray(C?.monsters)&&C.monsters.length>=32&&REQUIRED_NEW_IDS.every(id=>ids.has(id));
+ return catalogReady&&!!g&&typeof get('startFightMonster')==='function';
+}
 function install(){
  if(state.installed||!ready())return false;
  const oldStart=get('startFightMonster'),oldRender=get('renderFight'),oldAttack=get('attackTurn'),oldEnemy=get('enemyTurn'),oldDex=get('openMonsterDex');
@@ -115,11 +154,14 @@ function install(){
      if(list.length)return startAiEncounter(typeof rnd==='function'?rnd(list):list[Math.floor(Math.random()*list.length)]);
    }
    const chance=source==='move'?.25:.42;
-   if(Math.random()<chance){const m=choose(z);if(m)return startFightMonster(m)}
+   if(Math.random()<chance){
+     const monster=choose(z);
+     if(monster)return startFightMonster(monster);
+   }
  });
  set('startFightMonster',function(m){
-   const z=currentZone();let selected=m;
-   if(!compatible(selected,z))selected=choose(z);
+   const selected=validateIncoming(m,currentZone());
+   if(!selected)return;
    return oldStart(selected);
  });
  set('renderFight',function(line,speech={}){
@@ -172,12 +214,12 @@ function install(){
    localPool:()=>localPool(currentZone()).map(m=>({id:m.id,name:m.name,habitats:m.habitats})),
    diagnose:()=>({
      installed:state.installed,
+     catalogVersion:currentConfig()?.version,
+     catalogCount:currentConfig()?.monsters?.length||0,
      zone:currentZone()?.name,
-     type:currentZone()?.type,
      coord:currentCoord(),
-     tags:tagsFor(),
-     monsterCount:currentConfig()?.monsters?.length||0,
-     selectionRule:'當地合法怪物等機率，不依玩家或怪物等級',
+     beastTideActive:tideActive(),
+     selectionRule:'精確地域名單，池內等機率；獸潮專屬怪完全排除',
      localPool:localPool().map(m=>`${m.id}:${m.name}`)
    }),
    relation

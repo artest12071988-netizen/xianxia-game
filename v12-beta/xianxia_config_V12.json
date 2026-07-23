@@ -828,7 +828,9 @@
       "evasionBonus": 0,
       "blockBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9002,
@@ -890,7 +892,9 @@
       "evasionBonus": 0,
       "blockBonus": 0,
       "critBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9003,
@@ -952,7 +956,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "black_cloud_or_beast_tide"
     },
     {
       "id": 9004,
@@ -1013,7 +1019,9 @@
       "ecologyLocked": true,
       "evasionBonus": 0,
       "critBonus": 0,
-      "damageBonus": 0
+      "damageBonus": 0,
+      "normalEncounter": false,
+      "encounterMode": "beast_tide_only"
     },
     {
       "id": 9005,
@@ -1075,7 +1083,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "beast_tide_only"
     },
     {
       "id": 9006,
@@ -1136,7 +1146,9 @@
       "ecologyLocked": true,
       "evasionBonus": 0,
       "blockBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "beast_tide_only"
     },
     {
       "id": 9101,
@@ -1197,7 +1209,9 @@
       "ecologyLocked": true,
       "blockBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "beast_tide_only"
     },
     {
       "id": 9102,
@@ -1258,7 +1272,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "beast_tide_only"
     },
     {
       "id": 9103,
@@ -1320,7 +1336,9 @@
       "ecologyLocked": true,
       "evasionBonus": 0,
       "critBonus": 0,
-      "damageBonus": 0
+      "damageBonus": 0,
+      "normalEncounter": false,
+      "encounterMode": "beast_tide_only"
     },
     {
       "id": 9201,
@@ -1377,7 +1395,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "great_tribulation_only"
     },
     {
       "id": 9202,
@@ -1434,7 +1454,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "great_tribulation_only"
     },
     {
       "id": 9203,
@@ -1491,7 +1513,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "great_tribulation_only"
     },
     {
       "id": 9301,
@@ -1552,7 +1576,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "event_boss_only"
     },
     {
       "id": 9302,
@@ -1613,7 +1639,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "event_boss_only"
     },
     {
       "id": 9303,
@@ -1674,7 +1702,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "event_boss_only"
     },
     {
       "id": 9304,
@@ -1735,7 +1765,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "event_boss_only"
     },
     {
       "id": 9305,
@@ -1796,7 +1828,9 @@
       "blockBonus": 0,
       "critBonus": 0,
       "damageBonus": 0,
-      "damageReduction": 0
+      "damageReduction": 0,
+      "normalEncounter": false,
+      "encounterMode": "event_boss_only"
     },
     {
       "id": 9401,
@@ -1851,7 +1885,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9402,
@@ -1906,7 +1942,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9403,
@@ -1962,7 +2000,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9404,
@@ -2018,7 +2058,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9405,
@@ -2074,7 +2116,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9406,
@@ -2132,7 +2176,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9407,
@@ -2189,7 +2235,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9408,
@@ -2247,7 +2295,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9409,
@@ -2304,7 +2354,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9410,
@@ -2362,7 +2414,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9411,
@@ -2418,7 +2472,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9412,
@@ -2476,7 +2532,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9413,
@@ -2533,7 +2591,9 @@
         "這點力道？",
         "連外甲都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9414,
@@ -2590,7 +2650,9 @@
         "攻擊穿過了虛影。",
         "凡兵難傷陰魂。",
         "你的劍觸不到我。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     },
     {
       "id": 9415,
@@ -2648,7 +2710,9 @@
         "石甲未破。",
         "攻擊無效。",
         "防禦禁制啟動。"
-      ]
+      ],
+      "normalEncounter": true,
+      "encounterMode": "normal"
     }
   ],
   "zones": [
@@ -3485,7 +3549,7 @@
       "action": "shop"
     }
   ],
-  "version": "V15.3-PHASE1-MONSTER-ECOLOGY",
+  "version": "V15.3-PHASE1-FIX4-EXACT-ZONE-POOLS",
   "aiCultivators": [
     {
       "id": 200001,
@@ -5398,6 +5462,7 @@
       "海域不生成陸地怪物",
       "沙漠專屬毒蠍、蟻群、沙蜥",
       "活動王與魔界事件不受地域篩選"
-    ]
+    ],
+    "selectionRule": "一般探索使用明確地域怪物名單；獸潮專屬怪不進入一般探索。"
   }
 }
