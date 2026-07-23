@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.4-PHASE2-ISLAND-CELESTIAL-ANOMALY-20260723';
+const BUILD='V15.4-PHASE3-STAGE1-IMMERSIVE-UI-SHELL-20260723';
 const ROOT_ID='v154BreakthroughBattlefield';
 const FAILURE_ID='v154BreakthroughFailureFx';
 const state={
@@ -52,43 +52,59 @@ function secondsLeft(){
   if(e.breakthrough_result)return 0;
   return Math.max(0,(Date.parse(e.ends_at||0)-Date.now())/1000);
 }
+function stageInfo(){
+  const e=state.data?.event||{};
+  if(e.breakthrough_result==='success')return {index:4,label:'天門大開',copy:'突破完成，靈壓席捲孤島'};
+  if(e.breakthrough_result==='failure')return {index:4,label:'靈氣崩散',copy:'經脈逆行，走火入魔'};
+  const start=Date.parse(e.started_at||e.created_at||0),end=Date.parse(e.ends_at||0),now=Date.now();
+  const total=Math.max(1,end-start),ratio=clamp((now-start)/total,0,1);
+  if(ratio<.24)return {index:0,label:'引氣入體',copy:'八方靈氣正向島心聚集'};
+  if(ratio<.52)return {index:1,label:'靈海凝聚',copy:'靈海翻湧，護法陣線承壓'};
+  if(ratio<.80)return {index:2,label:'道基共鳴',copy:'天地法則開始震動'};
+  return {index:3,label:'天門將開',copy:'最後關頭，天象已至極限'};
+}
+function stageDots(info){
+  return `<div class="v154-stage-dots">${[0,1,2,3].map(i=>`<i class="${i<=info.index?'on':''}"></i>`).join('')}</div>`;
+}
 function columnsFor(count){return count<=3?1:count<=8?2:3}
 function logKey(x){return `${x?.at||''}|${x?.actor||''}|${x?.action||''}|${x?.target||''}|${x?.amount||0}`}
 
 function personCard(p){
-  const selectable=targetAllowed(p.key);
-  const selected=state.selected===p.key;
+  const selectable=targetAllowed(p.key),selected=state.selected===p.key;
+  const hpNow=Math.max(0,Math.round(p.hp||0)),hpMax=Math.max(1,Math.round(p.hp_max||1));
   return `<article class="v154-person ${esc(p.combat_state||'active')} ${selectable?'targetable':''} ${selected?'selected':''}" data-target="${esc(p.key)}">
     <div class="v154-person-top">
-      <img class="v154-avatar" src="${esc(portraitFor(p))}" alt="${esc(p.name)}">
-      <div class="v154-person-name"><b>${esc(p.name)}</b><small>${esc(factionText(p.faction))} · ${esc(p.type==='player'?'真人修士':p.type==='ai'?'世界修士':'妖獸')}</small></div>
+      <div class="v154-avatar-wrap"><img class="v154-avatar" src="${esc(portraitFor(p))}" alt="${esc(p.name)}"><span>${p.type==='monster'?'獸':p.type==='ai'?'靈':'修'}</span></div>
+      <div class="v154-person-name"><b>${esc(p.name)}</b><small>${esc(p.type==='player'?'真人修士':p.type==='ai'?'世界修士':'妖獸')}</small></div>
+      <em class="v154-state-chip">${esc(combatText(p))}</em>
     </div>
     <div class="v154-hp"><i style="--hp:${pct(p.hp,p.hp_max)}"></i></div>
-    <em>體力 ${Math.max(0,Math.round(p.hp||0))}/${Math.max(1,Math.round(p.hp_max||1))} · ${esc(combatText(p))}</em>
+    <div class="v154-person-meta"><span>${hpNow}/${hpMax}</span><span>${esc(factionText(p.faction))}</span></div>
   </article>`;
 }
 function roster(faction){
   const list=(state.data?.participants||[]).filter(p=>p.faction===faction&&p.faction!=='neutral');
+  const alive=list.filter(p=>p.alive&&p.combat_state==='active').length;
   return `<section class="v154-side ${faction}">
-    <div class="v154-side-head"><b>${faction==='guardian'?'護法陣營':'襲擊陣營'}</b><span>存活 ${list.filter(p=>p.alive&&p.combat_state==='active').length} / ${list.length}</span></div>
-    <div class="v154-roster" style="--cols:${columnsFor(list.length)}">${list.length?list.map(personCard).join(''):`<p style="color:#7f929b;font-size:11px;text-align:center">目前無人</p>`}</div>
+    <div class="v154-side-head"><div><small>${faction==='guardian'?'GUARDIAN':'RAIDER'}</small><b>${faction==='guardian'?'護法陣營':'襲擊陣營'}</b></div><span>存活 <strong>${alive}</strong> / ${list.length}</span></div>
+    <div class="v154-roster" style="--cols:${columnsFor(list.length)}">${list.length?list.map(personCard).join(''):`<div class="v154-empty-roster">目前無人</div>`}</div>
+    <div class="v154-side-foot">${faction==='guardian'?'護法之力，庇佑道心':'群魔來襲，意圖阻斷天命'}</div>
   </section>`;
 }
 function ownerCard(){
-  const o=state.data?.owner||{};
-  const e=state.data?.event||{};
-  const targetable=targetAllowed('owner');
-  const selected=state.selected==='owner';
-  const locked=!e.breakthrough_result;
+  const o=state.data?.owner||{},e=state.data?.event||{},info=stageInfo();
+  const targetable=targetAllowed('owner'),selected=state.selected==='owner',locked=!e.breakthrough_result;
   const resultText=e.breakthrough_result==='success'?'突破成功':e.breakthrough_result==='failure'?'走火入魔':'突破中';
   return `<div class="v154-island-core">
+    <div class="v154-celestial-pillar"></div>
     ${guardiansAlive()>0?'<div class="v154-shield"></div>':'<div class="v154-shield broken"></div>'}
     <article class="v154-owner ${locked?'locked':''} ${o.combat_state||''} ${state.ownerEntry?'flying':''} ${targetable?'targetable':''} ${selected?'selected':''}" data-target="owner">
-      <img src="${ownerPortrait()}" alt="${esc(o.name)}"><b>${esc(o.name||'突破者')}</b>
+      <div class="v154-owner-orbit"></div><img src="${ownerPortrait()}" alt="${esc(o.name)}"><b>${esc(o.name||'突破者')}</b>
       <small>${esc(resultText)} · ${esc(e.target_realm||'未知境界')}</small>
       <div class="v154-hp"><i style="--hp:${pct(o.hp,o.hp_max)}"></i></div>
       <small>體力 ${Math.max(0,Math.round(o.hp||0))}/${Math.max(1,Math.round(o.hp_max||1))}</small>
     </article>
+    <div class="v154-stage"><small>突破階段</small><b>${esc(info.label)}</b>${stageDots(info)}<span>${esc(info.copy)}</span></div>
   </div>`;
 }
 function logHtml(){
@@ -110,18 +126,20 @@ function currentSpeech(){
 }
 function render(){
   const el=root();if(!el||!state.data)return;
-  const e=state.data.event||{};
-  const sec=secondsLeft();
-  const ended=e.battle_status==='ended';
+  const e=state.data.event||{},sec=secondsLeft(),ended=e.battle_status==='ended',info=stageInfo();
   if(state.selected&&!targetAllowed(state.selected))state.selected=null;
   const targetName=state.selected==='owner'?state.data.owner?.name:(state.data.participants||[]).find(p=>p.key===state.selected)?.name;
-  const act=myCanAct();
-  const phase=e.breakthrough_result?(ended?'戰場結束':'突破者已出關'):'天象異變同步中';
+  const act=myCanAct(),phase=e.breakthrough_result?(ended?'戰場結束':'突破者已出關'):'天象異變同步中';
+  const actionHtml=ended?`<button class="wait" data-close><span class="v154-action-icon">門</span><b>離開戰場</b></button>`:`
+    <button class="attack" data-action="attack" ${!act||!state.selected?'disabled':''}><span class="v154-action-icon">⚔</span><b>攻擊</b><small>全力出擊</small></button>
+    <button class="wait" data-action="wait" ${!act?'disabled':''}><span class="v154-action-icon">◉</span><b>靜觀其變</b><small>等待時機</small></button>
+    <button class="flee" data-action="flee" ${!act?'disabled':''}><span class="v154-action-icon">➜</span><b>遁走</b><small>暫離孤島</small></button>
+    <div class="v154-target-note">${act?(targetName?`已鎖定：${esc(targetName)}`:'點選敵方修士作為攻擊目標'):(state.role==='owner'&&!e.breakthrough_result?'突破尚未結束，暫時無法行動':'目前無法行動')}</div>`;
   el.innerHTML=`
     <div class="v154-btf-bg"></div><div class="v154-btf-qi"></div>
     <header class="v154-btf-top">
-      <div class="v154-btf-title"><h2>孤島天象異變</h2><p>${esc(e.owner_name||state.data.owner?.name)} 正在衝擊 ${esc(e.target_realm||'新境界')}，孤島上空天象翻湧，八方靈氣正向島心匯聚。</p></div>
-      <div class="v154-btf-clock"><small>${e.breakthrough_result?'突破結果':'剩餘時間'}</small><strong>${e.breakthrough_result?(e.breakthrough_result==='success'?'成功':'失敗'):sec.toFixed(sec<10?1:0)}</strong></div>
+      <div class="v154-btf-title"><div class="v154-title-seal">異</div><div><h2>孤島天象異變</h2><p>天地異變，群雄爭鋒；護法或襲擊，皆為天道一戰。</p></div></div>
+      <div class="v154-btf-clock"><small>${e.breakthrough_result?'突破結果':'剩餘時間'}</small><strong>${e.breakthrough_result?(e.breakthrough_result==='success'?'成功':'失敗'):sec.toFixed(sec<10?1:0)}</strong><span>${esc(info.label)}</span></div>
       <div class="v154-btf-status"><b>${esc(roleText(state.role))}</b><small>${esc(phase)}</small></div>
     </header>
     <main class="v154-btf-arena">
@@ -130,16 +148,11 @@ function render(){
       ${roster('attacker')}
     </main>
     <div class="v154-result-fx"></div>
-    <div class="v154-result-banner"><b>${e.breakthrough_result==='success'?'天門大開':e.breakthrough_result==='failure'?'靈氣崩散':''}</b><span>${e.breakthrough_result==='success'?`已晉升 ${esc(e.target_realm||'新境界')}`:e.breakthrough_result==='failure'?'突破失敗，陷入走火入魔':''}</span></div>
+    <div class="v154-result-banner"><small>${e.breakthrough_result==='success'?'BREAKTHROUGH COMPLETE':'BREAKTHROUGH FAILED'}</small><b>${e.breakthrough_result==='success'?'天門大開':e.breakthrough_result==='failure'?'靈氣崩散':''}</b><span>${e.breakthrough_result==='success'?`已晉升 ${esc(e.target_realm||'新境界')}`:e.breakthrough_result==='failure'?'突破失敗，陷入走火入魔':''}</span></div>
     <footer class="v154-bottom">
+      <div class="v154-log-head"><b>戰況日誌</b><button data-log-toggle>戰況詳情</button></div>
       <div class="v154-log">${logHtml()}</div>
-      <div class="v154-actions">
-        ${ended?`<button class="wait" data-close>離開戰場</button>`:`
-          <button class="attack" data-action="attack" ${!act||!state.selected?'disabled':''}>攻擊</button>
-          <button class="wait" data-action="wait" ${!act?'disabled':''}>靜觀其變</button>
-          <button class="flee" data-action="flee" ${!act?'disabled':''}>遁走</button>
-          <div class="v154-target-note">${act?(targetName?`已鎖定：${esc(targetName)}`:'點選敵方修士作為攻擊目標'):(state.role==='owner'&&!e.breakthrough_result?'突破尚未結束，暫時無法行動':'目前無法行動')}</div>`}
-      </div>
+      <div class="v154-actions">${actionHtml}</div>
     </footer>`;
   bind();
 }
@@ -154,6 +167,7 @@ function bind(){
   }));
   el.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>act(b.dataset.action)));
   el.querySelector('[data-close]')?.addEventListener('click',close);
+  el.querySelector('[data-log-toggle]')?.addEventListener('click',()=>el.classList.toggle('log-open'));
 }
 function resultTransition(result){
   const el=root();if(!el||!result)return;

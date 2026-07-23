@@ -1,7 +1,7 @@
 'use strict';
 
 /* ============================================================
-   V15.4 Phase 2 — 孤島天象異變美術基準、突破雙視角與護法戰場精緻化
+   V15.4 Phase 3 Stage 1 — 沉浸式孤島天象立場選擇與戰場主骨架
    獨立補丁：不重寫 V12.7 AI 重生與 V12.6.4 打坐廣告流程。
    ============================================================ */
 (() => {
@@ -109,6 +109,34 @@
       .bt-faction-grid button.neutral{color:#d8e1ea;border-color:rgba(115,132,165,.42);background:linear-gradient(180deg,rgba(18,24,35,.92),rgba(8,13,21,.96))}
       .bt-faction-grid button.neutral::after{content:"☯";position:absolute;top:31px;left:50%;transform:translateX(-50%);font-size:32px;color:#c9d9f1;text-shadow:0 0 24px rgba(201,217,241,.34)}
       .bt-choice-note{margin-top:15px;padding-top:14px;border-top:1px solid rgba(229,197,116,.16);text-align:center;color:#e8d084;font-size:13px}
+
+      .v154-choice{position:fixed;inset:0;z-index:10035;overflow:auto;color:#eef4f4;background:#020710;font-family:"PingFang TC","Noto Sans TC",system-ui,sans-serif;isolation:isolate}
+      .v154-choice-bg{position:absolute;inset:0;z-index:-3;background:linear-gradient(180deg,rgba(0,5,12,.05),rgba(0,4,10,.38) 34%,rgba(0,5,12,.92) 72%),url('assets/breakthrough_choice_island_v154_p3.webp') center top/cover no-repeat;filter:saturate(1.08) contrast(1.05)}
+      .v154-choice::before{content:"";position:absolute;inset:-12% -30% 36%;z-index:-2;background:repeating-conic-gradient(from 0deg at 50% 18%,transparent 0 13deg,rgba(148,205,255,.08) 14deg 16deg,transparent 17deg 28deg);mask:radial-gradient(circle at 50% 18%,transparent 0 5%,#000 9% 45%,transparent 61%);animation:v154ChoiceVortex 22s linear infinite;pointer-events:none}
+      @keyframes v154ChoiceVortex{to{transform:rotate(360deg)}}
+      .v154-choice-inner{width:min(1040px,94vw);min-height:100%;margin:0 auto;padding:max(55vh,520px) 0 max(28px,env(safe-area-inset-bottom));display:flex;flex-direction:column;justify-content:flex-end}
+      .v154-choice-panel{position:relative;padding:24px 25px 22px;border:1px solid rgba(226,195,107,.62);border-radius:24px;background:linear-gradient(180deg,rgba(4,13,23,.72),rgba(3,8,15,.96));box-shadow:0 28px 95px #000d,0 0 70px rgba(102,201,255,.08);backdrop-filter:blur(12px);overflow:hidden}
+      .v154-choice-panel::before{content:"";position:absolute;inset:9px;border:1px solid rgba(255,235,170,.12);border-radius:18px;pointer-events:none}
+      .v154-choice-seal{width:62px;height:62px;margin:-57px auto 8px;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(234,205,118,.65);background:#07111bf2;color:#84e6dc;font-size:28px;box-shadow:0 0 34px rgba(91,220,210,.22)}
+      .v154-choice-title{text-align:center;margin:0;color:#f0d78a;font-family:"Songti TC",serif;font-size:clamp(28px,5vw,48px);letter-spacing:.2em;text-shadow:0 0 24px rgba(241,213,130,.18)}
+      .v154-choice-sub{text-align:center;margin:8px auto 18px;max-width:720px;color:#d2dddd;line-height:1.8;font-size:14px}.v154-choice-sub b{color:#fff0ae}
+      .v154-choice-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+      .v154-choice-card{position:relative;min-height:300px;padding:25px 18px 20px;border:1px solid rgba(255,255,255,.14);border-radius:19px;overflow:hidden;color:#eef4f4;background:#07111b;cursor:pointer;transition:.22s transform,.22s border-color,.22s box-shadow;text-align:center}
+      .v154-choice-card:hover{transform:translateY(-5px)}
+      .v154-choice-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 24%,rgba(255,255,255,.09),transparent 27%),linear-gradient(180deg,transparent,rgba(0,0,0,.48));pointer-events:none}
+      .v154-choice-card::after{content:"";position:absolute;inset:8px;border:1px solid rgba(255,255,255,.06);border-radius:13px;pointer-events:none}
+      .v154-choice-card.guardian{border-color:rgba(75,208,176,.53);background:linear-gradient(180deg,rgba(9,43,46,.94),rgba(3,17,22,.96));box-shadow:inset 0 0 54px rgba(70,225,187,.07)}
+      .v154-choice-card.attacker{border-color:rgba(226,90,89,.52);background:linear-gradient(180deg,rgba(53,17,22,.94),rgba(24,7,11,.97));box-shadow:inset 0 0 54px rgba(255,73,81,.07)}
+      .v154-choice-card.neutral{border-color:rgba(126,153,192,.45);background:linear-gradient(180deg,rgba(18,29,45,.95),rgba(7,13,23,.98));box-shadow:inset 0 0 54px rgba(126,160,218,.06)}
+      .v154-choice-icon{position:relative;width:92px;height:92px;margin:0 auto 18px;display:grid;place-items:center;border-radius:50%;font-size:38px;border:1px solid currentColor;box-shadow:inset 0 0 30px rgba(255,255,255,.07),0 0 30px rgba(255,255,255,.05)}
+      .guardian .v154-choice-icon{color:#78e8d0}.attacker .v154-choice-icon{color:#ff8c85}.neutral .v154-choice-icon{color:#d3e0f2}
+      .v154-choice-card b{position:relative;display:block;font-family:"Songti TC",serif;font-size:32px;letter-spacing:.16em}.guardian b{color:#7ce5cf}.attacker b{color:#ff8a82}.neutral b{color:#d8e3f1}
+      .v154-choice-card p{position:relative;margin:15px auto 0;max-width:13em;color:#c8d3d5;line-height:1.8;font-size:13px}
+      .v154-choice-note{margin-top:17px;padding-top:15px;border-top:1px solid rgba(228,198,112,.17);text-align:center;color:#e5ca7a;font-size:13px}
+      body.v154-choice-locked{overflow:hidden}
+      @media(max-width:700px){.v154-choice-inner{padding:max(33vh,275px) 10px max(20px,env(safe-area-inset-bottom))}.v154-choice-panel{padding:20px 13px 16px;border-radius:18px}.v154-choice-cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.v154-choice-card{min-height:250px;padding:18px 7px 14px;border-radius:14px}.v154-choice-icon{width:62px;height:62px;font-size:27px;margin-bottom:13px}.v154-choice-card b{font-size:22px}.v154-choice-card p{font-size:11px;line-height:1.65}.v154-choice-title{font-size:27px}.v154-choice-sub{font-size:12px}.v154-choice-seal{width:52px;height:52px;margin-top:-47px;font-size:23px}}
+      @media(max-width:390px){.v154-choice-card{min-height:225px}.v154-choice-card p{font-size:10px}.v154-choice-card b{font-size:19px}.v154-choice-cards{gap:5px}}
+
       body.breakthrough-locked{overflow:hidden}
       @media(max-width:650px){.bt-panel{margin-bottom:1.5vh;padding:13px}.bt-stats{grid-template-columns:1fr 1fr}.bt-faction-grid{grid-template-columns:1fr}.bt-actions{grid-template-columns:1fr 1fr}.bt-faction-grid button{min-height:142px;padding-top:15px}.bt-faction-grid button::before{width:60px;height:60px}.bt-faction-grid button b{margin-top:72px;font-size:25px}.bt-choice-shell{padding:16px}}
     `;document.head.appendChild(s);
@@ -337,22 +365,48 @@
     }catch(e){console.warn('breakthrough world load',e)}
   }
 
+  function closeFactionChoice(){
+    document.getElementById('v154FactionChoice')?.remove();
+    document.body.classList.remove('v154-choice-locked');
+  }
+
   function showFactionChoice(event){
     if(!event||ownerBreakthroughActive()||fight)return;
     injectBreakthroughStyles();
-    sheet('<div class="bt-choice-shell"><h3 class="bt-choice-title">孤島天象異變</h3><div class="bt-choice-copy"><b>'+esc(event.owner_name)+'</b> 正在突破 '+esc(event.target_realm)+'，其周圍靈韻引動天象異變。<br>你身處其周圍 3×3 異變區域，本次事件選擇後不可轉換陣營。</div><div class="bt-faction-grid"><button class="guard" onclick="chooseBreakthroughFactionV128(\''+event.id+'\',\'guardian\')"><b>護法</b><small>留在此地，守護正在突破的修士。</small></button><button class="attack" onclick="chooseBreakthroughFactionV128(\''+event.id+'\',\'attacker\')"><b>襲擊</b><small>加入襲擊者，試圖阻止其突破。</small></button><button class="neutral" onclick="chooseBreakthroughFactionV128(\''+event.id+'\',\'neutral\')"><b>中立</b><small>離開此地，不再參與此戰。</small></button></div><div class="bt-choice-note">本次事件選擇後不可再轉換陣營</div></div>');
+    closeFactionChoice();
+    closeOv();
+    const el=document.createElement('section');
+    el.id='v154FactionChoice';el.className='v154-choice';
+    el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','孤島天象異變立場選擇');
+    el.innerHTML=`
+      <div class="v154-choice-bg"></div>
+      <div class="v154-choice-inner">
+        <div class="v154-choice-panel">
+          <div class="v154-choice-seal">天</div>
+          <h2 class="v154-choice-title">孤島天象異變</h2>
+          <p class="v154-choice-sub"><b>${esc(event.owner_name)}</b> 正在衝擊 ${esc(event.target_realm)}，孤島上空靈雲倒捲、八方靈氣匯聚。<br>你身處其周圍 3×3 異變區域，這次選擇將決定戰局走向。</p>
+          <div class="v154-choice-cards">
+            <button class="v154-choice-card guardian" data-faction="guardian"><span class="v154-choice-icon">✦</span><b>護法</b><p>留守孤島，保護正在突破的修士，優先承受襲擊。</p></button>
+            <button class="v154-choice-card attacker" data-faction="attacker"><span class="v154-choice-icon">⚔</span><b>襲擊</b><p>加入襲擊陣營，擊潰護法後阻斷突破者的天門。</p></button>
+            <button class="v154-choice-card neutral" data-faction="neutral"><span class="v154-choice-icon">☯</span><b>中立</b><p>立即離開異變區域，本次事件期間不能再次進入。</p></button>
+          </div>
+          <div class="v154-choice-note">本次事件選擇後不可轉換陣營</div>
+        </div>
+      </div>`;
+    document.body.appendChild(el);document.body.classList.add('v154-choice-locked');
+    el.querySelectorAll('[data-faction]').forEach(button=>button.addEventListener('click',()=>chooseFaction(event.id,button.dataset.faction)));
   }
 
   async function chooseFaction(eventId,faction){
     if(!cloudState.enabled||!cloudState.client)return;
     try{
       const {data,error}=await cloudState.client.rpc('choose_breakthrough_faction',{p_event_id:eventId,p_faction:faction});if(error)throw error;
-      cloudState.breakthroughPendingChoice=null;cloudState.breakthroughJoined.set(String(eventId),{event_id:eventId,faction,expelled_coord:data?.expelled_coord});
+      cloudState.breakthroughPendingChoice=null;closeFactionChoice();cloudState.breakthroughJoined.set(String(eventId),{event_id:eventId,faction,expelled_coord:data?.expelled_coord});
       if(faction==='neutral'&&data?.expelled_coord){const p=coordRC(data.expelled_coord);g.pos={r:p.r,c:p.c};cloudState.playerAction='被天地異變排出';log('你選擇中立，天地異變將你排出至 '+esc(data.expelled_coord)+'。','la')}
       else log('你在本次突破事件選擇「'+factionText(faction)+'」，陣營已鎖定。','la');
       closeOv();saveGame(false);render();if(typeof syncPlayerPresence==='function')syncPlayerPresence(true);
       if(faction!=='neutral'&&typeof window.openJoinedBreakthroughBattlefieldV154==='function')setTimeout(()=>window.openJoinedBreakthroughBattlefieldV154(eventId,faction),80);
-    }catch(e){const m=String(e.message||e);if(m.includes('NOT_ACTIVE')){cloudState.breakthroughPendingChoice=null;closeOv();loadBreakthroughWorld()}toast(m.includes('FACTION_LOCKED')?'本次突破期間不可轉換陣營':'選擇失敗：'+m)}
+    }catch(e){const m=String(e.message||e);if(m.includes('NOT_ACTIVE')){cloudState.breakthroughPendingChoice=null;closeFactionChoice();closeOv();loadBreakthroughWorld()}toast(m.includes('FACTION_LOCKED')?'本次突破期間不可轉換陣營':'選擇失敗：'+m)}
   }
 
   function operationBlocked(){
