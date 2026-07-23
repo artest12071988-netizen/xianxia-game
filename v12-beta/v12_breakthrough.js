@@ -1,7 +1,7 @@
 'use strict';
 
 /* ============================================================
-   V15.4 Phase 1 — 突破雙視角、孤島護法戰場與走火入魔
+   V15.4 Phase 2 — 孤島天象異變美術基準、突破雙視角與護法戰場精緻化
    獨立補丁：不重寫 V12.7 AI 重生與 V12.6.4 打坐廣告流程。
    ============================================================ */
 (() => {
@@ -77,21 +77,40 @@
     if(document.getElementById('v128BreakthroughStyle'))return;
     const s=document.createElement('style');s.id='v128BreakthroughStyle';s.textContent=`
       .bt-scene{position:fixed;inset:0;z-index:9999;background:#02050a;display:grid;place-items:center;overflow:hidden;color:#f2ead8;font-family:"PingFang TC","Noto Sans TC",system-ui,sans-serif}
-      .bt-scene-bg{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.78)),url('assets/breakthrough_scene.png') center/cover no-repeat;transform:scale(1.015)}
+      .bt-scene-bg{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,6,16,.22),rgba(0,0,0,.82)),radial-gradient(circle at 50% 16%,rgba(157,205,255,.18),transparent 26%),url('assets/breakthrough_scene.png') center/cover no-repeat;transform:scale(1.02)}
+      .bt-scene::before{content:"";position:absolute;inset:-10%;background:radial-gradient(circle at 50% 24%,rgba(132,210,255,.09),transparent 16%),repeating-conic-gradient(from 0deg at 50% 18%,transparent 0 15deg,rgba(147,206,255,.06) 16deg 18deg,transparent 19deg 28deg);mask:radial-gradient(circle at 50% 18%,transparent 0 5%,#000 9% 40%,transparent 56%);opacity:.75;pointer-events:none}
       .bt-scene.active .bt-scene-bg{animation:btMicroShake .23s steps(2,end) infinite}
-      @keyframes btMicroShake{0%{transform:translate(0,0) scale(1.018)}25%{transform:translate(2px,-1px) scale(1.018)}50%{transform:translate(-1px,2px) scale(1.018)}75%{transform:translate(1px,1px) scale(1.018)}100%{transform:translate(-2px,-1px) scale(1.018)}}
+      @keyframes btMicroShake{0%{transform:translate(0,0) scale(1.02)}25%{transform:translate(2px,-1px) scale(1.02)}50%{transform:translate(-1px,2px) scale(1.02)}75%{transform:translate(1px,1px) scale(1.02)}100%{transform:translate(-2px,-1px) scale(1.02)}}
       .bt-aura{position:absolute;left:50%;top:47%;width:150vmax;height:150vmax;transform:translate(-50%,-50%);opacity:0;pointer-events:none;background:repeating-conic-gradient(from 0deg,transparent 0 7deg,rgba(109,229,218,.12) 8deg 9deg,transparent 10deg 18deg);mask-image:radial-gradient(circle,transparent 0 7%,#000 12% 45%,transparent 67%)}
-      .bt-scene.active .bt-aura{opacity:.8;animation:btAuraFocus 1.8s ease-in-out infinite}
-      @keyframes btAuraFocus{0%{transform:translate(-50%,-50%) scale(1.12) rotate(0deg);opacity:.25}65%{transform:translate(-50%,-50%) scale(.64) rotate(3deg);opacity:.86}100%{transform:translate(-50%,-50%) scale(.48) rotate(5deg);opacity:.12}}
-      .bt-panel{position:relative;z-index:2;width:min(760px,94vw);margin-top:auto;margin-bottom:3vh;padding:18px;border:1px solid rgba(215,185,102,.55);border-radius:16px;background:linear-gradient(180deg,rgba(5,10,16,.56),rgba(3,7,12,.94));box-shadow:0 22px 80px #000b,0 0 40px rgba(86,216,206,.12);backdrop-filter:blur(6px)}
-      .bt-title{text-align:center;margin:0 0 8px;color:#e3c66f;font-family:"Songti TC",serif;font-size:clamp(23px,5vw,38px);letter-spacing:.18em}
-      .bt-sub{text-align:center;color:#c7d8d4;font-size:13px;line-height:1.7;margin:0 0 12px}
-      .bt-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0}.bt-stats div{padding:9px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:#06101ad9;text-align:center}.bt-stats span{display:block;color:#8799a5;font-size:10px}.bt-stats b{display:block;color:#f2d982;margin-top:3px;font-size:14px}
-      .bt-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}.bt-actions button{min-height:48px;border-radius:10px;border:1px solid #465468;background:#101b28;color:#eee;cursor:pointer;font-weight:700}.bt-actions .start{border-color:#9b7b3b;color:#f2d982;background:#2a2110db}.bt-actions button:disabled{opacity:.45}
+      .bt-scene.active .bt-aura{opacity:.85;animation:btAuraFocus 1.8s ease-in-out infinite}
+      @keyframes btAuraFocus{0%{transform:translate(-50%,-50%) scale(1.12) rotate(0deg);opacity:.24}65%{transform:translate(-50%,-50%) scale(.64) rotate(3deg);opacity:.88}100%{transform:translate(-50%,-50%) scale(.48) rotate(5deg);opacity:.12}}
+      .bt-panel{position:relative;z-index:2;width:min(820px,94vw);margin-top:auto;margin-bottom:2.5vh;padding:20px;border:1px solid rgba(215,185,102,.55);border-radius:20px;background:linear-gradient(180deg,rgba(6,13,22,.42),rgba(3,8,15,.92));box-shadow:0 22px 80px #000b,0 0 40px rgba(86,216,206,.12);backdrop-filter:blur(7px)}
+      .bt-panel::before{content:"";position:absolute;inset:8px;border-radius:15px;border:1px solid rgba(236,205,122,.12);pointer-events:none}
+      .bt-title{text-align:center;margin:0 0 8px;color:#e7c86b;font-family:"Songti TC",serif;font-size:clamp(24px,5vw,40px);letter-spacing:.18em}
+      .bt-sub{text-align:center;color:#d5e0e0;font-size:13px;line-height:1.75;margin:0 0 12px}
+      .bt-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:12px 0}.bt-stats div{padding:10px;border:1px solid rgba(255,255,255,.11);border-radius:11px;background:linear-gradient(180deg,rgba(6,16,25,.88),rgba(5,12,19,.68));text-align:center}.bt-stats span{display:block;color:#8ea7b2;font-size:10px}.bt-stats b{display:block;color:#f2d982;margin-top:4px;font-size:14px}
+      .bt-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}.bt-actions button{min-height:50px;border-radius:12px;border:1px solid #465468;background:#101b28;color:#eee;cursor:pointer;font-weight:700}.bt-actions .start{border-color:#9b7b3b;color:#f2d982;background:linear-gradient(180deg,rgba(55,42,17,.95),rgba(33,24,10,.95))}.bt-actions button:disabled{opacity:.45}
       .bt-countdown{text-align:center;font-size:clamp(34px,8vw,62px);font-weight:800;color:#f2d982;text-shadow:0 0 22px rgba(242,217,130,.4);font-variant-numeric:tabular-nums}.bt-line{text-align:center;color:#8de2d9;font-size:12px;min-height:20px}
-      .bt-faction-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.bt-faction-grid button{padding:13px 8px;border-radius:10px;border:1px solid #39495d;background:#0c1621;color:#eee;cursor:pointer}.bt-faction-grid button.guard{color:#77d89c;border-color:#356b4b}.bt-faction-grid button.attack{color:#ef7c73;border-color:#7b3935}.bt-faction-grid button.neutral{color:#c3cad4}
+      .bt-choice-shell{position:relative;padding:20px;border:1px solid rgba(219,189,105,.5);border-radius:20px;background:linear-gradient(180deg,rgba(5,12,20,.72),rgba(4,8,14,.94));box-shadow:0 26px 88px #000c,inset 0 0 0 1px rgba(255,255,255,.05);overflow:hidden}
+      .bt-choice-shell::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(115,180,255,.14),transparent 26%),linear-gradient(180deg,rgba(8,18,31,.08),rgba(0,0,0,.2));pointer-events:none}
+      .bt-choice-title{margin:0 0 10px;text-align:center;color:#e7c86b;font-family:"Songti TC",serif;font-size:clamp(26px,4.2vw,42px);letter-spacing:.18em}
+      .bt-choice-copy{color:#dbe5e6;text-align:center;line-height:1.8;margin-bottom:16px;font-size:14px}
+      .bt-choice-copy b{color:#fff3b4}
+      .bt-faction-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+      .bt-faction-grid button{position:relative;overflow:hidden;padding:18px 12px 20px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(10,20,31,.88),rgba(5,10,17,.92));color:#eee;cursor:pointer;min-height:188px;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;text-align:center;box-shadow:0 16px 42px rgba(0,0,0,.28);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+      .bt-faction-grid button:hover{transform:translateY(-3px);box-shadow:0 22px 48px rgba(0,0,0,.4)}
+      .bt-faction-grid button::before{content:"";position:absolute;left:50%;top:14px;transform:translateX(-50%);width:74px;height:74px;border-radius:50%;border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 0 34px rgba(255,255,255,.06),0 0 22px rgba(255,255,255,.05)}
+      .bt-faction-grid button b{position:relative;display:block;margin-top:88px;font-size:28px;letter-spacing:.14em;font-family:"Songti TC",serif}
+      .bt-faction-grid button small{position:relative;display:block;margin-top:12px;line-height:1.8;font-size:13px;max-width:11em}
+      .bt-faction-grid button.guard{color:#78e0ca;border-color:rgba(84,183,156,.55);background:linear-gradient(180deg,rgba(10,33,38,.9),rgba(5,16,20,.95))}
+      .bt-faction-grid button.guard::after{content:"✦";position:absolute;top:37px;left:50%;transform:translateX(-50%);font-size:30px;color:#79ebd4;text-shadow:0 0 24px rgba(121,235,212,.55)}
+      .bt-faction-grid button.attack{color:#ff8b84;border-color:rgba(197,94,92,.55);background:linear-gradient(180deg,rgba(38,18,20,.92),rgba(22,10,12,.95))}
+      .bt-faction-grid button.attack::after{content:"⚔";position:absolute;top:33px;left:50%;transform:translateX(-50%);font-size:30px;color:#ff8f87;text-shadow:0 0 24px rgba(255,112,105,.45)}
+      .bt-faction-grid button.neutral{color:#d8e1ea;border-color:rgba(115,132,165,.42);background:linear-gradient(180deg,rgba(18,24,35,.92),rgba(8,13,21,.96))}
+      .bt-faction-grid button.neutral::after{content:"☯";position:absolute;top:31px;left:50%;transform:translateX(-50%);font-size:32px;color:#c9d9f1;text-shadow:0 0 24px rgba(201,217,241,.34)}
+      .bt-choice-note{margin-top:15px;padding-top:14px;border-top:1px solid rgba(229,197,116,.16);text-align:center;color:#e8d084;font-size:13px}
       body.breakthrough-locked{overflow:hidden}
-      @media(max-width:650px){.bt-panel{margin-bottom:1.5vh;padding:13px}.bt-stats{grid-template-columns:1fr 1fr}.bt-faction-grid{grid-template-columns:1fr}.bt-actions{grid-template-columns:1fr 1fr}}
+      @media(max-width:650px){.bt-panel{margin-bottom:1.5vh;padding:13px}.bt-stats{grid-template-columns:1fr 1fr}.bt-faction-grid{grid-template-columns:1fr}.bt-actions{grid-template-columns:1fr 1fr}.bt-faction-grid button{min-height:142px;padding-top:15px}.bt-faction-grid button::before{width:60px;height:60px}.bt-faction-grid button b{margin-top:72px;font-size:25px}.bt-choice-shell{padding:16px}}
     `;document.head.appendChild(s);
   }
 
@@ -320,7 +339,8 @@
 
   function showFactionChoice(event){
     if(!event||ownerBreakthroughActive()||fight)return;
-    sheet('<h3>天地異變 · 必須選擇立場</h3><p><b>'+esc(event.owner_name)+'</b> 正在突破 '+esc(event.target_realm)+'。你身處其周圍 3×3 異變區域，本次事件選擇後不可轉換陣營。</p><div class="bt-faction-grid"><button class="guard" onclick="chooseBreakthroughFactionV128(\''+event.id+'\',\'guardian\')"><b>護法</b><br><small>留在區域，優先承受襲擊</small></button><button class="attack" onclick="chooseBreakthroughFactionV128(\''+event.id+'\',\'attacker\')"><b>襲擊</b><br><small>護法人歸零後才攻擊突破者</small></button><button class="neutral" onclick="chooseBreakthroughFactionV128(\''+event.id+'\',\'neutral\')"><b>中立</b><br><small>立即被排出區域，事件期間禁止重返</small></button></div>');
+    injectBreakthroughStyles();
+    sheet('<div class="bt-choice-shell"><h3 class="bt-choice-title">孤島天象異變</h3><div class="bt-choice-copy"><b>'+esc(event.owner_name)+'</b> 正在突破 '+esc(event.target_realm)+'，其周圍靈韻引動天象異變。<br>你身處其周圍 3×3 異變區域，本次事件選擇後不可轉換陣營。</div><div class="bt-faction-grid"><button class="guard" onclick="chooseBreakthroughFactionV128(\''+event.id+'\',\'guardian\')"><b>護法</b><small>留在此地，守護正在突破的修士。</small></button><button class="attack" onclick="chooseBreakthroughFactionV128(\''+event.id+'\',\'attacker\')"><b>襲擊</b><small>加入襲擊者，試圖阻止其突破。</small></button><button class="neutral" onclick="chooseBreakthroughFactionV128(\''+event.id+'\',\'neutral\')"><b>中立</b><small>離開此地，不再參與此戰。</small></button></div><div class="bt-choice-note">本次事件選擇後不可再轉換陣營</div></div>');
   }
 
   async function chooseFaction(eventId,faction){

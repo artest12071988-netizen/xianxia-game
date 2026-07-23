@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.4-PHASE1-BREAKTHROUGH-GUARDIAN-BATTLEFIELD-20260723';
+const BUILD='V15.4-PHASE2-ISLAND-CELESTIAL-ANOMALY-20260723';
 const ROOT_ID='v154BreakthroughBattlefield';
 const FAILURE_ID='v154BreakthroughFailureFx';
 const state={
@@ -116,11 +116,11 @@ function render(){
   if(state.selected&&!targetAllowed(state.selected))state.selected=null;
   const targetName=state.selected==='owner'?state.data.owner?.name:(state.data.participants||[]).find(p=>p.key===state.selected)?.name;
   const act=myCanAct();
-  const phase=e.breakthrough_result?(ended?'戰場結束':'突破者已出關'):'突破倒數同步中';
+  const phase=e.breakthrough_result?(ended?'戰場結束':'突破者已出關'):'天象異變同步中';
   el.innerHTML=`
     <div class="v154-btf-bg"></div><div class="v154-btf-qi"></div>
     <header class="v154-btf-top">
-      <div class="v154-btf-title"><h2>突破護法 · 孤島靈陣</h2><p>${esc(e.owner_name||state.data.owner?.name)} 正在衝擊 ${esc(e.target_realm||'新境界')}，全島靈氣向島心匯聚。</p></div>
+      <div class="v154-btf-title"><h2>孤島天象異變</h2><p>${esc(e.owner_name||state.data.owner?.name)} 正在衝擊 ${esc(e.target_realm||'新境界')}，孤島上空天象翻湧，八方靈氣正向島心匯聚。</p></div>
       <div class="v154-btf-clock"><small>${e.breakthrough_result?'突破結果':'剩餘時間'}</small><strong>${e.breakthrough_result?(e.breakthrough_result==='success'?'成功':'失敗'):sec.toFixed(sec<10?1:0)}</strong></div>
       <div class="v154-btf-status"><b>${esc(roleText(state.role))}</b><small>${esc(phase)}</small></div>
     </header>
