@@ -577,44 +577,44 @@
       "detail": "用於單件裝備獨立強化；強化值絕不轉移。"
     },
     "8401": {
-      "name": "鳳凰火羽(火)",
+      "name": "鳳凰火羽",
       "cat": "附魔材料",
-      "eff": "五行附魔",
-      "val": 1,
-      "type": "火",
-      "detail": "火性附魔材料：武器攻擊時追加原傷害 20%～25% 的火性傷害。"
+      "eff": "附魔材料",
+      "val": 30,
+      "type": null,
+      "detail": "附魔材料，數值 30。"
     },
     "8402": {
-      "name": "玄武背甲(水)",
+      "name": "火精",
       "cat": "附魔材料",
-      "eff": "五行附魔",
-      "val": 1,
-      "type": "水",
-      "detail": "水性附魔材料：攻擊時額外削減對方最大精力 3%，不扣除對方體力。"
+      "eff": "附魔材料",
+      "val": 15,
+      "type": null,
+      "detail": "附魔材料，數值 15。"
     },
     "8403": {
-      "name": "青龍鱗(木)",
+      "name": "玄冰髓",
       "cat": "附魔材料",
-      "eff": "五行附魔",
-      "val": 1,
-      "type": "木",
-      "detail": "木性附魔材料：將本次實際造成傷害的 20% 轉為自身體力。"
+      "eff": "附魔材料",
+      "val": 30,
+      "type": null,
+      "detail": "附魔材料，數值 30。"
     },
     "8404": {
-      "name": "白虎牙(金)",
+      "name": "冰精",
       "cat": "附魔材料",
-      "eff": "五行附魔",
-      "val": 1,
-      "type": "金",
-      "detail": "金性附魔材料：暴擊率提高 25%，暴擊傷害倍率為 1.5 倍。"
+      "eff": "附魔材料",
+      "val": 15,
+      "type": null,
+      "detail": "附魔材料，數值 15。"
     },
     "8405": {
-      "name": "麒麟角(土)",
+      "name": "紫雷角",
       "cat": "附魔材料",
-      "eff": "五行附魔",
-      "val": 1,
-      "type": "土",
-      "detail": "土性附魔材料：自身受到的所有最終傷害降低 25%。"
+      "eff": "附魔材料",
+      "val": 30,
+      "type": null,
+      "detail": "附魔材料，數值 30。"
     },
     "8406": {
       "name": "雷精",
@@ -765,46 +765,6 @@
       "stack": 1,
       "rarity": "絕世",
       "detail": "融合北辰天璇玉與萬載玄冰魄鍛成的傳說防具。"
-    },
-    "8420": {
-      "name": "赤陽器紋砂",
-      "cat": "器紋材料",
-      "eff": "刻印器紋",
-      "val": 0,
-      "type": "攻擊",
-      "detail": "刻印攻擊器紋，攻擊增加 3%～8%。"
-    },
-    "8421": {
-      "name": "玄甲器紋砂",
-      "cat": "器紋材料",
-      "eff": "刻印器紋",
-      "val": 0,
-      "type": "防禦",
-      "detail": "刻印防禦器紋，防禦增加 3%～8%。"
-    },
-    "8422": {
-      "name": "雷鳴器紋砂",
-      "cat": "器紋材料",
-      "eff": "刻印器紋",
-      "val": 0,
-      "type": "暴擊",
-      "detail": "刻印暴擊器紋，暴擊增加 2%～6%。"
-    },
-    "8423": {
-      "name": "長生器紋砂",
-      "cat": "器紋材料",
-      "eff": "刻印器紋",
-      "val": 0,
-      "type": "體力",
-      "detail": "刻印體力器紋，體力增加 4%～10%。"
-    },
-    "8424": {
-      "name": "靈泉器紋砂",
-      "cat": "器紋材料",
-      "eff": "刻印器紋",
-      "val": 0,
-      "type": "精力",
-      "detail": "刻印精力器紋，精力增加 3%～8%。"
     }
   },
   "monsters": [
@@ -828,7 +788,7 @@
           0.2
         ]
       ],
-      "spawn": "常駐/迷霧林",
+      "spawn": "青牛谷／荒野／迷霧林／玄霜冰原",
       "image": "assets/monsters/9001.svg?v=20260717",
       "attackLines": [
         "撕碎你！",
@@ -849,7 +809,26 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "wood",
+      "habitats": [
+        "新手",
+        "荒野",
+        "森林",
+        "冰原"
+      ],
+      "trait": "獵殺本能",
+      "traitText": "暴擊率略高",
+      "critBonus": 0.03,
+      "spawnWeight": 12,
+      "element": "木",
+      "weakTo": "金",
+      "strongAgainst": "土",
+      "ecologyLocked": true,
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9002,
@@ -871,7 +850,7 @@
           0.1
         ]
       ],
-      "spawn": "常駐",
+      "spawn": "青牛谷／荒野／萬木森域",
       "image": "assets/monsters/9002.svg?v=20260717",
       "attackLines": [
         "撕碎你！",
@@ -892,7 +871,26 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "earth",
+      "habitats": [
+        "新手",
+        "荒野",
+        "森林",
+        "山地"
+      ],
+      "trait": "蠻力衝撞",
+      "traitText": "攻擊傷害略高",
+      "damageBonus": 0.06,
+      "spawnWeight": 11,
+      "element": "土",
+      "weakTo": "木",
+      "strongAgainst": "水",
+      "ecologyLocked": true,
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9003,
@@ -914,7 +912,7 @@
           0.3
         ]
       ],
-      "spawn": "黑雲/獸潮",
+      "spawn": "迷霧林／赤砂荒漠／上古遺跡／獸潮",
       "image": "assets/monsters/9003.svg?v=20260717",
       "attackLines": [
         "撕碎你！",
@@ -935,7 +933,26 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "fire",
+      "habitats": [
+        "森林",
+        "沼澤",
+        "沙漠",
+        "遺跡"
+      ],
+      "trait": "赤炎蛇毒",
+      "traitText": "身法靈活，閃避略高",
+      "evasionBonus": 0.05,
+      "spawnWeight": 8,
+      "element": "火",
+      "weakTo": "水",
+      "strongAgainst": "金",
+      "ecologyLocked": true,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9004,
@@ -957,7 +974,7 @@
           0.2
         ]
       ],
-      "spawn": "獸潮",
+      "spawn": "荒野／赤砂荒漠／太古戰場／獸潮",
       "image": "assets/monsters/9004.svg?v=20260717",
       "attackLines": [
         "撕碎你！",
@@ -978,7 +995,25 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "metal",
+      "habitats": [
+        "荒野",
+        "沙漠",
+        "古戰場"
+      ],
+      "trait": "鐵甲",
+      "traitText": "格擋率與減傷提高",
+      "blockBonus": 0.08,
+      "damageReduction": 0.08,
+      "spawnWeight": 7,
+      "element": "金",
+      "weakTo": "火",
+      "strongAgainst": "木",
+      "ecologyLocked": true,
+      "evasionBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0
     },
     {
       "id": 9005,
@@ -1000,7 +1035,7 @@
           0.2
         ]
       ],
-      "spawn": "獸潮",
+      "spawn": "荒野／萬木森域／崑崙仙山／獸潮",
       "image": "assets/monsters/9005.svg?v=20260717",
       "attackLines": [
         "撕碎你！",
@@ -1021,7 +1056,26 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "wood",
+      "habitats": [
+        "荒野",
+        "森林",
+        "山地",
+        "崑崙"
+      ],
+      "trait": "疾風身法",
+      "traitText": "閃避率提高",
+      "evasionBonus": 0.08,
+      "spawnWeight": 7,
+      "element": "木",
+      "weakTo": "金",
+      "strongAgainst": "土",
+      "ecologyLocked": true,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9006,
@@ -1043,7 +1097,7 @@
           0.1
         ]
       ],
-      "spawn": "獸潮",
+      "spawn": "赤砂荒漠／太古戰場／冰火島／獸潮",
       "image": "assets/monsters/9006.svg?v=20260717",
       "attackLines": [
         "撕碎你！",
@@ -1064,7 +1118,25 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "fire",
+      "habitats": [
+        "沙漠",
+        "古戰場",
+        "冰火島"
+      ],
+      "trait": "灼羽群襲",
+      "traitText": "攻擊與暴擊略高",
+      "damageBonus": 0.08,
+      "critBonus": 0.03,
+      "spawnWeight": 6,
+      "element": "火",
+      "weakTo": "水",
+      "strongAgainst": "金",
+      "ecologyLocked": true,
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9101,
@@ -1086,7 +1158,7 @@
           0.1
         ]
       ],
-      "spawn": "獸潮5%",
+      "spawn": "崑崙仙山／北天宮／獸潮5%",
       "image": "assets/monsters/9101.svg?v=20260717",
       "attackLines": [
         "螻蟻，受死！",
@@ -1107,7 +1179,25 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "metal",
+      "habitats": [
+        "山地",
+        "崑崙",
+        "天宮"
+      ],
+      "trait": "雷霆俯衝",
+      "traitText": "高暴擊、高閃避",
+      "critBonus": 0.07,
+      "evasionBonus": 0.06,
+      "spawnWeight": 2,
+      "element": "金",
+      "weakTo": "火",
+      "strongAgainst": "木",
+      "ecologyLocked": true,
+      "blockBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9102,
@@ -1129,7 +1219,7 @@
           0.05
         ]
       ],
-      "spawn": "獸潮5%",
+      "spawn": "萬木森域／崑崙仙山／北天宮／獸潮5%",
       "image": "assets/monsters/9102.svg?v=20260717",
       "attackLines": [
         "螻蟻，受死！",
@@ -1150,7 +1240,25 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "fire",
+      "habitats": [
+        "森林",
+        "崑崙",
+        "天宮"
+      ],
+      "trait": "九尾幻術",
+      "traitText": "大幅提高閃避",
+      "evasionBonus": 0.1,
+      "spawnWeight": 2,
+      "element": "火",
+      "weakTo": "水",
+      "strongAgainst": "金",
+      "ecologyLocked": true,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9103,
@@ -1172,7 +1280,7 @@
           0.1
         ]
       ],
-      "spawn": "獸潮5%",
+      "spawn": "靈泉／滄溟外海／陰陽海／獸潮5%",
       "image": "assets/monsters/9103.svg?v=20260717",
       "attackLines": [
         "螻蟻，受死！",
@@ -1193,7 +1301,26 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "water",
+      "habitats": [
+        "水域",
+        "海岸",
+        "海域",
+        "陰陽海"
+      ],
+      "trait": "玄冥重甲",
+      "traitText": "高格擋與減傷",
+      "blockBonus": 0.1,
+      "damageReduction": 0.1,
+      "spawnWeight": 2,
+      "element": "水",
+      "weakTo": "土",
+      "strongAgainst": "火",
+      "ecologyLocked": true,
+      "evasionBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0
     },
     {
       "id": 9201,
@@ -1236,7 +1363,21 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "water",
+      "habitats": [],
+      "trait": "噬魂",
+      "traitText": "魔界事件怪物",
+      "ecologyLocked": false,
+      "spawnWeight": 1,
+      "element": "水",
+      "weakTo": "土",
+      "strongAgainst": "火",
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9202,
@@ -1279,7 +1420,21 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "fire",
+      "habitats": [],
+      "trait": "血影",
+      "traitText": "魔界事件怪物",
+      "ecologyLocked": false,
+      "spawnWeight": 1,
+      "element": "火",
+      "weakTo": "水",
+      "strongAgainst": "金",
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9203,
@@ -1322,7 +1477,21 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "earth",
+      "habitats": [],
+      "trait": "魔眼",
+      "traitText": "魔界事件怪物",
+      "ecologyLocked": false,
+      "spawnWeight": 1,
+      "element": "土",
+      "weakTo": "木",
+      "strongAgainst": "水",
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9301,
@@ -1369,7 +1538,21 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "earth",
+      "habitats": [],
+      "trait": "吞天",
+      "traitText": "活動場域首領",
+      "ecologyLocked": false,
+      "spawnWeight": 1,
+      "element": "土",
+      "weakTo": "木",
+      "strongAgainst": "水",
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9302,
@@ -1416,7 +1599,21 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "wood",
+      "habitats": [],
+      "trait": "太古龍威",
+      "traitText": "活動場域首領",
+      "ecologyLocked": false,
+      "spawnWeight": 1,
+      "element": "木",
+      "weakTo": "金",
+      "strongAgainst": "土",
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9303,
@@ -1463,7 +1660,21 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "metal",
+      "habitats": [],
+      "trait": "噬星蛛網",
+      "traitText": "活動場域首領",
+      "ecologyLocked": false,
+      "spawnWeight": 1,
+      "element": "金",
+      "weakTo": "火",
+      "strongAgainst": "木",
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9304,
@@ -1510,7 +1721,21 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
-      ]
+      ],
+      "elementKey": "water",
+      "habitats": [],
+      "trait": "九幽冥氣",
+      "traitText": "活動場域首領",
+      "ecologyLocked": false,
+      "spawnWeight": 1,
+      "element": "水",
+      "weakTo": "土",
+      "strongAgainst": "火",
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
     },
     {
       "id": 9305,
@@ -1557,6 +1782,872 @@
         "這點力道？",
         "連甲殼都破不了。",
         "再用力一點。"
+      ],
+      "elementKey": "earth",
+      "habitats": [],
+      "trait": "域主法則",
+      "traitText": "活動場域首領",
+      "ecologyLocked": false,
+      "spawnWeight": 1,
+      "element": "土",
+      "weakTo": "木",
+      "strongAgainst": "水",
+      "evasionBonus": 0,
+      "blockBonus": 0,
+      "critBonus": 0,
+      "damageBonus": 0,
+      "damageReduction": 0
+    },
+    {
+      "id": 9401,
+      "name": "赤砂毒蠍",
+      "cat": "地域妖獸",
+      "lv": 4,
+      "hp": 780,
+      "mp": 80,
+      "atk": 105,
+      "def": 82,
+      "exp": 420,
+      "drops": [
+        [
+          "4003",
+          0.45
+        ],
+        [
+          "4002",
+          0.2
+        ]
+      ],
+      "spawn": "赤砂荒漠／獸潮",
+      "elementKey": "earth",
+      "habitats": [
+        "沙漠"
+      ],
+      "trait": "赤砂劇毒",
+      "traitText": "外甲堅硬，格擋略高",
+      "blockBonus": 0.05,
+      "spawnWeight": 12,
+      "element": "土",
+      "weakTo": "木",
+      "strongAgainst": "水",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9401.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9402,
+      "name": "噬鐵蟻群",
+      "cat": "地域妖獸",
+      "lv": 5,
+      "hp": 1100,
+      "mp": 0,
+      "atk": 140,
+      "def": 155,
+      "exp": 650,
+      "drops": [
+        [
+          "4002",
+          0.45
+        ],
+        [
+          "4003",
+          0.25
+        ]
+      ],
+      "spawn": "赤砂荒漠／獸潮",
+      "elementKey": "metal",
+      "habitats": [
+        "沙漠"
+      ],
+      "trait": "蟻群啃噬",
+      "traitText": "群體外殼使減傷提高",
+      "damageReduction": 0.07,
+      "spawnWeight": 11,
+      "element": "金",
+      "weakTo": "火",
+      "strongAgainst": "木",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9402.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9403,
+      "name": "沙甲蜥",
+      "cat": "地域妖獸",
+      "lv": 6,
+      "hp": 1650,
+      "mp": 80,
+      "atk": 195,
+      "def": 205,
+      "exp": 1020,
+      "drops": [
+        [
+          "4003",
+          0.5
+        ],
+        [
+          "8301",
+          0.03
+        ]
+      ],
+      "spawn": "赤砂荒漠／獸潮",
+      "elementKey": "earth",
+      "habitats": [
+        "沙漠"
+      ],
+      "trait": "沙甲偽裝",
+      "traitText": "閃避與格擋略高",
+      "evasionBonus": 0.04,
+      "blockBonus": 0.04,
+      "spawnWeight": 9,
+      "element": "土",
+      "weakTo": "木",
+      "strongAgainst": "水",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9403.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9404,
+      "name": "青藤妖蟒",
+      "cat": "地域妖獸",
+      "lv": 5,
+      "hp": 1280,
+      "mp": 150,
+      "atk": 165,
+      "def": 118,
+      "exp": 760,
+      "drops": [
+        [
+          "4001",
+          0.45
+        ],
+        [
+          "4003",
+          0.35
+        ]
+      ],
+      "spawn": "迷霧林／萬木森域／獸潮",
+      "elementKey": "wood",
+      "habitats": [
+        "森林",
+        "沼澤"
+      ],
+      "trait": "纏藤絞殺",
+      "traitText": "身形靈活，閃避略高",
+      "evasionBonus": 0.06,
+      "spawnWeight": 10,
+      "element": "木",
+      "weakTo": "金",
+      "strongAgainst": "土",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9404.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9405,
+      "name": "噬靈花妖",
+      "cat": "地域妖獸",
+      "lv": 6,
+      "hp": 1480,
+      "mp": 320,
+      "atk": 215,
+      "def": 132,
+      "exp": 1120,
+      "drops": [
+        [
+          "4001",
+          0.6
+        ],
+        [
+          "1002",
+          0.1
+        ]
+      ],
+      "spawn": "萬木森域／靈泉／獸潮",
+      "elementKey": "wood",
+      "habitats": [
+        "森林",
+        "靈地"
+      ],
+      "trait": "噬靈花粉",
+      "traitText": "攻擊傷害略高",
+      "damageBonus": 0.08,
+      "spawnWeight": 8,
+      "element": "木",
+      "weakTo": "金",
+      "strongAgainst": "土",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9405.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9406,
+      "name": "木甲巨猿",
+      "cat": "地域妖獸",
+      "lv": 8,
+      "hp": 2700,
+      "mp": 100,
+      "atk": 325,
+      "def": 340,
+      "exp": 2150,
+      "drops": [
+        [
+          "4003",
+          0.7
+        ],
+        [
+          "4002",
+          0.2
+        ]
+      ],
+      "spawn": "萬木森域／崑崙仙山／獸潮",
+      "elementKey": "wood",
+      "habitats": [
+        "森林",
+        "山地",
+        "崑崙"
+      ],
+      "trait": "木甲重拳",
+      "traitText": "高格擋與重擊",
+      "blockBonus": 0.07,
+      "damageBonus": 0.06,
+      "spawnWeight": 6,
+      "element": "木",
+      "weakTo": "金",
+      "strongAgainst": "土",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9406.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9407,
+      "name": "玄霜雪狼",
+      "cat": "地域妖獸",
+      "lv": 6,
+      "hp": 1750,
+      "mp": 120,
+      "atk": 235,
+      "def": 158,
+      "exp": 1180,
+      "drops": [
+        [
+          "4004",
+          0.4
+        ],
+        [
+          "4003",
+          0.4
+        ]
+      ],
+      "spawn": "玄霜冰原／北天宮／獸潮",
+      "elementKey": "water",
+      "habitats": [
+        "冰原",
+        "天宮"
+      ],
+      "trait": "霜影獵殺",
+      "traitText": "閃避與暴擊提高",
+      "evasionBonus": 0.06,
+      "critBonus": 0.04,
+      "spawnWeight": 10,
+      "element": "水",
+      "weakTo": "土",
+      "strongAgainst": "火",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9407.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9408,
+      "name": "寒晶冰蛛",
+      "cat": "地域妖獸",
+      "lv": 8,
+      "hp": 2350,
+      "mp": 260,
+      "atk": 305,
+      "def": 245,
+      "exp": 1950,
+      "drops": [
+        [
+          "4004",
+          0.55
+        ],
+        [
+          "4003",
+          0.4
+        ]
+      ],
+      "spawn": "玄霜冰原／北天宮／獸潮",
+      "elementKey": "water",
+      "habitats": [
+        "冰原",
+        "天宮",
+        "遺跡"
+      ],
+      "trait": "寒晶蛛網",
+      "traitText": "外殼減傷並提高閃避",
+      "damageReduction": 0.06,
+      "evasionBonus": 0.04,
+      "spawnWeight": 8,
+      "element": "水",
+      "weakTo": "土",
+      "strongAgainst": "火",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9408.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9409,
+      "name": "冰原巨熊",
+      "cat": "地域妖獸",
+      "lv": 10,
+      "hp": 4100,
+      "mp": 100,
+      "atk": 480,
+      "def": 465,
+      "exp": 3650,
+      "drops": [
+        [
+          "4004",
+          0.7
+        ],
+        [
+          "4003",
+          0.7
+        ]
+      ],
+      "spawn": "玄霜冰原／北天宮／獸潮",
+      "elementKey": "water",
+      "habitats": [
+        "冰原",
+        "天宮"
+      ],
+      "trait": "冰甲熊威",
+      "traitText": "高減傷與重擊",
+      "damageReduction": 0.09,
+      "damageBonus": 0.08,
+      "spawnWeight": 5,
+      "element": "水",
+      "weakTo": "土",
+      "strongAgainst": "火",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9409.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9410,
+      "name": "滄海劍魚",
+      "cat": "地域妖獸",
+      "lv": 7,
+      "hp": 1950,
+      "mp": 120,
+      "atk": 280,
+      "def": 172,
+      "exp": 1520,
+      "drops": [
+        [
+          "4003",
+          0.5
+        ],
+        [
+          "4002",
+          0.15
+        ]
+      ],
+      "spawn": "鎮海燈塔／滄溟外海／陰陽海／獸潮",
+      "elementKey": "water",
+      "habitats": [
+        "海岸",
+        "海域",
+        "陰陽海"
+      ],
+      "trait": "破浪穿刺",
+      "traitText": "攻擊與閃避略高",
+      "damageBonus": 0.06,
+      "evasionBonus": 0.05,
+      "spawnWeight": 10,
+      "element": "水",
+      "weakTo": "土",
+      "strongAgainst": "火",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9410.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9411,
+      "name": "深海巨鰻",
+      "cat": "地域妖獸",
+      "lv": 9,
+      "hp": 3050,
+      "mp": 360,
+      "atk": 395,
+      "def": 285,
+      "exp": 2650,
+      "drops": [
+        [
+          "4003",
+          0.6
+        ],
+        [
+          "4004",
+          0.3
+        ]
+      ],
+      "spawn": "滄溟外海／陰陽海／獸潮",
+      "elementKey": "metal",
+      "habitats": [
+        "海域",
+        "陰陽海"
+      ],
+      "trait": "雷鰻電擊",
+      "traitText": "暴擊率提高",
+      "critBonus": 0.07,
+      "spawnWeight": 7,
+      "element": "金",
+      "weakTo": "火",
+      "strongAgainst": "木",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9411.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9412,
+      "name": "玄潮蟹將",
+      "cat": "地域妖獸",
+      "lv": 11,
+      "hp": 5250,
+      "mp": 180,
+      "atk": 545,
+      "def": 665,
+      "exp": 4850,
+      "drops": [
+        [
+          "4002",
+          0.4
+        ],
+        [
+          "4003",
+          1.0
+        ]
+      ],
+      "spawn": "滄溟外海／陰陽海／獸潮",
+      "elementKey": "earth",
+      "habitats": [
+        "海岸",
+        "海域",
+        "陰陽海"
+      ],
+      "trait": "玄潮重甲",
+      "traitText": "極高格擋與減傷",
+      "blockBonus": 0.11,
+      "damageReduction": 0.11,
+      "spawnWeight": 4,
+      "element": "土",
+      "weakTo": "木",
+      "strongAgainst": "水",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9412.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9413,
+      "name": "熔岩火蜥",
+      "cat": "地域妖獸",
+      "lv": 9,
+      "hp": 3250,
+      "mp": 300,
+      "atk": 455,
+      "def": 335,
+      "exp": 2950,
+      "drops": [
+        [
+          "4003",
+          0.7
+        ],
+        [
+          "6001",
+          0.08
+        ]
+      ],
+      "spawn": "冰火島／赤砂荒漠／獸潮",
+      "elementKey": "fire",
+      "habitats": [
+        "冰火島",
+        "沙漠"
+      ],
+      "trait": "熔岩灼甲",
+      "traitText": "攻擊與減傷提高",
+      "damageBonus": 0.09,
+      "damageReduction": 0.05,
+      "spawnWeight": 7,
+      "element": "火",
+      "weakTo": "水",
+      "strongAgainst": "金",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9413.svg?v=20260723-v153",
+      "attackLines": [
+        "撕碎你！",
+        "膽敢踏入我的領地！",
+        "你的氣息已被鎖定！"
+      ],
+      "hitLines": [
+        "可惡！",
+        "竟敢傷我！",
+        "我要吞了你！"
+      ],
+      "critLines": [
+        "血肉崩裂吧！",
+        "一擊斷魂！",
+        "化為齏粉！"
+      ],
+      "blockLines": [
+        "這點力道？",
+        "連外甲都破不了。",
+        "再用力一點。"
+      ]
+    },
+    {
+      "id": 9414,
+      "name": "戰場陰魂",
+      "cat": "地域妖獸",
+      "lv": 12,
+      "hp": 4450,
+      "mp": 850,
+      "atk": 595,
+      "def": 395,
+      "exp": 5250,
+      "drops": [
+        [
+          "4003",
+          0.8
+        ],
+        [
+          "4004",
+          0.2
+        ]
+      ],
+      "spawn": "太古戰場／上古遺跡",
+      "elementKey": "water",
+      "habitats": [
+        "古戰場",
+        "遺跡",
+        "廢墟"
+      ],
+      "trait": "陰魂虛體",
+      "traitText": "大幅提高閃避",
+      "evasionBonus": 0.11,
+      "spawnWeight": 5,
+      "element": "水",
+      "weakTo": "土",
+      "strongAgainst": "火",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9414.svg?v=20260723-v153",
+      "attackLines": [
+        "留下你的神魂！",
+        "陰氣噬體！",
+        "生者不該來到此處！"
+      ],
+      "hitLines": [
+        "魂火動搖了……",
+        "可恨的陽氣！",
+        "吾不會消散！"
+      ],
+      "critLines": [
+        "萬魂同悲！",
+        "魂飛魄散吧！",
+        "墜入幽冥！"
+      ],
+      "blockLines": [
+        "攻擊穿過了虛影。",
+        "凡兵難傷陰魂。",
+        "你的劍觸不到我。"
+      ]
+    },
+    {
+      "id": 9415,
+      "name": "遺跡石傀",
+      "cat": "地域妖獸",
+      "lv": 13,
+      "hp": 6600,
+      "mp": 300,
+      "atk": 655,
+      "def": 790,
+      "exp": 7300,
+      "drops": [
+        [
+          "4002",
+          0.7
+        ],
+        [
+          "8301",
+          0.08
+        ]
+      ],
+      "spawn": "上古遺跡／崑崙仙山／中央秘境",
+      "elementKey": "earth",
+      "habitats": [
+        "遺跡",
+        "崑崙",
+        "秘境"
+      ],
+      "trait": "遠古石甲",
+      "traitText": "極高格擋與減傷",
+      "blockBonus": 0.12,
+      "damageReduction": 0.12,
+      "spawnWeight": 3,
+      "element": "土",
+      "weakTo": "木",
+      "strongAgainst": "水",
+      "ecologyLocked": true,
+      "image": "assets/monsters/9415.svg?v=20260723-v153",
+      "attackLines": [
+        "清除入侵者。",
+        "遺跡禁制啟動。",
+        "鎮壓。"
+      ],
+      "hitLines": [
+        "石甲受損。",
+        "禁制震盪。",
+        "重新校準。"
+      ],
+      "critLines": [
+        "大地重壓。",
+        "粉碎。",
+        "入侵者抹除。"
+      ],
+      "blockLines": [
+        "石甲未破。",
+        "攻擊無效。",
+        "防禦禁制啟動。"
       ]
     }
   ],
@@ -2394,7 +3485,7 @@
       "action": "shop"
     }
   ],
-  "version": "V13.5-PHASE3-WORLD-TREASURE",
+  "version": "V15.3-PHASE1-MONSTER-ECOLOGY",
   "aiCultivators": [
     {
       "id": 200001,
@@ -4289,5 +5380,24 @@
       },
       "enabled": true
     }
-  ]
+  ],
+  "monsterEcology": {
+    "version": "V15.3-PHASE1",
+    "elementCycle": {
+      "木": "土",
+      "土": "水",
+      "水": "火",
+      "火": "金",
+      "金": "木"
+    },
+    "playerAdvantageMultiplier": 1.25,
+    "playerDisadvantageMultiplier": 0.85,
+    "sameElementMultiplier": 0.9,
+    "rules": [
+      "一般探索依所在地棲地標籤篩選怪物",
+      "海域不生成陸地怪物",
+      "沙漠專屬毒蠍、蟻群、沙蜥",
+      "活動王與魔界事件不受地域篩選"
+    ]
+  }
 }
