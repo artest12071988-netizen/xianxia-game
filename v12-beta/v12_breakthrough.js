@@ -205,7 +205,15 @@
     if(status==='success'){
       clearDeviation();g.lv++;g.big=s.targetRealm;baseOnLevel();
       log('天雷過境，成功突破至 '+s.targetRealm+'！','lg');
-      sheet('<h3>突破成功</h3><p>天地雷雲散去，你已踏入 <b>'+esc(s.targetRealm)+'</b>。</p><button class="btn gold" style="width:100%" onclick="closeOv()">穩固境界</button>');
+      if(typeof window.playBreakthroughSuccessFxV153==='function'){
+        setTimeout(()=>window.playBreakthroughSuccessFxV153({
+          targetRealm:s.targetRealm,
+          sourceLevel:s.sourceLevel,
+          currentLevel:g.lv
+        }),0);
+      }else{
+        sheet('<h3>突破成功</h3><p>天地雷雲散去，你已踏入 <b>'+esc(s.targetRealm)+'</b>。</p><button class="btn gold" style="width:100%" onclick="closeOv()">穩固境界</button>');
+      }
     }else if(status==='dead'){
       g.breakthroughState=null;saveGame(false);
       if(typeof finalizePermanentDeath==='function')return finalizePermanentDeath('突破期間遭襲擊身亡');

@@ -142,6 +142,7 @@ button,input,select{font:inherit}.small{font-size:12px;color:var(--muted)}
 <link rel="stylesheet" href="v15_3_monster_ecology.css?v=20260723-v153-p2-fix1-animations">
 <link rel="stylesheet" href="v15_3_mobile_responsive_fix8.css?v=20260723-v153-p2-fix8-mobile">
 <link rel="stylesheet" href="v15_3_technique_runtime_fix9.css?v=20260723-v153-p2-fix9-techniques">
+<link rel="stylesheet" href="v15_3_breakthrough_success_fx.css?v=20260723-v153-p2-fix10">
 </head>
 <body>
 <div id="app">
@@ -1056,9 +1057,19 @@ function openBreak(){
 }
 function doBreak(rate){
   const bt=C.breakthrough[String(g.lv)],ids={5:['8001'],10:['8002','8003'],15:['8004','8005']}[g.lv]||[];ids.forEach(id=>{if(g.inv[id])g.inv[id]=0});closeOv();
-  if(Math.random()<rate){g.lv++;g.big=bt.target;onLevel();g.status=g.status.filter(x=>x!=='走火入魔');log('天雷過境，成功突破至 '+bt.target+'！','lg')}
-  else{if(!g.status.includes('走火入魔'))g.status.push('走火入魔');log('突破失敗，氣息紊亂，走火入魔。','ld')}
+  let breakthroughSucceeded=false;
+  if(Math.random()<rate){
+    g.lv++;g.big=bt.target;onLevel();g.status=g.status.filter(x=>x!=='走火入魔');
+    log('天雷過境，成功突破至 '+bt.target+'！','lg');
+    breakthroughSucceeded=true;
+  }else{
+    if(!g.status.includes('走火入魔'))g.status.push('走火入魔');
+    log('突破失敗，氣息紊亂，走火入魔。','ld');
+  }
   render();
+  if(breakthroughSucceeded&&typeof window.playBreakthroughSuccessFxV153==='function'){
+    setTimeout(()=>window.playBreakthroughSuccessFxV153({targetRealm:bt.target,currentLevel:g.lv}),0);
+  }
 }
 function openTutorial(i=0){
   tutorialIndex=i;const steps=C.tutorial,s=steps[tutorialIndex];
@@ -1075,7 +1086,8 @@ function confirmReset(){
 }
 </script>
 <script src="v12_online.js?v=20260723-v153-p2-fix2-character-lifecycle"></script>
-<script src="v12_breakthrough.js?v=20260718-280"></script>
+<script src="v15_3_breakthrough_success_fx.js?v=20260723-v153-p2-fix10"></script>
+<script src="v12_breakthrough.js?v=20260723-v153-p2-fix10-success-fx"></script>
 <script src="v12_runtime_config.js?v=20260719-fix2-1"></script>
 <script>window.XIANXIA_V13_EXTERNAL_SCHEDULER=true;</script>
 <script src="v13_ai_brain.js?v=20260719-fix2-1"></script>
