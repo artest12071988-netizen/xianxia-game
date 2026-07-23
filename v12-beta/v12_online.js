@@ -507,6 +507,60 @@ setTimeout(initV12Online,0);
    V12.1 PATCH — permanent death, account wallet, persistent world
    ============================================================ */
 const V121_DEATH_LOCK='xianxia_v121_death_lock';
+
+const V153_CHARACTER_LIFECYCLE_FIX='V15.3-PHASE2-FIX2-CHARACTER-LIFECYCLE';
+
+function v153ParsePvpSnapshot(value){
+  if(!value)return null;
+  if(typeof value==='object')return value;
+  if(typeof value==='string'){
+    try{return JSON.parse(value)}catch(_){return null}
+  }
+  return null;
+}
+function v153MyPvpSnapshot(duel){
+  if(!duel||!cloudState.user)return null;
+  const mine=duel.challenger_user_id===cloudState.user.id
+    ?duel.challenger_snapshot
+    :duel.target_snapshot;
+  return v153ParsePvpSnapshot(mine);
+}
+function v153PvpCharacterId(duel){
+  const snapshot=v153MyPvpSnapshot(duel);
+  return String(
+    snapshot?.characterId||
+    snapshot?.character_id||
+    ''
+  );
+}
+function v153CurrentCharacterId(){
+  return String(g?.characterId||'');
+}
+function v153DuelBelongsToCurrentCharacter(duel){
+  const currentId=v153CurrentCharacterId();
+  const duelCharacterId=v153PvpCharacterId(duel);
+  // Finished/active duel results may affect a body only when the server
+  // snapshot explicitly identifies the same character generation.
+  return !!(
+    currentId&&
+    duelCharacterId&&
+    currentId===duelCharacterId
+  );
+}
+function v153IgnoreForeignPvpDuel(duel,reason='舊角色戰果'){
+  if(!duel)return;
+  cloudState.pvpHandled.add(String(duel.id));
+  console.info(
+    '['+V153_CHARACTER_LIFECYCLE_FIX+'] ignored '+reason,
+    {
+      duelId:duel.id,
+      status:duel.status,
+      currentCharacterId:v153CurrentCharacterId(),
+      duelCharacterId:v153PvpCharacterId(duel)
+    }
+  );
+}
+
 Object.assign(cloudState,{
   walletBalance:0,walletRevision:0,walletUpdatedAt:null,
   worldLoaded:false,worldSyncAt:0,worldSyncBusy:false,worldTimer:null,
@@ -573,6 +627,35 @@ async function retryDeathLock(){
   let lock=null;
   try{lock=JSON.parse(localStorage.getItem(V121_DEATH_LOCK)||'null')}catch(_){lock=null}
   if(!lock||lock.userId!==cloudState.user?.id)return;
+
+  const lockedCharacterId=String(
+    lock?.snapshot?.g?.characterId||
+    lock?.snapshot?.g?.character_id||
+    ''
+  );
+  const liveCharacterId=String(
+    cloudState.remoteSave?.g?.characterId||
+    cloudState.remoteSave?.g?.character_id||
+    ''
+  );
+
+  // A death lock belongs to one body only. Once the account already has a
+  // different living character, the old lock must never clear or archive the
+  // newer save.
+  if(
+    lockedCharacterId&&
+    liveCharacterId&&
+    lockedCharacterId!==liveCharacterId&&
+    cloudState.remoteSave?.g?.dead!==true
+  ){
+    console.warn(
+      '['+V153_CHARACTER_LIFECYCLE_FIX+'] removed stale death lock',
+      {lockedCharacterId,liveCharacterId}
+    );
+    localStorage.removeItem(V121_DEATH_LOCK);
+    return;
+  }
+
   try{
     const {error}=await cloudState.client.rpc('record_character_death',{p_snapshot:lock.snapshot,p_cause:lock.cause||'身隕道消'});
     if(error)throw error;
@@ -621,6 +704,7 @@ function applySavePayload(data){
   normalizeSave();
   g.dead=false;g.yuanbao=cloudState.walletBalance;
   if(!g.characterId)g.characterId=(crypto.randomUUID?crypto.randomUUID():'char_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+  if(!g.createdAt)g.createdAt=Number(data.savedAt||g.lastSavedAt||Date.now());
   if(!cloudState.worldLoaded)ai=initAi();
   applyOffline(data.savedAt||g.lastSavedAt||Date.now());
 }
@@ -645,7 +729,11 @@ startGame=async function(){
   if(cloudState.remoteSave?.g&&!cloudState.remoteSave.g.dead){toast('此帳號已有存活道體');return}
   const nm=$('nm').value.trim()||'無名散修';
   g=freshGame(nm);g.characterId=(crypto.randomUUID?crypto.randomUUID():'char_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+  g.createdAt=Date.now();
   g.build=V12_BUILD;g.yuanbao=cloudState.walletBalance;g.dead=false;
+  cloudState.pvpCurrent=null;
+  cloudState.pvpPrompted.clear();
+  cloudState.pvpHandled.clear();
   if(!cloudState.worldLoaded)ai=initAi();
   show('game');startLoops();
   log('你在 <b>青牛谷</b> 凝聚全新道體。此生只有一次。','la');
@@ -1253,12 +1341,50 @@ async function pollPvp(){
   const uid=cloudState.user.id;
   const {data,error}=await cloudState.client.from('pvp_duels').select('*').or('challenger_user_id.eq.'+uid+',target_user_id.eq.'+uid).order('updated_at',{ascending:false}).limit(5);
   if(error)return;
-  const active=(data||[]).find(d=>d.status==='active');
-  const pending=(data||[]).find(d=>d.status==='pending'&&d.target_user_id===uid&&Date.parse(d.expires_at)>Date.now());
-  const finished=(data||[]).find(d=>d.status==='finished'&&!cloudState.pvpHandled.has(String(d.id)));
+  const rows=data||[];
+
+  // A finished duel remains in the account history after reincarnation.
+  // Ignore every finished result whose saved characterId is not the body
+  // currently loaded in g.
+  for(const duel of rows){
+    if(
+      duel.status==='finished'&&
+      !cloudState.pvpHandled.has(String(duel.id))&&
+      !v153DuelBelongsToCurrentCharacter(duel)
+    ){
+      v153IgnoreForeignPvpDuel(duel,'舊角色已結束鬥法');
+    }
+  }
+
+  const active=rows.find(
+    d=>d.status==='active'&&
+       v153DuelBelongsToCurrentCharacter(d)
+  );
+  const pending=rows.find(
+    d=>d.status==='pending'&&
+       d.target_user_id===uid&&
+       Date.parse(d.expires_at)>Date.now()
+  );
+  const finished=rows.find(
+    d=>d.status==='finished'&&
+       !cloudState.pvpHandled.has(String(d.id))&&
+       v153DuelBelongsToCurrentCharacter(d)
+  );
+
   if(finished)return handlePvpFinished(finished);
-  if(active){cloudState.pvpCurrent=active;applyPvpLocalState(active);renderPvpDuel(active);return}
-  if(pending&&!cloudState.pvpPrompted.has(String(pending.id))){cloudState.pvpPrompted.add(String(pending.id));showPvpChallenge(pending)}
+  if(active){
+    cloudState.pvpCurrent=active;
+    applyPvpLocalState(active);
+    renderPvpDuel(active);
+    return;
+  }
+  if(
+    pending&&
+    !cloudState.pvpPrompted.has(String(pending.id))
+  ){
+    cloudState.pvpPrompted.add(String(pending.id));
+    showPvpChallenge(pending);
+  }
 }
 function showPvpChallenge(d){
   sheet('<h3 style="color:var(--red)">真人鬥法邀請</h3><p><b>'+esc(d.challenger_name)+'</b> 在 '+esc(d.coord)+' 鎖定你的氣機。</p><div class="notice">接受後進入伺服器回合鬥法；敗者永久死亡。邀請60秒後失效。</div><div class="row" style="margin-top:12px"><button class="btn red" onclick="respondPvp('+d.id+',true)">接受鬥法</button><button class="btn" onclick="respondPvp('+d.id+',false)">拒絕</button></div>');
@@ -1267,11 +1393,29 @@ async function respondPvp(id,accept){
   try{const {data,error}=await cloudState.client.rpc('respond_pvp_challenge',{p_duel_id:id,p_accept:accept,p_snapshot:pvpSnapshot()});if(error)throw error;const d=Array.isArray(data)?data[0]:data;if(!accept){closeOv();toast('已拒絕鬥法')}else{cloudState.pvpCurrent=d;applyPvpLocalState(d);renderPvpDuel(d)}}catch(e){toast('回應失敗：'+translatePvpError(e.message))}
 }
 function applyPvpLocalState(d){
+  if(!v153DuelBelongsToCurrentCharacter(d)){
+    v153IgnoreForeignPvpDuel(d,'不屬於目前道體的鬥法狀態');
+    return false;
+  }
   const mine=d.challenger_user_id===cloudState.user.id?'challenger':'target';
-  g.hp=Math.max(0,Number(mine==='challenger'?d.challenger_hp:d.target_hp));g.mp=Math.max(0,Number(mine==='challenger'?d.challenger_mp:d.target_mp));render();saveGame(false);
+  g.hp=Math.max(
+    0,
+    Number(mine==='challenger'?d.challenger_hp:d.target_hp)
+  );
+  g.mp=Math.max(
+    0,
+    Number(mine==='challenger'?d.challenger_mp:d.target_mp)
+  );
+  render();
+  saveGame(false);
+  return true;
 }
 function renderPvpDuel(d){
-  if(!d||d.status!=='active')return;
+  if(
+    !d||
+    d.status!=='active'||
+    !v153DuelBelongsToCurrentCharacter(d)
+  )return;
   const meCh=d.challenger_user_id===cloudState.user.id;
   const myName=meCh?d.challenger_name:d.target_name,otherName=meCh?d.target_name:d.challenger_name;
   const myHp=Number(meCh?d.challenger_hp:d.target_hp),otherHp=Number(meCh?d.target_hp:d.challenger_hp),myMp=Number(meCh?d.challenger_mp:d.target_mp);
@@ -1286,7 +1430,12 @@ async function pvpFlee(id){
   try{const {data,error}=await cloudState.client.rpc('pvp_flee',{p_duel_id:id});if(error)throw error;handlePvpFinished(Array.isArray(data)?data[0]:data)}catch(e){toast('遁走失敗：'+translatePvpError(e.message))}
 }
 function handlePvpFinished(d){
-  if(!d||cloudState.pvpHandled.has(String(d.id)))return;cloudState.pvpHandled.add(String(d.id));
+  if(!d||cloudState.pvpHandled.has(String(d.id)))return;
+  if(!v153DuelBelongsToCurrentCharacter(d)){
+    v153IgnoreForeignPvpDuel(d,'不屬於目前道體的鬥法結果');
+    return;
+  }
+  cloudState.pvpHandled.add(String(d.id));
   const uid=cloudState.user.id,won=d.winner_user_id===uid;
   if(!won){
     clearInterval(tickTimer);clearInterval(aiTimer);clearInterval(cloudState.playerTimer);clearInterval(cloudState.safeZoneTimer);clearInterval(cloudState.pvpTimer);
@@ -1361,7 +1510,12 @@ const v123BaseStartOnlineWorld=startOnlineWorld;
 startOnlineWorld=async function(){const r=await v123BaseStartOnlineWorld();clearInterval(cloudState.worldMaintenanceTimer);cloudState.worldMaintenanceTimer=setInterval(runWorldMaintenance,30000);runWorldMaintenance();loadShaQiStatus();return r};
 const v123BaseHandlePvpFinished=handlePvpFinished;
 handlePvpFinished=function(d){
-  const uid=cloudState.user?.id,won=d&&d.winner_user_id===uid,meCh=d&&d.challenger_user_id===uid;
+  if(!d)return;
+  if(!v153DuelBelongsToCurrentCharacter(d)){
+    v153IgnoreForeignPvpDuel(d,'煞氣結算前發現舊角色鬥法');
+    return;
+  }
+  const uid=cloudState.user?.id,won=d.winner_user_id===uid,meCh=d.challenger_user_id===uid;
   if(won&&!cloudState.pvpHandled.has(String(d.id))){
     const mine=meCh?d.challenger_snapshot:d.target_snapshot,foe=meCh?d.target_snapshot:d.challenger_snapshot;
     const myLv=Number(mine?.level||g?.lv||1),foeLv=Number(foe?.level||1);const rel=foeLv>myLv?'higher':foeLv<myLv?'lower':'same';
