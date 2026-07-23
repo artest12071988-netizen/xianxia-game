@@ -789,7 +789,7 @@
         ]
       ],
       "spawn": "青牛谷／荒野／迷霧林／玄霜冰原",
-      "image": "assets/monsters/9001.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9001_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "吼——！",
@@ -853,7 +853,7 @@
         ]
       ],
       "spawn": "青牛谷／荒野／萬木森域",
-      "image": "assets/monsters/9002.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9002_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "吼——！",
@@ -917,7 +917,7 @@
         ]
       ],
       "spawn": "迷霧林／赤砂荒漠／上古遺跡／獸潮",
-      "image": "assets/monsters/9003.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9003_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "吼——！",
@@ -981,7 +981,7 @@
         ]
       ],
       "spawn": "荒野／赤砂荒漠／太古戰場／獸潮",
-      "image": "assets/monsters/9004.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9004_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "吼——！",
@@ -1044,7 +1044,7 @@
         ]
       ],
       "spawn": "荒野／萬木森域／崑崙仙山／獸潮",
-      "image": "assets/monsters/9005.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9005_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "吼——！",
@@ -1108,7 +1108,7 @@
         ]
       ],
       "spawn": "赤砂荒漠／太古戰場／冰火島／獸潮",
-      "image": "assets/monsters/9006.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9006_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "吼——！",
@@ -1171,7 +1171,7 @@
         ]
       ],
       "spawn": "崑崙仙山／北天宮／獸潮5%",
-      "image": "assets/monsters/9101.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9101_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1234,7 +1234,7 @@
         ]
       ],
       "spawn": "萬木森域／崑崙仙山／北天宮／獸潮5%",
-      "image": "assets/monsters/9102.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9102_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1297,7 +1297,7 @@
         ]
       ],
       "spawn": "靈泉／滄溟外海／陰陽海／獸潮5%",
-      "image": "assets/monsters/9103.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9103_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1361,7 +1361,7 @@
         ]
       ],
       "spawn": "魔界降臨2%",
-      "image": "assets/monsters/9201.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9201_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1420,7 +1420,7 @@
         ]
       ],
       "spawn": "魔界降臨2%",
-      "image": "assets/monsters/9202.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9202_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1479,7 +1479,7 @@
         ]
       ],
       "spawn": "魔界降臨2%",
-      "image": "assets/monsters/9203.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9203_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1542,7 +1542,7 @@
         ]
       ],
       "spawn": "活動場域",
-      "image": "assets/monsters/9301.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9301_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1605,7 +1605,7 @@
         ]
       ],
       "spawn": "活動場域",
-      "image": "assets/monsters/9302.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9302_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1668,7 +1668,7 @@
         ]
       ],
       "spawn": "活動場域",
-      "image": "assets/monsters/9303.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9303_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1731,7 +1731,7 @@
         ]
       ],
       "spawn": "活動場域",
-      "image": "assets/monsters/9304.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9304_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1794,7 +1794,7 @@
         ]
       ],
       "spawn": "活動場域",
-      "image": "assets/monsters/9305.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9305_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "螻蟻，受死！",
         "本座一擊便滅你！",
@@ -1865,7 +1865,7 @@
       "weakTo": "木",
       "strongAgainst": "水",
       "ecologyLocked": true,
-      "image": "assets/monsters/9401.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9401_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -1931,7 +1931,7 @@
       "weakTo": "火",
       "strongAgainst": "木",
       "ecologyLocked": true,
-      "image": "assets/monsters/9402.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9402_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -1997,7 +1997,7 @@
       "weakTo": "木",
       "strongAgainst": "水",
       "ecologyLocked": true,
-      "image": "assets/monsters/9403.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9403_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2064,7 +2064,7 @@
       "weakTo": "金",
       "strongAgainst": "土",
       "ecologyLocked": true,
-      "image": "assets/monsters/9404.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9404_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2122,7 +2122,7 @@
       "weakTo": "金",
       "strongAgainst": "土",
       "ecologyLocked": true,
-      "image": "assets/monsters/9405.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9405_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2182,7 +2182,7 @@
       "weakTo": "金",
       "strongAgainst": "土",
       "ecologyLocked": true,
-      "image": "assets/monsters/9406.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9406_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2241,7 +2241,7 @@
       "weakTo": "土",
       "strongAgainst": "火",
       "ecologyLocked": true,
-      "image": "assets/monsters/9407.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9407_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2309,7 +2309,7 @@
       "weakTo": "土",
       "strongAgainst": "火",
       "ecologyLocked": true,
-      "image": "assets/monsters/9408.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9408_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2376,7 +2376,7 @@
       "weakTo": "土",
       "strongAgainst": "火",
       "ecologyLocked": true,
-      "image": "assets/monsters/9409.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9409_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2444,7 +2444,7 @@
       "weakTo": "土",
       "strongAgainst": "火",
       "ecologyLocked": true,
-      "image": "assets/monsters/9410.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9410_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2508,7 +2508,7 @@
       "weakTo": "火",
       "strongAgainst": "木",
       "ecologyLocked": true,
-      "image": "assets/monsters/9411.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9411_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2576,7 +2576,7 @@
       "weakTo": "木",
       "strongAgainst": "水",
       "ecologyLocked": true,
-      "image": "assets/monsters/9412.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9412_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2641,7 +2641,7 @@
       "weakTo": "水",
       "strongAgainst": "金",
       "ecologyLocked": true,
-      "image": "assets/monsters/9413.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9413_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "撕碎你！",
         "膽敢踏入我的領地！",
@@ -2709,7 +2709,7 @@
       "weakTo": "土",
       "strongAgainst": "火",
       "ecologyLocked": true,
-      "image": "assets/monsters/9414.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9414_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "留下你的神魂！",
         "陰氣噬體！",
@@ -2769,7 +2769,7 @@
       "weakTo": "木",
       "strongAgainst": "水",
       "ecologyLocked": true,
-      "image": "assets/monsters/9415.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9415_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "清除入侵者。",
         "遺跡禁制啟動。",
@@ -2848,7 +2848,7 @@
         "minDamage": 18,
         "maxDamage": 900
       },
-      "image": "assets/monsters/9421.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9421_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "此地由本王鎮守！",
         "凡修也敢挑戰精英妖王？",
@@ -2925,7 +2925,7 @@
         "damageMultiplier": 0.65,
         "missBonus": 0.15
       },
-      "image": "assets/monsters/9422.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9422_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "此地由本王鎮守！",
         "凡修也敢挑戰精英妖王？",
@@ -3005,7 +3005,7 @@
         "minDrain": 15,
         "maxDrain": 650
       },
-      "image": "assets/monsters/9423.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9423_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "此地由本王鎮守！",
         "凡修也敢挑戰精英妖王？",
@@ -3084,7 +3084,7 @@
         "minDrain": 20,
         "maxDrain": 900
       },
-      "image": "assets/monsters/9424.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9424_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "此地由本王鎮守！",
         "凡修也敢挑戰精英妖王？",
@@ -3158,7 +3158,7 @@
         "chance": 0.38,
         "bonusDamage": 0.5
       },
-      "image": "assets/monsters/9425.webp?v=20260723-v153-p2-fix6-monster-art",
+      "image": "assets/monsters/monster_9425_v153_fix7.webp?v=20260723-v153-fix7-force-id",
       "attackLines": [
         "此地由本王鎮守！",
         "凡修也敢挑戰精英妖王？",
@@ -4015,7 +4015,7 @@
       "action": "shop"
     }
   ],
-  "version": "V15.3-PHASE2-FIX6-MONSTER-ART",
+  "version": "V15.3-PHASE2-FIX7-MONSTER-ART-FORCE-ID",
   "aiCultivators": [
     {
       "id": 200001,

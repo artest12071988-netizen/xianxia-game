@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.3-PHASE2-FIX5-QINGNIU-NOVICE-RING';
+const BUILD='V15.3-PHASE2-FIX7-MONSTER-ART-FORCE-ID';
 if(window.__V153MonsterEcologyFix2Loaded)return;
 window.__V153MonsterEcologyFix2Loaded=true;
 
@@ -33,6 +33,17 @@ const BEAST_TIDE_ONLY_IDS=new Set([9004,9005,9006,9101,9102,9103]);
 const REQUIRED_NEW_IDS=[...Array.from({length:15},(_,i)=>9401+i),9421,9422,9423,9424,9425];
 const ELITE_CHANCE=.05;
 const ELITE_BY_TERRAIN={desert:9421,ice:9422,northpalace:9422,forest:9423,sea:9424,yinyang:9424,lighthouse:9424,battle:9425};
+const MONSTER_ART_REV='20260723-v153-fix7-force-id';
+function monsterArtUrl(monsterOrId){
+ const id=Number(typeof monsterOrId==='object'?monsterOrId?.id:monsterOrId);
+ if(!Number.isFinite(id))return 'assets/ai_cultivator.svg';
+ return `assets/monsters/monster_${id}_v153_fix7.webp?v=${MONSTER_ART_REV}`;
+}
+function normalizeMonsterArt(monster){
+ if(monster&&Number.isFinite(Number(monster.id)))monster.image=monsterArtUrl(monster);
+ return monster;
+}
+
 
 const get=name=>{try{return Function('return typeof '+name+'!=="undefined"?'+name+':null')()}catch(_){return null}};
 const set=(name,value)=>{try{Function('v',name+'=v')(value);return true}catch(_){try{window[name]=value;return true}catch(__){return false}}};
@@ -90,7 +101,8 @@ function blackCloudActiveHere(){
  try{return window.V14BlackCloud?.isInside?.()===true}catch(_){return false}
 }
 function monsterById(id){
- return (currentConfig()?.monsters||[]).find(m=>Number(m.id)===Number(id))||null;
+ const monster=(currentConfig()?.monsters||[]).find(m=>Number(m.id)===Number(id))||null;
+ return normalizeMonsterArt(monster);
 }
 function localPool(z=null){
  const region=resolveTerrain(z);
@@ -376,6 +388,7 @@ function ready(){
 }
 function install(){
  if(state.installed||!ready())return false;
+ (currentConfig()?.monsters||[]).forEach(normalizeMonsterArt);
  const oldStart=get('startFightMonster'),oldRender=get('renderFight'),oldAttack=get('attackTurn'),oldEnemy=get('enemyTurn'),oldDex=get('openMonsterDex');
  const zoneAt=get('zoneAt'),coordOf=get('coordOf'),rnd=get('rnd');
 
@@ -411,7 +424,7 @@ function install(){
    const eliteBadge=e.elite?'<span class="v153-elite">地域精英 · 5%</span>':'';
    const sceneFx=battleFxMarkup(fight);
    const meta=`<div class="v153-fight-meta">${eliteBadge}${elementBadge(e)}<span>${esc2(e.trait||'普通妖獸')}</span><span>棲地：${esc2(habitatText(e))}</span>${statusText(fight)}</div>`;
-   sheet(`<h3>鬥法 · ${esc2(e.name)}${e.elite?' <em class="v153-elite-title">精英</em>':''}</h3><div class="fight-stage"><div class="fighter" id="playerFighter">${fighterPortrait('assets/player_cultivator.svg',g.name)}<strong>${esc2(g.name)}</strong><div class="small">體力 ${Math.max(0,Math.round(g.hp))} / ${g.hpMax}</div></div><div class="fighter enemy" id="enemyFighter">${fighterPortrait(e.image||('assets/monsters/'+e.id+'.svg'),e.name)}<strong>${esc2(e.name)}</strong><div class="small">${enemyHp}</div></div>${sceneFx}</div>${enemyBar}${meta}<div class="v153-trait"><b>${esc2(e.trait||'妖獸本能')}</b>：${esc2(e.traitText||'無特殊能力')}｜弱點：${esc2(e.weakTo||'無')}${effectDescription(e)?'｜異能：'+esc2(effectDescription(e)):''}</div><p class="small fight-line">${line}</p><div class="row"><button class="btn red" onclick="attackTurn()">攻擊 −${P.normal_attack_mp_cost}精力</button><button class="btn jade" onclick="openCombatItems()">道具／丹藥</button><button class="btn" onclick="fleeTurn()">遁走</button></div>`);
+   sheet(`<h3>鬥法 · ${esc2(e.name)}${e.elite?' <em class="v153-elite-title">精英</em>':''}</h3><div class="fight-stage"><div class="fighter" id="playerFighter">${fighterPortrait('assets/player_cultivator.svg',g.name)}<strong>${esc2(g.name)}</strong><div class="small">體力 ${Math.max(0,Math.round(g.hp))} / ${g.hpMax}</div></div><div class="fighter enemy" id="enemyFighter">${fighterPortrait(monsterArtUrl(e),e.name)}<strong>${esc2(e.name)}</strong><div class="small">${enemyHp}</div></div>${sceneFx}</div>${enemyBar}${meta}<div class="v153-trait"><b>${esc2(e.trait||'妖獸本能')}</b>：${esc2(e.traitText||'無特殊能力')}｜弱點：${esc2(e.weakTo||'無')}${effectDescription(e)?'｜異能：'+esc2(effectDescription(e)):''}</div><p class="small fight-line">${line}</p><div class="row"><button class="btn red" onclick="attackTurn()">攻擊 −${P.normal_attack_mp_cost}精力</button><button class="btn jade" onclick="openCombatItems()">道具／丹藥</button><button class="btn" onclick="fleeTurn()">遁走</button></div>`);
    if(speech.player)setTimeout(()=>showFightSpeech('playerFighter',speech.player,speech.playerType||'normal'),80);
    if(speech.enemy)setTimeout(()=>showFightSpeech('enemyFighter',speech.enemy,speech.enemyType||'normal'),120);
  });
@@ -546,7 +559,7 @@ function install(){
    }
  });
  set('openMonsterDex' ,function(){
-   const C=currentConfig(),sheet=get('sheet');const rows=C.monsters.map(m=>`<div class="monster-card v153-dex-card"><img src="${esc2(m.image||('assets/monsters/'+m.id+'.svg'))}" alt="${esc2(m.name)}"><div><strong>${esc2(m.name)}</strong><span>${esc2(m.cat)} · Lv${m.lv} ${m.elite?'<span class="v153-elite">精英</span>':''} ${elementBadge(m)}</span><small>體力 ${m.hp}｜攻擊 ${m.atk}｜防禦 ${m.def}<br>特性：${esc2(m.trait||'—')}｜弱點：${esc2(m.weakTo||'—')}<br>出沒：${esc2(m.spawn)}</small></div></div>`).join('');
+   const C=currentConfig(),sheet=get('sheet');const rows=C.monsters.map(m=>`<div class="monster-card v153-dex-card"><img src="${esc2(monsterArtUrl(m))}" alt="${esc2(m.name)}"><div><strong>${esc2(m.name)}</strong><span>${esc2(m.cat)} · Lv${m.lv} ${m.elite?'<span class="v153-elite">精英</span>':''} ${elementBadge(m)}</span><small>體力 ${m.hp}｜攻擊 ${m.atk}｜防禦 ${m.def}<br>特性：${esc2(m.trait||'—')}｜弱點：${esc2(m.weakTo||'—')}<br>出沒：${esc2(m.spawn)}</small></div></div>`).join('');
    sheet(`<h3>妖獸圖鑑 · 地域生態版</h3><p class="small">目前共 ${C.monsters.length} 種怪物。地域精英在指定地貌以 5% 機率出現；未增加任何新物品。</p><div class="monster-grid">${rows}</div><button class="btn" style="width:100%;margin-top:10px" onclick="closeOv()">關閉圖鑑</button>`);
  });
  state.installed=true;

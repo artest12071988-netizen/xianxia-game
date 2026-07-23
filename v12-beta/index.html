@@ -324,7 +324,7 @@ const SAVE_KEY='xianxia_v12_legacy_cache';
 
 async function boot(){
   try{
-    const r=await fetch('xianxia_config_V12.json?v=20260723-v153-p2-fix6-monster-art',{cache:'no-store'});
+    const r=await fetch('xianxia_config_V12.json?v=20260723-v153-fix7-force-id',{cache:'no-store'});
     if(!r.ok)throw new Error('config '+r.status);
     C=await r.json();
     const requiredMonsterIds=[...Array.from({length:15},(_,i)=>9401+i),9421,9422,9423,9424,9425];
@@ -1104,6 +1104,7 @@ function confirmReset(){
 <script src="v15_1_phase2_enchant_and_beast_combat.js?v=20260723-v152-p3-fix2-items"></script>
 <script src="v15_1_phase3_ai_beast_bridge.js?v=20260722-v151-p3"></script>
 <script src="v15_2_immersive_raid.js?v=20260723-v152-p3-fix2-items"></script>
-<script src="v15_3_monster_ecology.js?v=20260723-v153-p2-fix5-qingniu"></script>
+<script src="v15_3_monster_ecology.js?v=20260723-v153-fix7-force-id"></script>
+<script src="v15_3_monster_art_fix7.js?v=20260723-v153-fix7-force-id"></script>
 </body>
 </html>
