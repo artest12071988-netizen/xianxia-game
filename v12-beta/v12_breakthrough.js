@@ -1,7 +1,7 @@
 'use strict';
 
 /* ============================================================
-   V12.8 — 突破、天地異變、三陣營與走火入魔
+   V15.4 Phase 1 — 突破雙視角、孤島護法戰場與走火入魔
    獨立補丁：不重寫 V12.7 AI 重生與 V12.6.4 打坐廣告流程。
    ============================================================ */
 (() => {
@@ -200,17 +200,17 @@
 
   async function finishOwnerBreakthrough(status,result={}){
     const s=breakthroughState();if(!s||s.resultApplied)return;s.resultApplied=true;s.active=false;
-    g.breakthroughHistory=Array.isArray(g.breakthroughHistory)?g.breakthroughHistory:[];if(s.eventId&&!g.breakthroughHistory.includes(String(s.eventId)))g.breakthroughHistory.push(String(s.eventId));g.breakthroughHistory=g.breakthroughHistory.slice(-30);
+    const eventId=s.eventId?String(s.eventId):null;
+    const outcomeOptions={eventId,status,targetRealm:s.targetRealm,sourceLevel:s.sourceLevel,result};
+    g.breakthroughHistory=Array.isArray(g.breakthroughHistory)?g.breakthroughHistory:[];if(eventId&&!g.breakthroughHistory.includes(eventId))g.breakthroughHistory.push(eventId);g.breakthroughHistory=g.breakthroughHistory.slice(-30);
     closeBreakthroughScene();
     if(status==='success'){
       clearDeviation();g.lv++;g.big=s.targetRealm;baseOnLevel();
       log('天雷過境，成功突破至 '+s.targetRealm+'！','lg');
-      if(typeof window.playBreakthroughSuccessFxV153==='function'){
-        setTimeout(()=>window.playBreakthroughSuccessFxV153({
-          targetRealm:s.targetRealm,
-          sourceLevel:s.sourceLevel,
-          currentLevel:g.lv
-        }),0);
+      if(eventId&&typeof window.playBreakthroughOutcomeAndEnterBattleV154==='function'){
+        setTimeout(()=>window.playBreakthroughOutcomeAndEnterBattleV154(outcomeOptions),0);
+      }else if(typeof window.playBreakthroughSuccessFxV153==='function'){
+        setTimeout(()=>window.playBreakthroughSuccessFxV153({targetRealm:s.targetRealm,sourceLevel:s.sourceLevel,currentLevel:g.lv}),0);
       }else{
         sheet('<h3>突破成功</h3><p>天地雷雲散去，你已踏入 <b>'+esc(s.targetRealm)+'</b>。</p><button class="btn gold" style="width:100%" onclick="closeOv()">穩固境界</button>');
       }
@@ -220,7 +220,11 @@
     }else{
       applyDeviation();
       log('突破失敗，氣息紊亂，走火入魔；攻防、體力、精力、修為與恢復效率降低 25%。','ld');
-      sheet('<h3 style="color:var(--red)">突破失敗</h3><p>靈氣逆行，你陷入走火入魔。</p><div class="notice">攻擊、防禦、最大體力、最大精力、修為取得與打坐恢復效率均降為原本的 '+Math.round(deviationMultiplier()*100)+'%。此狀態不會重複疊扣。</div><button class="btn" style="width:100%;margin-top:10px" onclick="closeOv()">調息療傷</button>');
+      if(eventId&&typeof window.playBreakthroughOutcomeAndEnterBattleV154==='function'){
+        setTimeout(()=>window.playBreakthroughOutcomeAndEnterBattleV154({...outcomeOptions,status:'failure'}),0);
+      }else{
+        sheet('<h3 style="color:var(--red)">突破失敗</h3><p>靈氣逆行，你陷入走火入魔。</p><div class="notice">攻擊、防禦、最大體力、最大精力、修為取得與打坐恢復效率均降為原本的 '+Math.round(deviationMultiplier()*100)+'%。此狀態不會重複疊扣。</div><button class="btn" style="width:100%;margin-top:10px" onclick="closeOv()">調息療傷</button>');
+      }
     }
     g.breakthroughState=null;cloudState.playerAction='突破結束';saveGame(false);render();
     if(typeof syncPlayerPresence==='function')syncPlayerPresence(true);
@@ -246,12 +250,12 @@
     if(!g||!cloudState.enabled||!cloudState.client||!cloudState.user)return false;
     try{
       const {data,error}=await cloudState.client.from('breakthrough_events')
-        .select('id,owner_user_id,source_level,target_realm,success_rate,origin_coord,started_at,ends_at,status,result')
+        .select('id,owner_user_id,source_level,target_realm,success_rate,origin_coord,started_at,ends_at,status,result,battle_status,breakthrough_result,owner_can_act')
         .eq('owner_user_id',cloudState.user.id).order('started_at',{ascending:false}).limit(1).maybeSingle();
       if(error)throw error;if(!data)return false;
       g.breakthroughHistory=Array.isArray(g.breakthroughHistory)?g.breakthroughHistory:[];
       if(g.breakthroughHistory.includes(String(data.id)))return false;
-      if(data.status==='active'){
+      if(data.status==='active'&&!data.breakthrough_result){
         g.meditating=false;g.meditateSec=0;
         g.breakthroughState={active:true,resultApplied:false,eventId:String(data.id),targetRealm:data.target_realm,sourceLevel:Number(data.source_level),rate:Number(data.success_rate),originCoord:data.origin_coord,startedAt:Date.parse(data.started_at)||Date.now(),endsAt:Date.parse(data.ends_at)||Date.now(),guardianCount:0,attackerCount:0,eventLine:'已從伺服器恢復未完成的突破事件'};
         cloudState.playerAction='境界突破';saveGame(false);renderActiveScene();ensureBreakthroughLoops();return true;
@@ -260,14 +264,17 @@
       g.breakthroughState={active:false,resultApplied:false,eventId:String(data.id),targetRealm:data.target_realm,sourceLevel:source,rate:Number(data.success_rate),originCoord:data.origin_coord,startedAt:Date.parse(data.started_at)||Date.now(),endsAt:Date.parse(data.ends_at)||Date.now()};
       if(data.status==='success'&&Number(g.lv)>source){g.breakthroughHistory.push(String(data.id));g.breakthroughState=null;saveGame(false);return false}
       if((data.status==='failure'||data.status==='interrupted')&&qiDeviationActive()){g.breakthroughHistory.push(String(data.id));g.breakthroughState=null;saveGame(false);return false}
-      await finishOwnerBreakthrough(data.status,data.result||{});return true;
+      await finishOwnerBreakthrough(data.breakthrough_result||data.status,data.result||{});return true;
     }catch(e){console.warn('restore breakthrough owner state',e);return false}
   }
 
   async function loadMyBreakthroughParticipation(){
     if(!cloudState.enabled||!cloudState.client||!cloudState.user)return;
-    try{const {data,error}=await cloudState.client.rpc('list_my_active_breakthroughs');if(error)throw error;cloudState.breakthroughJoined=new Map((data||[]).map(x=>[String(x.event_id),x]))}
-    catch(e){console.warn('breakthrough participation',e)}
+    try{
+      const {data,error}=await cloudState.client.rpc('list_my_active_breakthroughs');if(error)throw error;
+      const rows=data||[];cloudState.breakthroughJoined=new Map(rows.map(x=>[String(x.event_id),x]));
+      if(typeof window.restoreJoinedBattlefieldV154==='function')window.restoreJoinedBattlefieldV154(rows);
+    }catch(e){console.warn('breakthrough participation',e)}
   }
 
   async function pollJoinedBreakthroughs(){
@@ -277,11 +284,14 @@
         const {data,error}=await cloudState.client.rpc('poll_breakthrough_event',{p_event_id:eventId});if(error)throw error;
         const dmg=Number(data?.participant_pending_damage||0);
         if(dmg>0){g.hp=Math.max(0,g.hp-dmg);log('你在突破事件中承受 '+dmg+' 點攻擊傷害。','ld');render();saveGame(false)}
-        if(g.hp<=0||data?.my_participant_alive===false){
+        if(g.hp<=0||data?.my_combat_state==='dead'){
           cloudState.breakthroughJoined.delete(eventId);
           if(typeof finalizePermanentDeath==='function')return finalizePermanentDeath('為突破事件護法／襲擊時身亡');
         }
-        if(data?.status!=='active')cloudState.breakthroughJoined.delete(eventId);
+        if(data?.my_combat_state==='fled'){
+          cloudState.breakthroughJoined.delete(eventId);
+          if(typeof window.closeBreakthroughBattlefieldV154==='function')window.closeBreakthroughBattlefieldV154();
+        }else if(data?.battle_status==='ended')cloudState.breakthroughJoined.delete(eventId);
       }catch(e){console.warn('joined breakthrough poll',e)}
     }
   }
@@ -291,7 +301,7 @@
     if(Date.now()-cloudState.breakthroughLastWorldLoad<800)return;
     cloudState.breakthroughLastWorldLoad=Date.now();
     try{
-      const {data,error}=await cloudState.client.from('breakthrough_events').select('id,owner_user_id,owner_name,origin_coord,target_realm,ends_at,status').eq('status','active').gt('ends_at',new Date().toISOString());
+      const {data,error}=await cloudState.client.from('breakthrough_events').select('id,owner_user_id,owner_name,origin_coord,target_realm,ends_at,status,battle_status,breakthrough_result').eq('battle_status','active');
       if(error)throw error;cloudState.breakthroughEvents=data||[];
       if(cloudState.breakthroughPendingChoice&&!cloudState.breakthroughEvents.some(x=>String(x.id)===String(cloudState.breakthroughPendingChoice.id)))cloudState.breakthroughPendingChoice=null;
       const {data:near,error:nearError}=await cloudState.client.rpc('list_nearby_breakthrough_events',{p_coord:currentBreakCoord()});if(nearError)throw nearError;
@@ -321,6 +331,7 @@
       if(faction==='neutral'&&data?.expelled_coord){const p=coordRC(data.expelled_coord);g.pos={r:p.r,c:p.c};cloudState.playerAction='被天地異變排出';log('你選擇中立，天地異變將你排出至 '+esc(data.expelled_coord)+'。','la')}
       else log('你在本次突破事件選擇「'+factionText(faction)+'」，陣營已鎖定。','la');
       closeOv();saveGame(false);render();if(typeof syncPlayerPresence==='function')syncPlayerPresence(true);
+      if(faction!=='neutral'&&typeof window.openJoinedBreakthroughBattlefieldV154==='function')setTimeout(()=>window.openJoinedBreakthroughBattlefieldV154(eventId,faction),80);
     }catch(e){const m=String(e.message||e);if(m.includes('NOT_ACTIVE')){cloudState.breakthroughPendingChoice=null;closeOv();loadBreakthroughWorld()}toast(m.includes('FACTION_LOCKED')?'本次突破期間不可轉換陣營':'選擇失敗：'+m)}
   }
 
