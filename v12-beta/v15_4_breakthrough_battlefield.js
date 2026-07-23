@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.4-PHASE3-STAGE2-BATTLEFIELD-ANOMALY-20260723';
+const BUILD='V15.4-PHASE3-STAGE2-FIX1-OWNER-EMERGE-REFINED-COLLAPSE-20260723';
 const ROOT_ID='v154BreakthroughBattlefield';
 const FAILURE_ID='v154BreakthroughFailureFx';
 const state={
@@ -102,19 +102,35 @@ function roster(faction){
   </section>`;
 }
 function ownerCard(){
-  const o=state.data?.owner||{},e=state.data?.event||{},info=stageInfo();
-  const targetable=targetAllowed('owner'),selected=state.selected==='owner',locked=!e.breakthrough_result;
-  const resultText=e.breakthrough_result==='success'?'突破成功':e.breakthrough_result==='failure'?'走火入魔':'突破中';
-  return `<div class="v154-island-core">
-    <div class="v154-celestial-pillar"></div>
+  const o=state.data?.owner||{};
+  const e=state.data?.event||{};
+  const result=e.breakthrough_result||null;
+
+  /*
+   * 突破倒數期間不顯示突破者姓名與人物卡。
+   * 中央完整保留孤島、天象、光柱與護法屏障。
+   * 成功／失敗結果確認後，才由島心飛出並顯示人物卡。
+   */
+  if(!state.ownerEntry){
+    return `<div class="v154-island-core awaiting-owner">
+      ${guardiansAlive()>0?'<div class="v154-shield"></div>':'<div class="v154-shield broken"></div>'}
+      <div class="v154-hidden-breaker" aria-label="突破者仍在島心閉關">
+        <i></i><i></i><i></i>
+      </div>
+    </div>`;
+  }
+
+  const targetable=targetAllowed('owner');
+  const selected=state.selected==='owner';
+  const resultText=result==='success'?'突破成功':result==='failure'?'走火入魔':'突破中';
+  return `<div class="v154-island-core owner-revealed">
     ${guardiansAlive()>0?'<div class="v154-shield"></div>':'<div class="v154-shield broken"></div>'}
-    <article class="v154-owner ${locked?'locked':''} ${o.combat_state||''} ${state.ownerEntry?'flying':''} ${targetable?'targetable':''} ${selected?'selected':''}" data-target="owner">
+    <article class="v154-owner ${o.combat_state||''} flying ${targetable?'targetable':''} ${selected?'selected':''}" data-target="owner">
       <div class="v154-owner-orbit"></div><img src="${ownerPortrait()}" alt="${esc(o.name)}"><b>${esc(o.name||'突破者')}</b>
       <small>${esc(resultText)} · ${esc(e.target_realm||'未知境界')}</small>
       <div class="v154-hp"><i style="--hp:${pct(o.hp,o.hp_max)}"></i></div>
       <small>體力 ${Math.max(0,Math.round(o.hp||0))}/${Math.max(1,Math.round(o.hp_max||1))}</small>
     </article>
-    <div class="v154-stage"><small>突破階段</small><b>${esc(info.label)}</b>${stageDots(info)}<span>${esc(info.copy)}</span></div>
   </div>`;
 }
 function logHtml(){
@@ -159,7 +175,17 @@ function render(){
       <section class="v154-center">${aerialFormation('guardian')}${aerialFormation('attacker')}${ownerCard()}<div class="v154-speech">${esc(currentSpeech())}</div></section>
       ${roster('attacker')}
     </main>
-    <div class="v154-result-fx"></div>
+    <div class="v154-result-fx">
+      <i class="v154-fx-core"></i>
+      <i class="v154-fx-ring ring-a"></i>
+      <i class="v154-fx-ring ring-b"></i>
+      <i class="v154-fx-ring ring-c"></i>
+      <i class="v154-fx-rift rift-a"></i>
+      <i class="v154-fx-rift rift-b"></i>
+      <i class="v154-fx-rift rift-c"></i>
+      <i class="v154-fx-shards"></i>
+      <i class="v154-fx-mist"></i>
+    </div>
     <div class="v154-result-banner"><small>${e.breakthrough_result==='success'?'BREAKTHROUGH COMPLETE':'BREAKTHROUGH FAILED'}</small><b>${e.breakthrough_result==='success'?'天門大開':e.breakthrough_result==='failure'?'靈氣崩散':''}</b><span>${e.breakthrough_result==='success'?`已晉升 ${esc(e.target_realm||'新境界')}`:e.breakthrough_result==='failure'?'突破失敗，陷入走火入魔':''}</span></div>
     <footer class="v154-bottom">
       <div class="v154-log-head"><b>戰況日誌</b><button data-log-toggle>戰況詳情</button></div>
@@ -199,6 +225,7 @@ async function load(){
     const oldResult=state.data?.event?.breakthrough_result||state.lastResult;
     state.data=data;state.role=data?.my_role||state.role||'spectator';
     const newResult=data?.event?.breakthrough_result||null;
+    if(newResult&&newResult===oldResult&&!state.ownerEntry)state.ownerEntry=true;
     render();
     if(newResult&&newResult!==oldResult){state.lastResult=newResult;resultTransition(newResult)}
     if(data?.event?.battle_status==='ended')clearInterval(state.timer);
@@ -244,7 +271,7 @@ function close(){
 function failureScene(options={}){
   document.getElementById(FAILURE_ID)?.remove();
   const el=document.createElement('section');el.id=FAILURE_ID;el.className='v154-failure-overlay';
-  el.innerHTML=`<div class="v154-failure-collapse"></div><div class="v154-failure-copy"><h2>突破失敗</h2><p>靈氣崩散，經脈逆行，你已陷入走火入魔。</p><button type="button">強行出關</button></div>`;
+  el.innerHTML=`<div class="v154-failure-vortex"><i></i><i></i><i></i><b></b></div><div class="v154-failure-fragments"></div><div class="v154-failure-copy"><small>天道反噬</small><h2>靈氣崩散</h2><p>靈脈寸斷，萬千靈光逆流四散，你已陷入走火入魔。</p><button type="button">強行出關</button></div>`;
   document.body.appendChild(el);
   try{navigator.vibrate?.([75,30,90,35,110])}catch(_){ }
   return new Promise(resolve=>el.querySelector('button').addEventListener('click',()=>{el.remove();resolve()}, {once:true}));

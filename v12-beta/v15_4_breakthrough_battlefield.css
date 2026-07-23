@@ -2,7 +2,7 @@
 :root{--v154-gold:#e8ca72;--v154-gold2:#fff0a8;--v154-jade:#66e0c2;--v154-red:#ff7770;--v154-blue:#9bbde0;--v154-line:rgba(216,187,103,.5);--v154-deep:#020711}
 body.v154-battlefield-locked{overflow:hidden}
 .v154-btf{position:fixed;inset:0;z-index:10040;color:#edf5f5;background:var(--v154-deep);font-family:"PingFang TC","Noto Sans TC",system-ui,sans-serif;overflow:hidden;isolation:isolate}
-.v154-btf-bg{position:absolute;inset:-2%;z-index:-7;background:linear-gradient(180deg,rgba(0,6,15,.12),rgba(1,5,11,.48) 52%,rgba(1,5,10,.88)),url('assets/breakthrough_island_battle_v154_p3.webp') center/cover no-repeat;filter:saturate(1.11) contrast(1.07)}
+.v154-btf-bg{position:absolute;inset:-2%;z-index:-7;background:linear-gradient(180deg,rgba(0,6,15,.12),rgba(1,5,11,.48) 52%,rgba(1,5,10,.88)),url('assets/breakthrough_island_battle_v154_stage2_fix1.webp') center/cover no-repeat;filter:saturate(1.11) contrast(1.07)}
 .v154-btf::before{content:"";position:absolute;inset:-25% -10% 30%;z-index:-6;background:repeating-conic-gradient(from 0deg at 50% 30%,transparent 0 12deg,rgba(175,218,255,.08) 13deg 15deg,transparent 16deg 27deg);mask:radial-gradient(circle at 50% 30%,transparent 0 5%,#000 10% 46%,transparent 62%);animation:v154SkyRotate 28s linear infinite;pointer-events:none}
 .v154-btf::after{content:"";position:absolute;inset:0;z-index:-5;background:radial-gradient(circle at 50% 47%,rgba(119,238,235,.08),transparent 18%),radial-gradient(circle at 50% 50%,transparent 26%,rgba(0,0,0,.2) 69%,rgba(0,0,0,.72) 100%);pointer-events:none}
 @keyframes v154SkyRotate{to{transform:rotate(360deg)}}
@@ -56,3 +56,91 @@ body.v154-battlefield-locked{overflow:hidden}
 @media(max-width:390px){.v154-btf-arena{grid-template-columns:78px minmax(0,1fr) 78px;bottom:92px}.v154-btf-title{max-width:190px}.v154-btf-title h2{font-size:12px}.v154-title-seal{display:none}.v154-person-name small{display:none}.v154-avatar{width:27px;height:27px}.v154-owner{width:87px}.v154-owner img{width:46px;height:46px}.v154-air-unit{width:15px}.v154-stage b{font-size:14px}.v154-stage-dots{gap:3px}.v154-speech{font-size:8.5px;max-width:66vw}.v154-log{display:none}}
 @media(max-height:500px) and (orientation:landscape){.v154-btf-arena{grid-template-columns:minmax(140px,21%) minmax(0,58%) minmax(140px,21%)}.v154-sky-vortex{top:-96%;width:76vw}.v154-island-core{max-width:360px}.v154-lightning{height:72%}.v154-bottom{bottom:3px}}
 @media(prefers-reduced-motion:reduce){.v154-sky-vortex,.v154-lightning,.v154-thunder-flash,.v154-qi-stream,.v154-island-pulse,.v154-air-unit{animation:none!important}}
+
+
+/* ============================================================
+   V15.4 Phase 3 Stage 2 FIX1
+   倒數期隱藏突破者、結果後飛出、精緻靈氣崩散
+   ============================================================ */
+.v154-btf-bg{
+  background:
+    linear-gradient(180deg,rgba(0,5,12,.12),rgba(1,5,11,.66)),
+    radial-gradient(circle at 50% 22%,rgba(178,215,255,.12),transparent 24%),
+    url('assets/breakthrough_island_battle_v154_stage2_fix1.webp') center/cover no-repeat!important;
+  filter:saturate(1.08) contrast(1.04)
+}
+.v154-island-core.awaiting-owner .v154-owner{display:none!important}
+.v154-hidden-breaker{
+  position:absolute;left:50%;top:57%;transform:translate(-50%,-50%);
+  width:min(90px,18vw);height:min(90px,18vw);border-radius:50%;z-index:7;
+  background:radial-gradient(circle,#fff 0 3%,rgba(121,233,255,.55) 8%,rgba(94,212,255,.12) 30%,transparent 65%);
+  box-shadow:0 0 36px rgba(132,235,255,.34),0 0 110px rgba(119,179,255,.16);
+  opacity:.82;animation:v154HiddenBreath 2.25s ease-in-out infinite
+}
+.v154-hidden-breaker::before,.v154-hidden-breaker::after{
+  content:"";position:absolute;inset:-28%;border-radius:50%;border:1px solid rgba(120,232,245,.38);
+  box-shadow:inset 0 0 24px rgba(104,232,241,.12);animation:v154HiddenRing 3.2s linear infinite
+}
+.v154-hidden-breaker::after{inset:-62%;border-color:rgba(235,202,109,.24);animation-duration:5.2s;animation-direction:reverse}
+.v154-hidden-breaker i{position:absolute;left:50%;top:50%;width:3px;height:42%;transform-origin:50% 100%;background:linear-gradient(transparent,rgba(255,255,255,.88),transparent);filter:blur(.3px);opacity:.62}
+.v154-hidden-breaker i:nth-child(1){transform:translate(-50%,-100%) rotate(0deg)}
+.v154-hidden-breaker i:nth-child(2){transform:translate(-50%,-100%) rotate(120deg)}
+.v154-hidden-breaker i:nth-child(3){transform:translate(-50%,-100%) rotate(240deg)}
+@keyframes v154HiddenBreath{50%{transform:translate(-50%,-50%) scale(1.16);opacity:1;filter:brightness(1.25)}}
+@keyframes v154HiddenRing{to{transform:rotate(360deg) scale(1.08);opacity:.42}}
+.v154-island-core.owner-revealed .v154-owner{display:block}
+.v154-owner.flying{animation:v154OwnerEmergePremium 1.55s cubic-bezier(.12,.82,.18,1) both!important}
+@keyframes v154OwnerEmergePremium{
+  0%{transform:translateY(32vh) scale(.12);opacity:0;filter:blur(18px) brightness(3)}
+  32%{opacity:.9;filter:blur(7px) brightness(2.2)}
+  68%{transform:translateY(-18px) scale(1.08);opacity:1;filter:blur(0) brightness(1.3)}
+  100%{transform:translateY(0) scale(1);opacity:1;filter:none}
+}
+
+/* 成功與失敗共用高階結果層 */
+.v154-result-fx{overflow:hidden;mix-blend-mode:screen}
+.v154-result-fx>i{position:absolute;left:50%;top:48%;pointer-events:none}
+.v154-fx-core{width:22vmin;height:22vmin;border-radius:50%;transform:translate(-50%,-50%);opacity:0}
+.v154-fx-ring{width:34vmin;height:34vmin;border-radius:50%;transform:translate(-50%,-50%) scale(.25);opacity:0;border:1px solid rgba(164,226,255,.55);box-shadow:0 0 30px rgba(123,214,255,.22),inset 0 0 28px rgba(157,215,255,.15)}
+.v154-fx-ring.ring-b{width:49vmin;height:49vmin;border-color:rgba(215,184,255,.38)}
+.v154-fx-ring.ring-c{width:65vmin;height:65vmin;border-color:rgba(255,215,151,.28)}
+.v154-fx-rift{width:2px;height:40vmin;transform-origin:50% 100%;opacity:0;background:linear-gradient(transparent,rgba(255,255,255,.88),rgba(133,155,255,.48),transparent);filter:blur(.2px)}
+.v154-fx-rift.rift-a{transform:translate(-50%,-100%) rotate(22deg)}
+.v154-fx-rift.rift-b{transform:translate(-50%,-100%) rotate(142deg)}
+.v154-fx-rift.rift-c{transform:translate(-50%,-100%) rotate(262deg)}
+.v154-fx-shards{width:70vmin;height:70vmin;transform:translate(-50%,-50%);opacity:0;background:repeating-conic-gradient(from 12deg,transparent 0 8deg,rgba(154,191,255,.22) 9deg 9.7deg,transparent 10deg 22deg);mask:radial-gradient(circle,transparent 0 27%,#000 31% 61%,transparent 68%)}
+.v154-fx-mist{width:90vmin;height:65vmin;transform:translate(-50%,-50%);opacity:0;border-radius:50%;background:radial-gradient(ellipse,rgba(120,111,255,.22),rgba(255,89,130,.14) 30%,transparent 68%);filter:blur(22px)}
+
+.v154-btf.result-failure .v154-result-fx{background:radial-gradient(circle at 50% 48%,rgba(89,79,178,.18),rgba(183,69,104,.12) 24%,transparent 58%);animation:v154FailureScene 3.5s ease-out both}
+.v154-btf.result-failure .v154-fx-core{background:radial-gradient(circle,#fff 0 4%,#a6c9ff 10%,#9a72e8 25%,rgba(181,64,111,.44) 42%,transparent 68%);box-shadow:0 0 35px #c5ddff,0 0 90px rgba(123,105,255,.72),0 0 150px rgba(223,64,116,.38);animation:v154CoreImplode 2.5s cubic-bezier(.5,.05,.3,1) both}
+.v154-btf.result-failure .v154-fx-ring.ring-a{animation:v154RingFracture 2.8s .1s ease-out both}
+.v154-btf.result-failure .v154-fx-ring.ring-b{animation:v154RingFracture 3s .2s ease-out reverse both}
+.v154-btf.result-failure .v154-fx-ring.ring-c{animation:v154RingFracture 3.25s .05s ease-out both}
+.v154-btf.result-failure .v154-fx-rift{animation:v154RiftScatter 2.7s ease-out both}
+.v154-btf.result-failure .v154-fx-rift.rift-b{animation-delay:.12s}.v154-btf.result-failure .v154-fx-rift.rift-c{animation-delay:.23s}
+.v154-btf.result-failure .v154-fx-shards{animation:v154ShardScatter 3.15s .18s cubic-bezier(.18,.72,.2,1) both}
+.v154-btf.result-failure .v154-fx-mist{animation:v154MistRelease 3.4s ease-out both}
+@keyframes v154FailureScene{0%{opacity:0}10%{opacity:1}72%{opacity:1}100%{opacity:0}}
+@keyframes v154CoreImplode{0%{opacity:0;transform:translate(-50%,-50%) scale(1.8);filter:blur(9px)}24%{opacity:1;transform:translate(-50%,-50%) scale(.52);filter:blur(1px)}46%{transform:translate(-50%,-50%) scale(.18);filter:brightness(2.3)}58%{opacity:1;transform:translate(-50%,-50%) scale(.05)}100%{opacity:0;transform:translate(-50%,-50%) scale(3.1);filter:blur(18px)}}
+@keyframes v154RingFracture{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(0)}26%{opacity:.95}58%{transform:translate(-50%,-50%) scale(.92) rotate(38deg);opacity:.72}100%{transform:translate(-50%,-50%) scale(1.9) rotate(128deg);opacity:0;filter:blur(4px)}}
+@keyframes v154RiftScatter{0%{opacity:0;transform-origin:50% 100%}30%{opacity:.92}100%{opacity:0;height:74vmin;filter:blur(3px)}}
+@keyframes v154ShardScatter{0%{opacity:0;transform:translate(-50%,-50%) scale(.45) rotate(0)}34%{opacity:.92}100%{opacity:0;transform:translate(-50%,-50%) scale(1.8) rotate(110deg);filter:blur(5px)}}
+@keyframes v154MistRelease{0%{opacity:0;transform:translate(-50%,-50%) scale(.25)}38%{opacity:.72}100%{opacity:0;transform:translate(-50%,-50%) scale(1.7);filter:blur(42px)}}
+
+/* 隱藏舊式粗糙 conic 失敗圖形 */
+.v154-btf.result-failure .v154-result-fx::before{display:none!important}
+
+/* 單人失敗轉場同步精緻化 */
+.v154-failure-overlay::before{filter:saturate(.82) brightness(.62)}
+.v154-failure-vortex{position:absolute;left:50%;top:46%;width:52vmin;height:52vmin;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 0 2%,rgba(154,198,255,.88) 7%,rgba(137,91,219,.38) 23%,rgba(198,63,110,.18) 44%,transparent 68%);box-shadow:0 0 65px rgba(162,204,255,.5),0 0 150px rgba(129,94,229,.38);animation:v154FailureVortex 2.6s ease-in both}
+.v154-failure-vortex i{position:absolute;inset:var(--inset,4%);border-radius:50%;border:1px solid rgba(179,218,255,.52);animation:v154FailureOrbit 1.8s linear infinite}.v154-failure-vortex i:nth-child(2){--inset:18%;animation-direction:reverse;animation-duration:1.35s;border-color:rgba(223,161,255,.48)}.v154-failure-vortex i:nth-child(3){--inset:31%;animation-duration:.95s;border-color:rgba(255,151,183,.44)}.v154-failure-vortex b{position:absolute;inset:-45%;background:repeating-conic-gradient(transparent 0 10deg,rgba(177,202,255,.2) 11deg 12deg,transparent 13deg 24deg);mask:radial-gradient(circle,transparent 0 35%,#000 39% 68%,transparent 73%);animation:v154FailureFragments 2.7s ease-out both}
+.v154-failure-fragments{position:absolute;left:50%;top:46%;width:78vmin;height:78vmin;transform:translate(-50%,-50%);background:repeating-conic-gradient(from 8deg,transparent 0 8deg,rgba(166,190,255,.2) 9deg 9.6deg,transparent 10deg 21deg);mask:radial-gradient(circle,transparent 0 27%,#000 31% 62%,transparent 69%);animation:v154FailureFragments 3s ease-out both}
+@keyframes v154FailureVortex{0%{opacity:0;transform:translate(-50%,-50%) scale(1.55);filter:blur(8px)}34%{opacity:1;transform:translate(-50%,-50%) scale(.72)}68%{transform:translate(-50%,-50%) scale(.18);filter:brightness(2)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.4);filter:blur(18px)}}
+@keyframes v154FailureOrbit{to{transform:rotate(360deg)}}
+@keyframes v154FailureFragments{0%{opacity:0;transform:translate(-50%,-50%) scale(.45) rotate(0)}32%{opacity:.85}100%{opacity:0;transform:translate(-50%,-50%) scale(1.75) rotate(125deg);filter:blur(5px)}}
+.v154-failure-copy small{display:block;color:#b6a4ff;letter-spacing:.25em;font-size:11px}.v154-failure-copy h2{color:#ff8aa4;text-shadow:0 0 24px rgba(255,107,144,.35)}
+
+@media(max-width:820px){
+  .v154-hidden-breaker{width:58px;height:58px;top:55%}
+  .v154-owner.flying{animation-duration:1.35s!important}
+}
