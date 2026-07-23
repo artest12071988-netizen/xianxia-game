@@ -628,7 +628,8 @@ function pickItem(id){
   log('獲得 '+IT[id].name+'。','lg');closeOv();render();
 }
 function rollEncounter(source){
-  const z=zoneAt(g.pos.r,g.pos.c),safe=z&&z.type.includes('安全區');if(safe)return;
+  const z=zoneAt(g.pos.r,g.pos.c),region=v153ResolveTerrain(z);
+  const safe=region.type==='market'||(z&&z.type.includes('安全區'));if(safe)return;
   const aiChance=z&&z.novice?.05:.22;
   if(Math.random()<aiChance){
     let cand=ai.filter(a=>a.alive&&a.coord===coordOf(g.pos.r,g.pos.c));
@@ -641,8 +642,47 @@ function rollEncounter(source){
     if(monster)startFightMonster(monster);
   }
 }
-const V153_EXACT_ZONE_POOLS={"青牛谷":[9001,9002],"練氣坊":[9001,9002],"青雲坊市":[9001,9002],"傳訊台":[9001,9002],"丹房":[9001,9002,9405],"靈泉":[9404,9405],"中央秘境":[9405,9406,9415],"西村舊居":[9414,9415],"北村舊居":[9414,9415],"南嶽神祠":[9406,9415],"迷霧林":[9001,9002,9404,9405,9406],"鎮海燈塔":[9410,9412],"萬木森域":[9001,9002,9404,9405,9406],"赤砂荒漠":[9401,9402,9403,9413],"太古戰場":[9414,9415],"上古遺跡":[9404,9414,9415],"崑崙仙山":[9406,9415],"北天宮":[9407,9408,9409],"玄霜冰原":[9407,9408,9409],"滄溟外海":[9410,9411,9412],"冰火島":[9408,9413],"陰陽海":[9410,9411,9412]};
+const V153_TERRAIN_POOLS={"desert":[9401,9402,9403,9413],"forest":[9001,9002,9404,9405,9406],"ice":[9407,9408,9409],"northpalace":[9407,9408,9409],"sea":[9410,9411,9412],"yinyang":[9410,9411,9412],"icefire":[9408,9413],"battle":[9414,9415],"ruin":[9404,9414,9415],"kunlun":[9406,9415],"mountain":[9001,9002,9406,9415],"village":[9001,9002],"lighthouse":[9410,9412],"abyss":[9414,9415],"market":[]};
 const V153_BEAST_TIDE_ONLY_IDS=new Set([9004,9005,9006,9101,9102,9103]);
+function v153ResolveTerrain(z=null){
+  try{
+    const fixed=window.V144_FIXED_MAP?.infoFor?.(g.pos.r,g.pos.c);
+    if(fixed&&fixed.type){
+      return {
+        name:String(fixed.label||fixed.terrainLabel||fixed.type),
+        type:String(fixed.type),
+        coord:String(fixed.coord||coordOf(g.pos.r,g.pos.c)),
+        source:'V144_FIXED_MAP'
+      };
+    }
+  }catch(err){console.warn('[V15.3 FIX5] fixed map resolve failed',err)}
+  const base=z||zoneAt(g.pos.r,g.pos.c);
+  const name=String(base?.name||'');
+  const type=String(base?.type||'');
+  const text=name+' '+type;
+  let terrain='';
+  if(/萬寶交易所|交易所|安全區/.test(text))terrain='market';
+  else if(/赤砂荒漠|赤沙荒漠|沙漠/.test(text))terrain='desert';
+  else if(/萬木森域|迷霧林|樹海|森林/.test(text))terrain='forest';
+  else if(/北天宮|北寒天宮|天宮/.test(text))terrain='northpalace';
+  else if(/玄霜冰原|冰原/.test(text))terrain='ice';
+  else if(/陰陽海/.test(text))terrain='yinyang';
+  else if(/冰火島/.test(text))terrain='icefire';
+  else if(/鎮海燈塔|鎮海海域/.test(text))terrain='lighthouse';
+  else if(/滄溟外海|(^|[^陰陽])海域|(^|[^陰陽])海$/.test(text))terrain='sea';
+  else if(/太古戰場|遠古戰場|古戰場/.test(text))terrain='battle';
+  else if(/上古遺跡|古代遺跡|遺跡|廢墟/.test(text))terrain='ruin';
+  else if(/崑崙仙山|崑崙山|崑崙/.test(text))terrain='kunlun';
+  else if(/魔淵/.test(text))terrain='abyss';
+  else if(/青牛谷|清牛谷|練氣坊|新手村/.test(text))terrain='village';
+  else if(/山域|山地|神祠|山$/.test(text))terrain='mountain';
+  return {
+    name:name||'未知地域',
+    type:terrain,
+    coord:String(base?.coord||coordOf(g.pos.r,g.pos.c)),
+    source:'CONFIG_ZONE_FALLBACK'
+  };
+}
 function v153MonsterById(id){
   return C.monsters.find(m=>Number(m.id)===Number(id))||null;
 }
@@ -652,58 +692,49 @@ function v153TideActive(){
 function v153BlackCloudActiveHere(){
   try{return window.V14BlackCloud?.isInside?.()===true}catch(_){return false}
 }
-function localMonsterPool(z){
-  const name=String(z?.name||'');
-  const ids=V153_EXACT_ZONE_POOLS[name]||[];
-  const pool=ids
-    .map(v153MonsterById)
-    .filter(Boolean)
-    .filter(m=>m.normalEncounter!==false);
-  return pool;
+function localMonsterPool(z=null){
+  const region=v153ResolveTerrain(z);
+  const ids=V153_TERRAIN_POOLS[region.type];
+  if(!Array.isArray(ids))return [];
+  return ids.map(v153MonsterById).filter(Boolean).filter(m=>m.normalEncounter!==false);
 }
-function pickMonster(z){
+function pickMonster(z=null){
+  const region=v153ResolveTerrain(z);
+  if(region.type==='market')return null;
+  const ids=V153_TERRAIN_POOLS[region.type];
+  if(!Array.isArray(ids)){
+    console.error('[V15.3 FIX5] 未定義地貌怪物池',region);
+    toast('目前地貌尚未設定怪物生態：'+region.name);
+    return null;
+  }
   const pool=localMonsterPool(z);
   if(!pool.length){
-    const message='地域怪物池未正確載入：'+String(z?.name||'未知地域');
-    console.error('[V15.3 FIX4]',message,{
-      zone:z,
-      catalogCount:C?.monsters?.length,
-      catalog:C?.version
-    });
-    toast(message);
+    const missing=ids.filter(id=>!v153MonsterById(id));
+    console.error('[V15.3 FIX5] 地貌怪物池載入失敗',{region,ids,missing,catalogCount:C?.monsters?.length});
+    toast(missing.length?'怪物設定缺少 ID：'+missing.join('、'):'目前地貌沒有可遭遇怪物。');
     return null;
   }
   const selected=rnd(pool);
-  console.info('[V15.3 FIX4] 精確地域隨機遭遇',{
-    zone:z?.name,
-    pool:pool.map(m=>m.id+':'+m.name),
-    selected:selected?.id+':'+selected?.name
-  });
+  console.info('[V15.3 FIX5] 固定地圖地貌隨機遭遇',{region,pool:pool.map(m=>m.id+':'+m.name),selected:selected?.id+':'+selected?.name});
   return JSON.parse(JSON.stringify(selected));
 }
 function v153ValidateMonsterForCurrentZone(monster){
   if(!monster)return null;
   const id=Number(monster.id);
-  const z=zoneAt(g.pos.r,g.pos.c);
+  const region=v153ResolveTerrain();
   if(V153_BEAST_TIDE_ONLY_IDS.has(id)&&!v153TideActive()){
-    console.warn('[V15.3 FIX4] 阻擋獸潮專屬怪',{
-      id,name:monster.name,zone:z?.name
-    });
-    return pickMonster(z);
+    console.warn('[V15.3 FIX5] 阻擋獸潮專屬怪',{id,name:monster.name,region});
+    return pickMonster();
   }
   if(id===9003&&!v153TideActive()&&!v153BlackCloudActiveHere()){
-    console.warn('[V15.3 FIX4] 阻擋黑雲／獸潮專屬赤蛇');
-    return pickMonster(z);
+    console.warn('[V15.3 FIX5] 阻擋黑雲／獸潮專屬赤蛇');
+    return pickMonster();
   }
-  if(monster.normalEncounter===false){
-    return monster;
-  }
-  const allowed=localMonsterPool(z).some(m=>Number(m.id)===id);
+  if(monster.normalEncounter===false)return monster;
+  const allowed=localMonsterPool().some(m=>Number(m.id)===id);
   if(!allowed){
-    console.warn('[V15.3 FIX4] 阻擋錯誤地域怪物',{
-      id,name:monster.name,zone:z?.name
-    });
-    return pickMonster(z);
+    console.warn('[V15.3 FIX5] 阻擋錯誤地貌怪物',{id,name:monster.name,region});
+    return pickMonster();
   }
   return monster;
 }
@@ -1047,6 +1078,6 @@ function confirmReset(){
 <script src="v15_1_phase2_enchant_and_beast_combat.js?v=20260723-v152-p3-fix2-items"></script>
 <script src="v15_1_phase3_ai_beast_bridge.js?v=20260722-v151-p3"></script>
 <script src="v15_2_immersive_raid.js?v=20260723-v152-p3-fix2-items"></script>
-<script src="v15_3_monster_ecology.js?v=20260723-v153-fix4-exact-pools"></script>
+<script src="v15_3_monster_ecology.js?v=20260723-v153-fix5-fixed-map-terrain"></script>
 </body>
 </html>

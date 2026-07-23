@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.3-PHASE1-FIX4-EXACT-ZONE-POOLS';
+const BUILD='V15.3-PHASE1-FIX5-FIXED-MAP-TERRAIN';
 if(window.__V153MonsterEcologyFix2Loaded)return;
 window.__V153MonsterEcologyFix2Loaded=true;
 
@@ -19,7 +19,7 @@ const ZONE_TAGS={
  'J-10':['陰陽海','海域']
 };
 const state={installed:false};
-const EXACT_ZONE_POOLS={"青牛谷":[9001,9002],"練氣坊":[9001,9002],"青雲坊市":[9001,9002],"傳訊台":[9001,9002],"丹房":[9001,9002,9405],"靈泉":[9404,9405],"中央秘境":[9405,9406,9415],"西村舊居":[9414,9415],"北村舊居":[9414,9415],"南嶽神祠":[9406,9415],"迷霧林":[9001,9002,9404,9405,9406],"鎮海燈塔":[9410,9412],"萬木森域":[9001,9002,9404,9405,9406],"赤砂荒漠":[9401,9402,9403,9413],"太古戰場":[9414,9415],"上古遺跡":[9404,9414,9415],"崑崙仙山":[9406,9415],"北天宮":[9407,9408,9409],"玄霜冰原":[9407,9408,9409],"滄溟外海":[9410,9411,9412],"冰火島":[9408,9413],"陰陽海":[9410,9411,9412]};
+const TERRAIN_POOLS={"desert":[9401,9402,9403,9413],"forest":[9001,9002,9404,9405,9406],"ice":[9407,9408,9409],"northpalace":[9407,9408,9409],"sea":[9410,9411,9412],"yinyang":[9410,9411,9412],"icefire":[9408,9413],"battle":[9414,9415],"ruin":[9404,9414,9415],"kunlun":[9406,9415],"mountain":[9001,9002,9406,9415],"village":[9001,9002],"lighthouse":[9410,9412],"abyss":[9414,9415],"market":[]};
 const BEAST_TIDE_ONLY_IDS=new Set([9004,9005,9006,9101,9102,9103]);
 const REQUIRED_NEW_IDS=Array.from({length:15},(_,i)=>9401+i);
 
@@ -30,34 +30,43 @@ const clone=x=>x?JSON.parse(JSON.stringify(x)):null;
 const esc2=s=>{const fn=get('esc');return typeof fn==='function'?fn(s):String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))};
 const currentGame=()=>get('g');
 const currentConfig=()=>get('C');
-const currentZone=()=>{const g=currentGame(),zoneAt=get('zoneAt');return g&&typeof zoneAt==='function'?zoneAt(g.pos.r,g.pos.c):null};
+const currentConfigZone=()=>{const g=currentGame(),zoneAt=get('zoneAt');return g&&typeof zoneAt==='function'?zoneAt(g.pos.r,g.pos.c):null};
 const currentCoord=()=>{const g=currentGame(),coordOf=get('coordOf');return g&&typeof coordOf==='function'?coordOf(g.pos.r,g.pos.c):''};
-function tagsFor(z=currentZone()){
- const text=String(z?.name||'')+' '+String(z?.type||'');
- if(/赤砂荒漠|沙漠/.test(text))return ['沙漠'];
- if(/萬木森域|迷霧林|森林/.test(text))return ['森林','沼澤'];
- if(/玄霜冰原|冰原/.test(text))return ['冰原'];
- if(/北天宮|天宮/.test(text))return ['天宮','冰原','山地'];
- if(/滄溟外海/.test(text))return ['海域'];
- if(/陰陽海/.test(text))return ['陰陽海','海域'];
- if(/鎮海燈塔/.test(text))return ['海岸','海域'];
- if(/冰火島/.test(text))return ['冰火島','火山','冰原'];
- if(/太古戰場|古戰場/.test(text))return ['古戰場'];
- if(/上古遺跡|古代遺跡|遺跡/.test(text))return ['遺跡','廢墟'];
- if(/崑崙仙山|崑崙/.test(text))return ['崑崙','山地'];
- if(/中央秘境|秘境/.test(text))return ['秘境','山地','森林','遺跡'];
- if(/靈泉|靈地/.test(text))return ['水域','靈地','森林'];
- if(/青牛谷|練氣坊|新手村/.test(text))return ['新手','草原','荒野'];
- if(/舊居|廢墟/.test(text))return ['廢墟'];
- if(/神祠|山地/.test(text))return ['山地','廢墟'];
- const coord=z?.coord||currentCoord();
- return ZONE_TAGS[coord]?.slice()||['荒野'];
+function resolveTerrain(z=null){
+ const g=currentGame(),coordOf=get('coordOf');
+ try{
+   const fixed=window.V144_FIXED_MAP?.infoFor?.(g.pos.r,g.pos.c);
+   if(fixed?.type)return {name:String(fixed.label||fixed.terrainLabel||fixed.type),type:String(fixed.type),coord:String(fixed.coord||currentCoord()),source:'V144_FIXED_MAP'};
+ }catch(err){console.warn(`[${BUILD}] fixed map resolve failed`,err)}
+ const base=z||currentConfigZone();
+ const name=String(base?.name||''),type=String(base?.type||''),text=name+' '+type;
+ let terrain='';
+ if(/萬寶交易所|交易所|安全區/.test(text))terrain='market';
+ else if(/赤砂荒漠|赤沙荒漠|沙漠/.test(text))terrain='desert';
+ else if(/萬木森域|迷霧林|樹海|森林/.test(text))terrain='forest';
+ else if(/北天宮|北寒天宮|天宮/.test(text))terrain='northpalace';
+ else if(/玄霜冰原|冰原/.test(text))terrain='ice';
+ else if(/陰陽海/.test(text))terrain='yinyang';
+ else if(/冰火島/.test(text))terrain='icefire';
+ else if(/鎮海燈塔|鎮海海域/.test(text))terrain='lighthouse';
+ else if(/滄溟外海|(^|[^陰陽])海域|(^|[^陰陽])海$/.test(text))terrain='sea';
+ else if(/太古戰場|遠古戰場|古戰場/.test(text))terrain='battle';
+ else if(/上古遺跡|古代遺跡|遺跡|廢墟/.test(text))terrain='ruin';
+ else if(/崑崙仙山|崑崙山|崑崙/.test(text))terrain='kunlun';
+ else if(/魔淵/.test(text))terrain='abyss';
+ else if(/青牛谷|清牛谷|練氣坊|新手村/.test(text))terrain='village';
+ else if(/山域|山地|神祠|山$/.test(text))terrain='mountain';
+ return {name:name||'未知地域',type:terrain,coord:String(base?.coord||currentCoord()),source:'CONFIG_ZONE_FALLBACK'};
 }
-function compatible(m,z=currentZone()){
+function tagsFor(z=null){
+ const region=resolveTerrain(z);
+ const map={desert:['沙漠'],forest:['森林','沼澤'],ice:['冰原'],northpalace:['天宮','冰原','山地'],sea:['海域'],yinyang:['陰陽海','海域'],icefire:['冰火島','火山','冰原'],battle:['古戰場'],ruin:['遺跡','廢墟'],kunlun:['崑崙','山地'],mountain:['山地'],village:['新手','草原','荒野'],lighthouse:['海岸','海域'],abyss:['廢墟'],market:['安全區']};
+ return map[region.type]||[];
+}
+function compatible(m,z=null){
  if(!m)return false;
  if(m.ecologyLocked===false||!Array.isArray(m.habitats)||!m.habitats.length)return true;
- const tags=tagsFor(z);
- return m.habitats.some(h=>tags.includes(h));
+ const tags=tagsFor(z);return m.habitats.some(h=>tags.includes(h));
 }
 function randomOne(list){
  if(!Array.isArray(list)||!list.length)return null;
@@ -72,52 +81,43 @@ function blackCloudActiveHere(){
 function monsterById(id){
  return (currentConfig()?.monsters||[]).find(m=>Number(m.id)===Number(id))||null;
 }
-function localPool(z=currentZone()){
- const ids=EXACT_ZONE_POOLS[String(z?.name||'')]||[];
- return ids
-   .map(monsterById)
-   .filter(Boolean)
-   .filter(m=>m.normalEncounter!==false);
+function localPool(z=null){
+ const region=resolveTerrain(z),ids=TERRAIN_POOLS[region.type];
+ if(!Array.isArray(ids))return [];
+ return ids.map(monsterById).filter(Boolean).filter(m=>m.normalEncounter!==false);
 }
-function choose(z=currentZone()){
+function choose(z=null){
+ const region=resolveTerrain(z);
+ if(region.type==='market')return null;
+ const ids=TERRAIN_POOLS[region.type];
+ if(!Array.isArray(ids)){
+   console.error(`[${BUILD}] undefined terrain pool`,region);
+   const toast=get('toast');if(typeof toast==='function')toast('目前地貌尚未設定怪物生態：'+region.name);
+   return null;
+ }
  const pool=localPool(z);
  if(!pool.length){
-   console.error(`[${BUILD}] exact zone pool empty`,{
-     zone:z?.name,
-     catalogCount:currentConfig()?.monsters?.length||0,
-     version:currentConfig()?.version
-   });
-   const toast=get('toast');
-   if(typeof toast==='function')toast('地域怪物資料未完整載入，請重新覆蓋設定檔。');
+   const missing=ids.filter(id=>!monsterById(id));
+   console.error(`[${BUILD}] terrain pool load failed`,{region,ids,missing,catalogCount:currentConfig()?.monsters?.length||0});
+   const toast=get('toast');if(typeof toast==='function')toast(missing.length?'怪物設定缺少 ID：'+missing.join('、'):'目前地貌沒有可遭遇怪物。');
    return null;
  }
  const selected=randomOne(pool);
- console.info(`[${BUILD}] exact local encounter`,{
-   zone:z?.name,
-   pool:pool.map(m=>`${m.id}:${m.name}`),
-   selected:selected?`${selected.id}:${selected.name}`:null
- });
+ console.info(`[${BUILD}] fixed-map terrain encounter`,{region,pool:pool.map(m=>`${m.id}:${m.name}`),selected:selected?`${selected.id}:${selected.name}`:null});
  return clone(selected);
 }
-function validateIncoming(monster,z=currentZone()){
+function validateIncoming(monster,z=null){
  if(!monster)return null;
- const id=Number(monster.id);
+ const id=Number(monster.id),region=resolveTerrain(z);
  if(BEAST_TIDE_ONLY_IDS.has(id)&&!tideActive()){
-   console.warn(`[${BUILD}] blocked beast-tide-only monster`,id,monster.name);
-   return choose(z);
+   console.warn(`[${BUILD}] blocked beast-tide-only monster`,{id,name:monster.name,region});return choose(z);
  }
  if(id===9003&&!tideActive()&&!blackCloudActiveHere()){
-   console.warn(`[${BUILD}] blocked black-cloud/tide monster`,id,monster.name);
-   return choose(z);
+   console.warn(`[${BUILD}] blocked black-cloud/tide monster`,{id,name:monster.name,region});return choose(z);
  }
  if(monster.normalEncounter===false)return monster;
  const allowed=localPool(z).some(m=>Number(m.id)===id);
- if(!allowed){
-   console.warn(`[${BUILD}] replaced wrong-zone monster`,{
-     id,name:monster.name,zone:z?.name
-   });
-   return choose(z);
- }
+ if(!allowed){console.warn(`[${BUILD}] replaced wrong-terrain monster`,{id,name:monster.name,region});return choose(z)}
  return monster;
 }
 function weaponElement(){const g=currentGame();const e=(g?.equipment||[]).find(x=>String(x.uid)===String(g?.weaponUid));return e?.elementEnchant?.key||null}
@@ -145,8 +145,8 @@ function install(){
  set('pickMonster',function(z){return choose(z)});
  set('rollEncounter',function(source){
    const g=currentGame(),ai=get('ai')||[],startAiEncounter=get('startAiEncounter'),startFightMonster=get('startFightMonster');
-   const z=typeof zoneAt==='function'?zoneAt(g.pos.r,g.pos.c):null;
-   if(z&&String(z.type||'').includes('安全區'))return;
+   const z=typeof zoneAt==='function'?zoneAt(g.pos.r,g.pos.c):null,region=resolveTerrain(z);
+   if(region.type==='market'||(z&&String(z.type||'').includes('安全區')))return;
    const aiChance=z&&z.novice?.05:.22;
    if(Math.random()<aiChance&&typeof startAiEncounter==='function'){
      let list=ai.filter(a=>a.alive&&a.coord===(typeof coordOf==='function'?coordOf(g.pos.r,g.pos.c):''));
@@ -160,7 +160,7 @@ function install(){
    }
  });
  set('startFightMonster',function(m){
-   const selected=validateIncoming(m,currentZone());
+   const selected=validateIncoming(m,currentConfigZone());
    if(!selected)return;
    return oldStart(selected);
  });
@@ -208,19 +208,20 @@ function install(){
  window.V153MonsterEcology={
    build:BUILD,
    pickForZone:(z)=>choose(z),
-   pick:()=>choose(currentZone()),
+   pick:()=>choose(currentConfigZone()),
    compatible,
-   zoneTags:()=>tagsFor(),
-   localPool:()=>localPool(currentZone()).map(m=>({id:m.id,name:m.name,habitats:m.habitats})),
+   zoneTags:()=>tagsFor(currentConfigZone()),
+   localPool:()=>localPool(currentConfigZone()).map(m=>({id:m.id,name:m.name,habitats:m.habitats})),
    diagnose:()=>({
      installed:state.installed,
      catalogVersion:currentConfig()?.version,
      catalogCount:currentConfig()?.monsters?.length||0,
-     zone:currentZone()?.name,
+     configZone:currentConfigZone()?.name||null,
+     region:resolveTerrain(currentConfigZone()),
      coord:currentCoord(),
      beastTideActive:tideActive(),
-     selectionRule:'精確地域名單，池內等機率；獸潮專屬怪完全排除',
-     localPool:localPool().map(m=>`${m.id}:${m.name}`)
+     selectionRule:'以十方山海圖地貌為唯一來源；地貌池內等機率；獸潮專屬怪隔離',
+     localPool:localPool(currentConfigZone()).map(m=>`${m.id}:${m.name}`)
    }),
    relation
  };
