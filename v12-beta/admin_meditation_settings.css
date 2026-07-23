@@ -9,3 +9,9 @@
 .med-preview th:first-child,.med-preview td:first-child{text-align:left}
 .med-preview thead th{color:var(--muted);font-size:11px;background:#0d1723}
 .med-preview tbody th{color:#f0dfb0}
+
+.med-preview-head{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.med-preview-inputs{display:flex;gap:8px;flex-wrap:wrap}
+.med-preview-inputs label{display:grid;gap:3px;color:var(--muted);font-size:11px}
+.med-preview-inputs input{width:130px}
+@media(max-width:760px){.med-preview-head{display:block}.med-preview-inputs{margin-top:10px}}

@@ -1,16 +1,59 @@
 (()=>{
 'use strict';
-const state={recoveryPercent:100,experiencePercent:100,loaded:false};
+const state={
+ recoveryPercent:100,experiencePercent:100,recoveryTickIntervalSec:2,
+ hpTickPercent:.25,mpTickPercent:.35,hpMinGain:5,mpMinGain:3,
+ hpSmallPotionPercent:8,hpLargePotionPercent:22,
+ mpSmallPotionPercent:10,mpLargePotionPercent:25,loaded:false
+};
 const session={active:false,hp:0,mp:0,exp:0,lastHp:0,lastMp:0,lastExp:0,lastAt:0};
 function item(id){try{return window.IT?.[String(id)]||IT?.[String(id)]||null}catch(_){return null}}
 function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
 function f(v,d=5){return n(v).toFixed(d)}
 function signed(v,suffix=''){const x=n(v);return (x>=0?'+':'')+x+suffix}
+
+const POTION_MAP={
+ '1001':{resource:'hp',percentKey:'hpSmallPotionPercent',fallback:20},
+ '1003':{resource:'hp',percentKey:'hpLargePotionPercent',fallback:120},
+ '1002':{resource:'mp',percentKey:'mpSmallPotionPercent',fallback:20},
+ '1004':{resource:'mp',percentKey:'mpLargePotionPercent',fallback:120}
+};
+function potionRule(id,it=null){
+ const rule=POTION_MAP[String(id)];
+ if(rule)return rule;
+ const eff=String(it?.eff||'');
+ if(eff==='體力回復')return {resource:'hp',percentKey:null,fallback:n(it?.val)};
+ if(eff==='精力回復')return {resource:'mp',percentKey:null,fallback:n(it?.val)};
+ return null;
+}
+function potionPercent(id){
+ const rule=POTION_MAP[String(id)];
+ return rule?Math.max(0,n(state[rule.percentKey])):0;
+}
+function scaledRecovery(id,it,resource=null){
+ const rule=potionRule(id,it);if(!rule)return n(it?.val);
+ const key=resource||rule.resource;
+ const max=key==='hp'?n(g?.hpMax):n(g?.mpMax);
+ const pct=potionPercent(id);
+ return Math.max(n(it?.val,rule.fallback),max*pct/100);
+}
+function meditationBase(resource){
+ if(resource==='hp')return Math.max(state.hpMinGain,n(g?.hpMax)*state.hpTickPercent/100);
+ return Math.max(state.mpMinGain,n(g?.mpMax)*state.mpTickPercent/100);
+}
+window.XIANXIA_SCALED_RECOVERY=(id,it,resource)=>scaledRecovery(id,it,resource);
+
 function effectText(it,eq=null){
  if(!it) return '效果資料未設定';
  const lines=[]; const eff=String(it.eff||''); const val=n(it.val);
- if(eff==='體力回復') lines.push(`使用後恢復${val}點體力`);
- else if(eff==='精力回復') lines.push(`使用後恢復${val}點精力`);
+ if(eff==='體力回復'){
+   const pct=potionPercent(it.id||it.itemId);
+   lines.push(pct?`使用後恢復最大體力 ${f(pct,2)}%（最低 ${val} 點）`:`使用後恢復${val}點體力`);
+ }
+ else if(eff==='精力回復'){
+   const pct=potionPercent(it.id||it.itemId);
+   lines.push(pct?`使用後恢復最大精力 ${f(pct,2)}%（最低 ${val} 點）`:`使用後恢復${val}點精力`);
+ }
  else if(eff==='療傷') lines.push('使用後解除一項外傷狀態');
  else if(eff==='攻擊') lines.push(`裝備後攻擊力${signed(val)}`);
  else if(eff==='防禦') lines.push(`裝備後防禦力${signed(val)}`);
@@ -43,7 +86,7 @@ function patchBag(){
    if(tab==='bag'){
     const ids=Object.keys(g.inv||{}).filter(id=>g.inv[id]>0);
     if(!ids.length)h+='<p class="small">行囊空空如也。</p>';
-    ids.forEach(id=>{const it=item(id);if(!it)return;h+='<div class="list-row"><div class="grow"><strong>'+esc(it.name)+' ×'+g.inv[id]+'</strong><small>'+esc(it.cat||'道具')+' · '+esc(effectText(it))+'</small></div>'+(canUseOutside(it)?'<button class="btn" onclick="useOutside(\''+id+'\')">使用</button>':'')+'</div>'});
+    ids.forEach(id=>{const it=item(id);if(!it)return;const view={...it,id:String(id)};h+='<div class="list-row"><div class="grow"><strong>'+esc(it.name)+' ×'+g.inv[id]+'</strong><small>'+esc(it.cat||'道具')+' · '+esc(effectText(view))+'</small></div>'+(canUseOutside(it)?'<button class="btn" onclick="useOutside(\''+id+'\')">使用</button>':'')+'</div>'});
    }else if(tab==='equip'){
     if(!g.equipment.length)h+='<p class="small">尚未取得裝備。坊市可購買長劍與護體法袍。</p>';
     g.equipment.forEach(e=>{const it=item(e.itemId);h+='<div class="list-row"><div class="grow"><strong>'+esc(e.name)+' +'+e.enhance+(e.uid===g.weaponUid||e.uid===g.armorUid?' <span class="pill">已裝備</span>':'')+'</strong><small>'+esc(effectText(it,e))+'</small></div><button class="btn" onclick="equipItem(\''+e.uid+'\')">裝備</button></div>'});
@@ -74,13 +117,13 @@ function publishLive(extra={}){
    cumulative:{hp:session.hp,mp:session.mp,exp:session.exp},
    last:{hp:session.lastHp,mp:session.lastMp,exp:session.lastExp,at:session.lastAt},
    intervals:{
-     hp:n(params.meditate_hp_interval_sec)||1,
-     mp:n(params.meditate_mp_interval_sec)||1,
+     hp:n(state.recoveryTickIntervalSec)||2,
+     mp:n(state.recoveryTickIntervalSec)||2,
      exp:expInterval
    },
    perTick:{
-     hp:(n(params.meditate_hp_gain)||0)*recoveryMult,
-     mp:(n(params.meditate_mp_gain)||0)*recoveryMult,
+     hp:meditationBase('hp')*recoveryMult,
+     mp:meditationBase('mp')*recoveryMult,
      exp:1*expMult
    },
    multipliers:{
@@ -98,7 +141,18 @@ async function loadSettings(){
   if(!window.V12_ONLINE?.supabaseUrl||!window.V12_ONLINE?.supabasePublishableKey) return;
   const res=await fetch(window.V12_ONLINE.supabaseUrl+'/rest/v1/rpc/get_meditation_runtime_settings',{method:'POST',headers:{'Content-Type':'application/json','apikey':window.V12_ONLINE.supabasePublishableKey},body:'{}',cache:'no-store'});
   if(!res.ok) throw new Error(await res.text()); const d=await res.json();
-  state.recoveryPercent=n(d?.recovery_percent);state.experiencePercent=n(d?.experience_percent);state.loaded=true;
+  state.recoveryPercent=n(d?.recovery_percent)||100;
+  state.experiencePercent=n(d?.experience_percent)||100;
+  state.recoveryTickIntervalSec=Math.max(1,Math.floor(n(d?.recovery_tick_interval_sec)||2));
+  state.hpTickPercent=n(d?.hp_tick_percent)||.25;
+  state.mpTickPercent=n(d?.mp_tick_percent)||.35;
+  state.hpMinGain=n(d?.hp_min_gain)||5;
+  state.mpMinGain=n(d?.mp_min_gain)||3;
+  state.hpSmallPotionPercent=n(d?.hp_small_potion_percent)||8;
+  state.hpLargePotionPercent=n(d?.hp_large_potion_percent)||22;
+  state.mpSmallPotionPercent=n(d?.mp_small_potion_percent)||10;
+  state.mpLargePotionPercent=n(d?.mp_large_potion_percent)||25;
+  state.loaded=true;
   window.XIANXIA_MEDITATION_RUNTIME={...state};publishLive();
  }catch(e){console.warn('[V14.9 FIX1 meditation settings]',e)}
 }
@@ -116,12 +170,12 @@ function patchMeditation(){
   if(g.meditateSec%expInterval===0){
     const amount=1*expMult;gainExp(amount,false);session.exp+=amount;session.lastExp=amount;changed=true
   }
-  if(g.meditateSec%P.meditate_hp_interval_sec===0){
-    const before=n(g.hp);g.hp=clamp(g.hp+P.meditate_hp_gain*recoveryMult,0,g.hpMax);
+  if(g.meditateSec%state.recoveryTickIntervalSec===0){
+    const before=n(g.hp);g.hp=clamp(g.hp+meditationBase('hp')*recoveryMult,0,g.hpMax);
     const actual=Math.max(0,n(g.hp)-before);session.hp+=actual;session.lastHp=actual;changed=true
   }
-  if(g.meditateSec%P.meditate_mp_interval_sec===0){
-    const before=n(g.mp);g.mp=clamp(g.mp+P.meditate_mp_gain*recoveryMult,0,g.mpMax);
+  if(g.meditateSec%state.recoveryTickIntervalSec===0){
+    const before=n(g.mp);g.mp=clamp(g.mp+meditationBase('mp')*recoveryMult,0,g.mpMax);
     const actual=Math.max(0,n(g.mp)-before);session.mp+=actual;session.lastMp=actual;changed=true
   }
   if(session.lastHp||session.lastMp||session.lastExp)session.lastAt=Date.now();
@@ -133,21 +187,86 @@ function patchMeditation(){
  if(window.tickMeditation===fn)window.tickMeditation=patched;
 }
 function patchOffline(){
- if(typeof window.offlineSettlement!=='function'||window.offlineSettlement.__v149fix1)return;
- const original=window.offlineSettlement;
- window.offlineSettlement=function(){
-  const before={exp:g?.exp,hp:g?.hp,mp:g?.mp};
-  const result=original.apply(this,arguments);
-  if(g&&before.exp!=null){
-    g.exp=before.exp+(g.exp-before.exp)*(state.experiencePercent/100);
-    g.hp=before.hp+(g.hp-before.hp)*(state.recoveryPercent/100);
-    g.mp=before.mp+(g.mp-before.mp)*(state.recoveryPercent/100);
-    render();saveGame(false)
-  }
-  return result;
+ const patchOne=name=>{
+  const current=window[name];
+  if(typeof current!=='function'||current.__v152recovery)return;
+  const patched=function(savedAt){
+   const elapsed=Math.max(0,Math.floor((Date.now()-savedAt)/1000));
+   if(!g?.meditating||elapsed<2)return;
+   const cap=(n(P?.offline_meditate_cap_hours)||8)*3600;
+   const sec=Math.min(elapsed,cap);
+   const z=zoneAt(g.pos.r,g.pos.c),novice=!!z?.novice;
+   const expInterval=novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec;
+   const zoneMult=n(z?.recover)||1;
+   const boost=n(window.V13_REWARDED_ADS?.getMeditationMultiplier?.())||1;
+   const recoveryMult=zoneMult*boost*(state.recoveryPercent/100);
+   const expMult=zoneMult*boost*(state.experiencePercent/100);
+   const ticks=Math.floor(sec/state.recoveryTickIntervalSec);
+   let exp=Math.floor(sec/expInterval)*expMult;
+   let hp=ticks*Math.max(state.hpMinGain,n(g.hpMax)*state.hpTickPercent/100)*recoveryMult;
+   let mp=ticks*Math.max(state.mpMinGain,n(g.mpMax)*state.mpTickPercent/100)*recoveryMult;
+   if(g.techniques?.includes('dust')){exp*=2;hp*=2;mp*=2}
+   const hpBefore=n(g.hp),mpBefore=n(g.mp);
+   g.hp=clamp(hpBefore+hp,0,g.hpMax);
+   g.mp=clamp(mpBefore+mp,0,g.mpMax);
+   gainExp(exp,false);
+   const actualHp=n(g.hp)-hpBefore,actualMp=n(g.mp)-mpBefore;
+   setTimeout(()=>sheet(
+    '<h3>離線打坐結算</h3><div class="money">'+
+    '<div><span>離線時間</span><b>'+formatDuration(sec)+'</b></div>'+
+    '<div><span>修為</span><b>+'+f(exp,2)+'</b></div>'+
+    '<div><span>體力</span><b>+'+f(actualHp,2)+'</b></div>'+
+    '<div><span>精力</span><b>+'+f(actualMp,2)+'</b></div></div>'+
+    '<p class="small">比例恢復已依最大體力／精力、區域、廣告與後台倍率結算；最多 '+P.offline_meditate_cap_hours+' 小時。</p>'+
+    '<button class="btn gold" onclick="closeOv()">收下</button>'
+   ),300);
+  };
+  patched.__v152recovery=true;
+  window[name]=patched;
  };
- window.offlineSettlement.__v149fix1=true;
+ patchOne('applyOffline');
+ patchOne('offlineSettlement');
 }
+
+function patchConsumables(){
+ if(typeof window.useOutside==='function'&&!window.useOutside.__v152recovery){
+  const old=window.useOutside;
+  window.useOutside=function(id){
+   const it=item(id);
+   if(!it||!(g?.inv?.[id]>0))return old.apply(this,arguments);
+   if(it.eff==='體力回復'||it.eff==='精力回復'){
+    const resource=it.eff==='體力回復'?'hp':'mp';
+    const before=n(g[resource]),amount=scaledRecovery(id,{...it,id},resource);
+    g[resource]=clamp(before+amount,0,g[resource+'Max']);
+    g.inv[id]--;
+    const actual=n(g[resource])-before;
+    log(`你使用 ${it.name}，恢復 ${f(actual,2)} ${resource==='hp'?'體力':'精力'}。`,'lg');
+    render();saveGame(false);openBag('bag');return
+   }
+   return old.apply(this,arguments);
+  };
+  window.useOutside.__v152recovery=true;
+ }
+ if(typeof window.useCombatItem==='function'&&!window.useCombatItem.__v152recovery){
+  const old=window.useCombatItem;
+  window.useCombatItem=function(id){
+   const it=item(id);
+   if(!it||!(g?.inv?.[id]>0)||!fight)return old.apply(this,arguments);
+   if(it.eff==='體力回復'||it.eff==='精力回復'){
+    const resource=it.eff==='體力回復'?'hp':'mp';
+    const before=n(g[resource]),amount=scaledRecovery(id,{...it,id},resource);
+    g[resource]=clamp(before+amount,0,g[resource+'Max']);
+    g.inv[id]--;
+    const actual=n(g[resource])-before;
+    renderFight(`你服下 ${it.name}，回復 ${f(actual,2)} ${resource==='hp'?'體力':'精力'}。`);
+    render();saveGame(false);return setTimeout(enemyTurn,450)
+   }
+   return old.apply(this,arguments);
+  };
+  window.useCombatItem.__v152recovery=true;
+ }
+}
+
 function ensureLiveMetrics(){
  const metrics=document.querySelector('.v146-med-metrics');if(!metrics)return;
  const defs=[
@@ -178,12 +297,12 @@ function updateLiveMetrics(){
  if(rate)rate.textContent=`恢復 ${f(d.multipliers.recoveryPercent)}% · 修為 ${f(d.multipliers.experiencePercent)}%`;
 }
 function monitor(){
- patchMeditation();ensureLiveMetrics();updateLiveMetrics();
+ patchMeditation();patchOffline();patchConsumables();ensureLiveMetrics();updateLiveMetrics();
  if(g?.meditating&&!session.active)resetSession();
  if(!g?.meditating&&session.active){session.active=false;publishLive()}
 }
 function init(){
- patchBag();patchMeditation();patchOffline();loadSettings();
+ patchBag();patchMeditation();patchOffline();patchConsumables();loadSettings();
  setInterval(loadSettings,60000);setInterval(monitor,500);
  window.addEventListener('xianxia:meditation-live',updateLiveMetrics);
 }

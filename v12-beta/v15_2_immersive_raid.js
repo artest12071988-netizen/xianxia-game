@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.2-PHASE2-FIX1-BOSS-PRESSURE-DIALOGUE';
+const BUILD='V15.2-PHASE3-BOSS-THRESHOLD-SCHEDULE';
 const ART={
  qinglong:'assets/divine_beasts/qinglong.webp',
  baihu:'assets/divine_beasts/baihu.webp',
@@ -267,7 +267,7 @@ function bossImpact(hit={}){
  root.classList.add(aoe?'fx-boss-aoe':'fx-boss-single');
  fx.innerHTML=aoe
    ?'<i class="v152-aoe-wave w1"></i><i class="v152-aoe-wave w2"></i><i class="v152-red-flash"></i>'
-   :'<i class="v152-claw c1"></i><i class="v152-claw c2"></i><i class="v152-claw c3"></i>';
+   :'<i class="v152-claw c1"></i><i class="v152-claw c2"></i><i class="v152-claw c3"></i><i class="v152-red-flash"></i>';
  showDialogue(hit.dialogue,hit.skill_name);
  floatDamage(hit.damage||0,'boss',hit.attack_type==='aoe'?'範圍神通':hit.skill_name);
  setLine(`${S.beast?.beast_name||'神獸'}施展【${hit.skill_name}】，你受到 ${fmt(hit.damage)} 傷害！`);
@@ -302,7 +302,7 @@ async function requestBossCounter(){
    });
    if(data?.attack){
      await telegraphBossAttack(data.attack);
-     await applyPendingHits();
+     if(!S.castBusy)await applyPendingHits();
    }
    setTimeout(()=>refresh(true),100);
    return data;
@@ -311,11 +311,14 @@ async function requestBossCounter(){
    throw e;
  }
 }
-async function applyPendingHits(){
+async function applyAttackReceipts(attackId=null){
  if(S.hitBusy||!S.active||!S.token)return;
  S.hitBusy=true;
  try{
-   const hits=await rpc('divine_beast_pending_boss_hits',{p_token:S.token});
+   const hits=await rpc('divine_beast_pending_boss_hits_v2',{
+     p_token:S.token,
+     p_attack_id:attackId
+   });
    if(!Array.isArray(hits)||!hits.length)return;
    const g=window.g;
    g.v152RaidHitLedger=g.v152RaidHitLedger&&typeof g.v152RaidHitLedger==='object'
@@ -353,7 +356,32 @@ async function applyPendingHits(){
    const m=String(e?.message||e);
    if(!/Could not find|does not exist/i.test(m))
      console.warn('['+BUILD+'] pending boss hit failed',e);
- }finally{S.hitBusy=false;S.castBusy=false;setActionsDisabled(false)}
+ }finally{S.hitBusy=false}
+}
+async function applyPendingHits(){
+ if(S.castBusy)return;
+ return applyAttackReceipts(null);
+}
+async function playBossAttackQueue(attacks=[]){
+ if(!Array.isArray(attacks)||!attacks.length)return;
+ S.castBusy=true;setActionsDisabled(true);
+ try{
+   for(const attack of attacks){
+     const kind=attack.kind||(attack.attack_type==='single'?'single':'aoe');
+     const threshold=Number(attack.threshold_pct||0);
+     if(kind==='rage'){
+       setLine(`${S.beast?.beast_name||'神獸'}血量跨過 ${threshold}%！範圍狂暴即將爆發！`);
+     }else if(kind==='aoe'){
+       setLine(`${S.beast?.beast_name||'神獸'}血量跨過 ${threshold}%！全體神通即將爆發！`);
+     }
+     await telegraphBossAttack(attack);
+     await applyAttackReceipts(attack.id);
+     await new Promise(r=>setTimeout(r,260));
+   }
+ }finally{
+   S.castBusy=false;setActionsDisabled(false);
+   setTimeout(()=>refresh(true),80);
+ }
 }
 
 function prompt(data,handlers={}){
@@ -524,7 +552,7 @@ async function refresh(force=false){
      p_player_mp_max:num(g.mpMax)
    });
    renderSnapshot(snap);
-   await applyPendingHits();
+   if(!S.castBusy)await applyPendingHits();
    const note=S.root?.querySelector('[data-sync-note]');
    if(note)note.textContent=`最後同步 ${new Date().toLocaleTimeString('zh-TW',{hour12:false})}`;
  }catch(e){
@@ -558,7 +586,7 @@ function close(restore=true){
  if(restore)window.render?.();
 }
 window.V152_RAID={
- build:BUILD,prompt,open,setLine,refresh,finish,close,playerImpact,bossImpact,requestBossCounter,showDialogue,telegraphBossAttack,
+ build:BUILD,prompt,open,setLine,refresh,finish,close,playerImpact,bossImpact,requestBossCounter,showDialogue,telegraphBossAttack,playBossAttackQueue,
  active:()=>S.active,state:S
 };
 console.info('['+BUILD+'] active');

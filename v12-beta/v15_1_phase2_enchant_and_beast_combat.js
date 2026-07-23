@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.2-PHASE2-RAID-FX-AOE-COMBAT';
+const BUILD='V15.2-PHASE3-SERVER-ATOMIC-BOSS-SCHEDULE';
 const ELEMENTS={
   '8401':{key:'fire',label:'火性附魔',element:'火',target:'weapon',valueMin:20,valueMax:25,summary:e=>`追加 ${Number(e.value||20).toFixed(1)}% 火性傷害`},
   '8402':{key:'water',label:'水性附魔',element:'水',target:'weapon',value:3,summary:()=>`每次命中削減對方最大法力 3%`},
@@ -29,6 +29,16 @@ function rpc(name,args={}){
   const c=client();
   if(!c)return Promise.reject(new Error('尚未連線伺服器'));
   return c.rpc(name,args).then(({data,error})=>{if(error)throw error;return data})
+}
+function actionUuid(){
+  if(globalThis.crypto?.randomUUID)return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+    const r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16)
+  });
+}
+function scaledCombatRecovery(id,it,resource){
+  const fn=window.XIANXIA_SCALED_RECOVERY;
+  return typeof fn==='function'?num(fn(id,{...it,id:String(id)},resource)):num(it?.val);
 }
 function auditEnchant(eventType,element,amount=0,equipmentUid=null,context={}){
   if(!loggedIn())return;
@@ -380,27 +390,38 @@ async function divineAttack(){
   if(g.mp<P.normal_attack_mp_cost){renderDivineFight('精力不足，無法攻擊。');return}
   S.attackBusy=true;g.mp-=P.normal_attack_mp_cost;
   try{
-    if(Math.random()<P.encounter_miss_rate){renderDivineFight('你的攻擊被神獸避開。');S.attackBusy=false;return setTimeout(()=>window.V152_RAID?.requestBossCounter?.().catch(e=>console.warn('['+BUILD+'] boss counter failed',e)),260)}
+    if(Math.random()<P.encounter_miss_rate){
+      renderDivineFight('你的攻擊被神獸避開。');
+      S.attackBusy=false;saveGame?.(false);render?.();return
+    }
     const r=resolvePlayerDamage(num(fight.beast.defense_power),num(fight.hp));
-    const data=await rpc('divine_beast_attack',{p_token:fight.token,p_damage:r.requested,p_player_name:String(g.name||'未知修士')});
+    const data=await rpc('divine_beast_raid_player_attack_v2',{
+      p_token:fight.token,
+      p_action_id:actionUuid(),
+      p_damage:r.requested,
+      p_player_name:String(g.name||'未知修士'),
+      p_player_defense:num(pDef?.()),
+      p_earth_reduction_pct:elementByEnchant(armorEnchant())?.key==='earth'?25:0
+    });
     const applied=num(data?.applied_damage),before=num(fight.hp);
     fight.hp=num(data?.hp_after,Math.max(0,before-applied));
     if(data?.beast)fight.beast={...fight.beast,...data.beast};
     const effects=applyPostHitEffects(r,applied);
     saveGame?.(false);render?.();
-    if(data?.outcome&&data.outcome!=='active'){S.attackBusy=false;return finishDivine(data.outcome,data)}
-    window.V152_RAID?.playerImpact?.({
-      damage:applied,
-      crit:r.crit,
-      fire:r.fire||0
-    });
+    window.V152_RAID?.playerImpact?.({damage:applied,crit:r.crit,fire:r.fire||0});
     renderDivineFight(`你對神獸造成 ${Math.round(applied)} 點持久傷害${r.crit?'（暴擊）':''}${effects.length?'；'+effects.join('、'):''}。`);
     S.attackBusy=false;
-    setTimeout(()=>window.V152_RAID?.requestBossCounter?.().catch(e=>console.warn('['+BUILD+'] boss counter failed',e)),320);
+
+    if(Array.isArray(data?.boss_attacks)&&data.boss_attacks.length){
+      await window.V152_RAID?.playBossAttackQueue?.(data.boss_attacks);
+    }
+    if(data?.outcome&&data.outcome!=='active')return finishDivine(data.outcome,data);
   }catch(e){
     S.attackBusy=false;
     const msg=String(e?.message||e);
-    if(/ENCOUNTER_EXPIRED|BEAST_NOT_ACTIVE|ENCOUNTER_NOT_FOUND/i.test(msg)){fight=null;window.V152_RAID?.finish?.('此次神獸遭遇已結束');closeOv?.();toast?.('此次神獸遭遇已結束');pollRewards();return}
+    if(/ENCOUNTER_EXPIRED|BEAST_NOT_ACTIVE|ENCOUNTER_NOT_FOUND|ACTIVE_RAID_ENCOUNTER_NOT_FOUND/i.test(msg)){
+      fight=null;window.V152_RAID?.finish?.('此次神獸遭遇已結束');closeOv?.();toast?.('此次神獸遭遇已結束');pollRewards();return
+    }
     renderDivineFight('攻擊寫入失敗：'+esc(msg));
   }
 }
@@ -426,7 +447,7 @@ async function fleeDivine(){
   if(Math.random()<chance){
     const token=fight.token;fight=null;window.V152_RAID?.close?.(true);closeOv?.();log?.('你從神獸威壓中成功遁走。','la');render?.();
     try{await rpc('divine_beast_close_encounter',{p_token:token})}catch(_){}
-  }else{renderDivineFight('遁走失敗，神獸封鎖了空間。');setTimeout(()=>window.V152_RAID?.requestBossCounter?.(),300)}
+  }else{renderDivineFight('遁走失敗，神獸封鎖了空間。')}
 }
 function finishDivine(outcome,data){
   const name=fight?.enemy?.name||'神獸';
@@ -483,27 +504,39 @@ async function divineUseCombatItem(id){
   if(S.attackBusy||!fight||fight.kind!=='divine_beast')return;
   const it=IT?.[String(id)];if(!it||!(num(g.inv?.[id])>0))return;
   if(it.eff==='體力回復'){
-    g.inv[id]--;g.hp=clamp2(num(g.hp)+num(it.val),0,num(g.hpMax));saveGame?.(false);render?.();
-    renderDivineFight(`你服下 ${esc(it.name)}，回復 ${num(it.val)} 體力。`);return setTimeout(()=>window.V152_RAID?.requestBossCounter?.(),300)
+    const before=num(g.hp),amount=scaledCombatRecovery(id,it,'hp');
+    g.inv[id]--;g.hp=clamp2(before+amount,0,num(g.hpMax));saveGame?.(false);render?.();
+    renderDivineFight(`你服下 ${esc(it.name)}，回復 ${Math.round(g.hp-before)} 體力。`);return
   }
   if(it.eff==='精力回復'){
-    g.inv[id]--;g.mp=clamp2(num(g.mp)+num(it.val),0,num(g.mpMax));saveGame?.(false);render?.();
-    renderDivineFight(`你服下 ${esc(it.name)}，回復 ${num(it.val)} 精力。`);return setTimeout(()=>window.V152_RAID?.requestBossCounter?.(),300)
+    const before=num(g.mp),amount=scaledCombatRecovery(id,it,'mp');
+    g.inv[id]--;g.mp=clamp2(before+amount,0,num(g.mpMax));saveGame?.(false);render?.();
+    renderDivineFight(`你服下 ${esc(it.name)}，回復 ${Math.round(g.mp-before)} 精力。`);return
   }
   if(it.eff==='療傷'){
     g.inv[id]--;g.injury=null;saveGame?.(false);
-    renderDivineFight(`你使用 ${esc(it.name)} 穩住傷勢。`);return setTimeout(()=>window.V152_RAID?.requestBossCounter?.(),300)
+    renderDivineFight(`你使用 ${esc(it.name)} 穩住傷勢。`);return
   }
   if(it.eff==='投擲'){
     S.attackBusy=true;g.inv[id]--;saveGame?.(false);
     try{
-      const data=await rpc('divine_beast_attack',{p_token:fight.token,p_damage:num(it.val,1),p_player_name:String(g.name||'未知修士')});
+      const data=await rpc('divine_beast_raid_player_attack_v2',{
+        p_token:fight.token,
+        p_action_id:actionUuid(),
+        p_damage:num(it.val,1),
+        p_player_name:String(g.name||'未知修士'),
+        p_player_defense:num(pDef?.()),
+        p_earth_reduction_pct:elementByEnchant(armorEnchant())?.key==='earth'?25:0
+      });
       const applied=num(data?.applied_damage);fight.hp=num(data?.hp_after,Math.max(0,num(fight.hp)-applied));
       if(data?.beast)fight.beast={...fight.beast,...data.beast};
       render?.();
-      if(data?.outcome&&data.outcome!=='active'){S.attackBusy=false;return finishDivine(data.outcome,data)}
+      window.V152_RAID?.playerImpact?.({damage:applied,crit:false});
       renderDivineFight(`你祭出 ${esc(it.name)}，對神獸造成 ${Math.round(applied)} 點持久傷害。`);
-      S.attackBusy=false;window.V152_RAID?.playerImpact?.({damage:applied,crit:false});return setTimeout(()=>window.V152_RAID?.requestBossCounter?.(),300)
+      S.attackBusy=false;
+      if(Array.isArray(data?.boss_attacks)&&data.boss_attacks.length)await window.V152_RAID?.playBossAttackQueue?.(data.boss_attacks);
+      if(data?.outcome&&data.outcome!=='active')return finishDivine(data.outcome,data);
+      return
     }catch(e){
       S.attackBusy=false;g.inv[id]=num(g.inv[id])+1;saveGame?.(false);
       renderDivineFight(`投擲傷害寫入失敗，物品已退回：${esc(e?.message||e)}`);

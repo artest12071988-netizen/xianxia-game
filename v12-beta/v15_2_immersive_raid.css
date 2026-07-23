@@ -291,3 +291,33 @@
 }
 .casting-aoe .v152-skill-cast b{color:#ff9b72;text-shadow:0 0 30px #e22}
 .v152-raid-action:disabled{opacity:.35;cursor:not-allowed;filter:grayscale(.7)}
+
+
+/* V15.2 Phase 3：所有神獸攻擊均全紅閃屏與強震動 */
+.v152-red-flash{
+  background:
+    radial-gradient(circle at 50% 44%,rgba(255,230,210,.30),rgba(255,38,25,.66) 45%,rgba(88,0,0,.88) 100%)!important;
+  mix-blend-mode:screen
+}
+.fx-boss-single:before,.fx-boss-aoe:before{
+  content:"";position:fixed;inset:0;z-index:60;pointer-events:none;
+  background:rgba(255,18,12,.32);
+  animation:v153FullRedFlash .72s ease-out forwards
+}
+.fx-boss-aoe:before{background:rgba(255,0,0,.48);animation-duration:.95s}
+@keyframes v153FullRedFlash{
+  0%{opacity:0}18%{opacity:1}42%{opacity:.15}62%{opacity:.85}100%{opacity:0}
+}
+.fx-boss-single{animation:v153HardShake .72s ease!important}
+.fx-boss-aoe{animation:v153HardShake 1s ease!important}
+@keyframes v153HardShake{
+  0%,100%{transform:translate(0,0)}
+  8%{transform:translate(-14px,8px)}
+  16%{transform:translate(16px,-8px)}
+  26%{transform:translate(-18px,-5px)}
+  36%{transform:translate(15px,9px)}
+  48%{transform:translate(-12px,4px)}
+  60%{transform:translate(10px,-6px)}
+  74%{transform:translate(-7px,3px)}
+  88%{transform:translate(4px,-2px)}
+}
