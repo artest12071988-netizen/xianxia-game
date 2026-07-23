@@ -25,7 +25,8 @@ function renderPreview(){
   <tr><th>回體丹</th><td>立即</td><td>${fmt(Math.max(20,hpMax*num($('medHpSmallPotion')?.value)/100),2)}</td><td>—</td><td>—</td></tr>
   <tr><th>中品培元丹</th><td>立即</td><td>${fmt(Math.max(120,hpMax*num($('medHpLargePotion')?.value)/100),2)}</td><td>—</td><td>—</td></tr>
   <tr><th>回精丹</th><td>立即</td><td>${fmt(Math.max(20,mpMax*num($('medMpSmallPotion')?.value)/100),2)}</td><td>—</td><td>—</td></tr>
-  <tr><th>聚靈丹</th><td>立即</td><td>${fmt(Math.max(120,mpMax*num($('medMpLargePotion')?.value)/100),2)}</td><td>—</td><td>—</td></tr>`;
+  <tr><th>聚靈丹</th><td>立即</td><td>${fmt(Math.max(120,mpMax*num($('medMpLargePotion')?.value)/100),2)}</td><td>—</td><td>—</td></tr>
+  <tr><th>打坐修為</th><td>每 1 秒</td><td>${fmt(num($('medExperiencePercent')?.value,100)/100,2)}</td><td>${fmt(60*num($('medExperiencePercent')?.value,100)/100,2)}</td><td>基礎 1 點／秒</td></tr>`;
  $('medRecoveryReadout').textContent=fmt($('medRecoveryPercent').value)+'%';
  $('medExperienceReadout').textContent=fmt($('medExperiencePercent').value)+'%';
 }
@@ -34,7 +35,7 @@ function ensure(){
  const main=$('adminMain');if(!main)return;
  const card=document.createElement('section');
  card.className='card';card.id=ID;card.dataset.uiGroup='world';
- card.innerHTML=`<div class="head"><div><h2>打坐與高階恢復設定</h2><small>打坐採「最低固定值＋最大值百分比」，丹藥改為最大值比例恢復。</small></div></div>
+ card.innerHTML=`<div class="head"><div><h2>打坐與高階恢復設定</h2><small>體力／精力採比例恢復；修為基礎固定為每 1 秒 1 點，再乘修為倍率。</small></div></div>
  <div class="grid2 meditation-settings-grid">
   ${field('medRecoveryPercent','打坐恢復總倍率（%）','100.00000','0.00001','0','10000')}
   ${field('medExperiencePercent','打坐修為總倍率（%）','100.00000','0.00001','0','10000')}

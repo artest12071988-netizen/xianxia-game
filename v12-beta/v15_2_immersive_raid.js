@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.2-PHASE3-BOSS-THRESHOLD-SCHEDULE';
+const BUILD='V15.2-PHASE3-FIX2-RAID-ITEM-RETURN';
 const ART={
  qinglong:'assets/divine_beasts/qinglong.webp',
  baihu:'assets/divine_beasts/baihu.webp',
@@ -384,6 +384,83 @@ async function playBossAttackQueue(attacks=[]){
  }
 }
 
+
+function hideLegacyOverlay(){
+ const ov=document.getElementById('ov');
+ if(ov)ov.classList.remove('on');
+}
+function restore(line=''){
+ hideLegacyOverlay();
+ if(!S.active||!S.root)return;
+ S.root.style.display='grid';
+ document.body.style.overflow='hidden';
+ if(line)setLine(line);
+ renderPlayer();
+ if(!S.castBusy&&!S.hitBusy)setActionsDisabled(false);
+ setTimeout(()=>refresh(true),30);
+}
+function openRaidCombatItems(){
+ if(!S.active||!S.root)return;
+ if(S.castBusy||S.hitBusy){
+   window.toast?.('神獸正在施展神通，暫時無法開啟行囊。');
+   return;
+ }
+ const fn=window.openCombatItems;
+ if(typeof fn!=='function'){
+   window.toast?.('戰鬥道具功能尚未載入。');
+   return;
+ }
+ fn();
+ const ov=document.getElementById('ov');
+ const sheet=document.getElementById('sheet');
+ if(ov)ov.dataset.v152RaidOverlay='1';
+ if(sheet){
+   const buttons=[...sheet.querySelectorAll('button')];
+   const back=buttons.find(b=>/返回鬥法|關閉|返回戰鬥/.test(b.textContent||''));
+   if(back){
+     back.textContent='返回聯合討伐';
+     back.onclick=()=>{
+       restore('重新選擇討伐行動。');
+     };
+   }else{
+     const b=document.createElement('button');
+     b.className='btn';
+     b.style.cssText='width:100%;margin-top:12px';
+     b.textContent='返回聯合討伐';
+     b.onclick=()=>restore('重新選擇討伐行動。');
+     sheet.appendChild(b);
+   }
+ }
+}
+function installLegacyOverlayBridge(){
+ if(window.closeOv&&!window.closeOv.__v152RaidBridge){
+   const oldClose=window.closeOv;
+   const patched=function(){
+     const result=oldClose.apply(this,arguments);
+     if(S.active)setTimeout(()=>restore(),0);
+     return result;
+   };
+   patched.__v152RaidBridge=true;
+   patched.__base=oldClose;
+   window.closeOv=patched;
+ }
+ const ov=document.getElementById('ov');
+ if(ov&&!ov.dataset.v152RaidEvents){
+   ov.dataset.v152RaidEvents='1';
+   ov.addEventListener('click',e=>{
+     if(S.active&&e.target===ov)restore('重新選擇討伐行動。');
+   });
+ }
+ if(!document.documentElement.dataset.v152RaidEscape){
+   document.documentElement.dataset.v152RaidEscape='1';
+   document.addEventListener('keydown',e=>{
+     if(e.key==='Escape'&&S.active&&document.getElementById('ov')?.classList.contains('on')){
+       restore('重新選擇討伐行動。');
+     }
+   });
+ }
+}
+
 function prompt(data,handlers={}){
  close(false);removePrompt();
  const b=data?.beast||{};
@@ -463,12 +540,13 @@ function open(ctx){
  </footer>`;
  document.body.appendChild(root);document.body.style.overflow='hidden';S.root=root;
  root.querySelector('[data-attack]').onclick=()=>window.V151_PHASE2?.divineAttack?.();
- root.querySelector('[data-item]').onclick=()=>window.openCombatItems?.();
+ root.querySelector('[data-item]').onclick=openRaidCombatItems;
  root.querySelector('[data-retreat]').onclick=()=>window.V151_PHASE2?.fleeDivine?.();
  root.querySelector('[data-tech]').onclick=showTechniques;
  root.querySelector('[data-refresh]').onclick=()=>refresh(true);
  root.querySelector('[data-toggle-info]').onclick=()=>root.classList.toggle('show-right');
  root.querySelectorAll('[data-tab]').forEach(bn=>bn.onclick=()=>setTab(bn.dataset.tab));
+ installLegacyOverlayBridge();
  renderPlayer();
  updatePhaseDisplay();
  ensureAudio();
@@ -586,7 +664,7 @@ function close(restore=true){
  if(restore)window.render?.();
 }
 window.V152_RAID={
- build:BUILD,prompt,open,setLine,refresh,finish,close,playerImpact,bossImpact,requestBossCounter,showDialogue,telegraphBossAttack,playBossAttackQueue,
+ build:BUILD,prompt,open,setLine,refresh,finish,close,restore,openRaidCombatItems,playerImpact,bossImpact,requestBossCounter,showDialogue,telegraphBossAttack,playBossAttackQueue,
  active:()=>S.active,state:S
 };
 console.info('['+BUILD+'] active');

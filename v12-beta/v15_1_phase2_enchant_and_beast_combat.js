@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.2-PHASE3-SERVER-ATOMIC-BOSS-SCHEDULE';
+const BUILD='V15.2-PHASE3-FIX2-RAID-ITEM-RETURN';
 const ELEMENTS={
   '8401':{key:'fire',label:'火性附魔',element:'火',target:'weapon',valueMin:20,valueMax:25,summary:e=>`追加 ${Number(e.value||20).toFixed(1)}% 火性傷害`},
   '8402':{key:'water',label:'水性附魔',element:'水',target:'weapon',value:3,summary:()=>`每次命中削減對方最大法力 3%`},
@@ -373,8 +373,9 @@ function startDivineFight(data,source){
 function renderDivineFight(line){
   if(!fight||fight.kind!=='divine_beast')return;
   if(window.V152_RAID?.active?.()){
-    V152_RAID.setLine(line);
-    V152_RAID.refresh();
+    const ov=document.getElementById('ov');
+    if(ov)ov.classList.remove('on');
+    window.V152_RAID.restore?.(line);
     return;
   }
   const b=fight.beast||{},hpPct=clamp2(num(fight.hp)/Math.max(1,num(fight.hpMax))*100,0,100),mpPct=clamp2(num(fight.enemyMp)/Math.max(1,num(fight.enemyMpMax))*100,0,100);
@@ -387,6 +388,7 @@ function renderDivineFight(line){
 }
 async function divineAttack(){
   if(S.attackBusy||!fight||fight.kind!=='divine_beast')return;
+  window.V152_RAID?.restore?.();
   if(g.mp<P.normal_attack_mp_cost){renderDivineFight('精力不足，無法攻擊。');return}
   S.attackBusy=true;g.mp-=P.normal_attack_mp_cost;
   try{
@@ -518,6 +520,8 @@ async function divineUseCombatItem(id){
     renderDivineFight(`你使用 ${esc(it.name)} 穩住傷勢。`);return
   }
   if(it.eff==='投擲'){
+    const ov=document.getElementById('ov');if(ov)ov.classList.remove('on');
+    window.V152_RAID?.restore?.(`你祭出 ${esc(it.name)}，正在引動法力……`);
     S.attackBusy=true;g.inv[id]--;saveGame?.(false);
     try{
       const data=await rpc('divine_beast_raid_player_attack_v2',{

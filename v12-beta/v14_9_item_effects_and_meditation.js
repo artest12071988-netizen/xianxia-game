@@ -7,6 +7,7 @@ const state={
  mpSmallPotionPercent:10,mpLargePotionPercent:25,loaded:false
 };
 const session={active:false,hp:0,mp:0,exp:0,lastHp:0,lastMp:0,lastExp:0,lastAt:0};
+const BASE_EXP_PER_SECOND=1;
 function item(id){try{return window.IT?.[String(id)]||IT?.[String(id)]||null}catch(_){return null}}
 function n(v){const x=Number(v);return Number.isFinite(x)?x:0}
 function f(v,d=5){return n(v).toFixed(d)}
@@ -105,8 +106,7 @@ function resetSession(){
 function publishLive(extra={}){
  let zone=null,params={};
  try{zone=typeof zoneAt==='function'&&g?zoneAt(g.pos.r,g.pos.c):null;params=typeof P==='object'&&P?P:{}}catch(_){}
- const novice=!!zone?.novice;
- const expInterval=novice?n(params.meditate_novice_exp_interval_sec)||2:n(params.meditate_exp_interval_sec)||20;
+ const expInterval=1;
  const zoneMult=n(zone?.recover)||1;
  const boost=n(window.V13_REWARDED_ADS?.getMeditationMultiplier?.())||1;
  const recoveryMult=zoneMult*boost*(state.recoveryPercent/100);
@@ -124,7 +124,7 @@ function publishLive(extra={}){
    perTick:{
      hp:meditationBase('hp')*recoveryMult,
      mp:meditationBase('mp')*recoveryMult,
-     exp:1*expMult
+     exp:BASE_EXP_PER_SECOND*expMult
    },
    multipliers:{
      recoveryPercent:state.recoveryPercent,
@@ -154,7 +154,7 @@ async function loadSettings(){
   state.mpLargePotionPercent=n(d?.mp_large_potion_percent)||25;
   state.loaded=true;
   window.XIANXIA_MEDITATION_RUNTIME={...state};publishLive();
- }catch(e){console.warn('[V14.9 FIX1 meditation settings]',e)}
+ }catch(e){console.warn('[V15.2 PHASE3 FIX2 EXP-1S meditation settings]',e)}
 }
 function patchMeditation(){
  const fn=window.meditationTick||window.tickMeditation;
@@ -163,12 +163,12 @@ function patchMeditation(){
   if(!g||!g.meditating||fight){if(session.active){session.active=false;publishLive()}return}
   if(!session.active)resetSession();
   g.meditateSec++;
-  const z=zoneAt(g.pos.r,g.pos.c),novice=!!(z&&z.novice),expInterval=novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec;
+  const z=zoneAt(g.pos.r,g.pos.c),expInterval=1;
   const zoneMult=(z?.recover||1),boost=(window.V13_REWARDED_ADS?.getMeditationMultiplier?.()||1);
   const recoveryMult=zoneMult*boost*(state.recoveryPercent/100), expMult=zoneMult*boost*(state.experiencePercent/100);
   let changed=false;session.lastHp=0;session.lastMp=0;session.lastExp=0;
   if(g.meditateSec%expInterval===0){
-    const amount=1*expMult;gainExp(amount,false);session.exp+=amount;session.lastExp=amount;changed=true
+    const amount=BASE_EXP_PER_SECOND*expMult;gainExp(amount,false);session.exp+=amount;session.lastExp=amount;changed=true
   }
   if(g.meditateSec%state.recoveryTickIntervalSec===0){
     const before=n(g.hp);g.hp=clamp(g.hp+meditationBase('hp')*recoveryMult,0,g.hpMax);
@@ -195,14 +195,14 @@ function patchOffline(){
    if(!g?.meditating||elapsed<2)return;
    const cap=(n(P?.offline_meditate_cap_hours)||8)*3600;
    const sec=Math.min(elapsed,cap);
-   const z=zoneAt(g.pos.r,g.pos.c),novice=!!z?.novice;
-   const expInterval=novice?P.meditate_novice_exp_interval_sec:P.meditate_exp_interval_sec;
+   const z=zoneAt(g.pos.r,g.pos.c);
+   const expInterval=1;
    const zoneMult=n(z?.recover)||1;
    const boost=n(window.V13_REWARDED_ADS?.getMeditationMultiplier?.())||1;
    const recoveryMult=zoneMult*boost*(state.recoveryPercent/100);
    const expMult=zoneMult*boost*(state.experiencePercent/100);
    const ticks=Math.floor(sec/state.recoveryTickIntervalSec);
-   let exp=Math.floor(sec/expInterval)*expMult;
+   let exp=Math.floor(sec/expInterval)*BASE_EXP_PER_SECOND*expMult;
    let hp=ticks*Math.max(state.hpMinGain,n(g.hpMax)*state.hpTickPercent/100)*recoveryMult;
    let mp=ticks*Math.max(state.mpMinGain,n(g.mpMax)*state.mpTickPercent/100)*recoveryMult;
    if(g.techniques?.includes('dust')){exp*=2;hp*=2;mp*=2}

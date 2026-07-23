@@ -667,7 +667,7 @@ function openCombatItems(){
   let h='<h3>戰鬥道具</h3>';const ids=Object.keys(g.inv).filter(id=>g.inv[id]>0&&['丹藥','符籙'].includes(IT[id]?.cat));
   if(!ids.length)h+='<p class="small">沒有可在戰鬥中使用的道具。</p>';
   ids.forEach(id=>{const it=IT[id];h+='<div class="list-row"><div class="grow"><strong>'+it.name+' ×'+g.inv[id]+'</strong><small>'+it.eff+(it.val?' · '+it.val:'')+'</small></div><button class="btn" onclick="useCombatItem(\''+id+'\')">使用</button></div>'});
-  h+='<button class="btn" style="width:100%;margin-top:12px" onclick="renderFight(\'重新選擇行動。\')">返回鬥法</button>';sheet(h);
+  h+='<button class="btn" style="width:100%;margin-top:12px" onclick="closeOv();renderFight(\'重新選擇行動。\')">返回鬥法</button>';sheet(h);
 }
 function useCombatItem(id){
   const it=IT[id];if(!it||!g.inv[id])return;
@@ -954,12 +954,12 @@ function confirmReset(){
 <script src="v14_5d_maintenance_gate.js?v=20260721-v145d-1"></script>
 <script src="v14_6_meditation_immersion.js?v=20260721-v146-fix1"></script>
 <script src="v14_8_corpse_world.js?v=20260722-v148-phase2"></script>
-<script src="v14_9_item_effects_and_meditation.js?v=20260723-v152-p3-recovery"></script>
+<script src="v14_9_item_effects_and_meditation.js?v=20260723-v152-p3-fix2-exp1s"></script>
 <script src="v15_0_equipment_integrity_fix.js?v=20260722-corebridge-fix1"></script>
 <script src="v15_1_five_element_materials.js?v=20260722-v151-p1"></script>
 <script src="v15_1_divine_beast_world_bridge.js?v=20260722-v151-p1"></script>
-<script src="v15_1_phase2_enchant_and_beast_combat.js?v=20260723-v152-p3-boss"></script>
+<script src="v15_1_phase2_enchant_and_beast_combat.js?v=20260723-v152-p3-fix2-items"></script>
 <script src="v15_1_phase3_ai_beast_bridge.js?v=20260722-v151-p3"></script>
-<script src="v15_2_immersive_raid.js?v=20260723-v152-p3-boss"></script>
+<script src="v15_2_immersive_raid.js?v=20260723-v152-p3-fix2-items"></script>
 </body>
 </html>
