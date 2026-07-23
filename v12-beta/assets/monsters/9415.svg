@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="遺跡石傀">
+<defs>
+ <radialGradient id="bg" cx="50%" cy="38%"><stop offset="0" stop-color="#e0b45d" stop-opacity=".36"/><stop offset=".60" stop-color="#49381b" stop-opacity=".52"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+ <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e0b45d" stop-opacity=".92"/><stop offset=".48" stop-color="#49381b"/><stop offset="1" stop-color="#0a1016"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="512" height="512" rx="42" fill="url(#bg)"/>
+<circle cx="256" cy="256" r="205" fill="none" stroke="#e0b45d" stroke-opacity=".30" stroke-width="3"/>
+<circle cx="256" cy="256" r="174" fill="none" stroke="#d7b96b" stroke-opacity=".17" stroke-width="2" stroke-dasharray="8 16"/>
+<style>.body{fill:url(#body);stroke:#e0b45d;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;filter:url(#glow)}.eye{fill:#f8dc82;filter:url(#glow)}</style>
+
+<g class="body"><path d="M190 78 H322 L350 185 L325 260 H187 L162 185Z"/>
+<path d="M130 250 H382 L405 420 H107Z"/><path d="M102 270 L42 378 L104 402 L170 310 M410 270 L470 378 L408 402 L342 310"/>
+<circle class="eye" cx="222" cy="181" r="12"/><circle class="eye" cx="290" cy="181" r="12"/>
+<path d="M206 226 H306" fill="none" stroke-width="15"/></g>
+<path d="M72 420 Q256 478 440 420" fill="none" stroke="#d7b96b" stroke-opacity=".35" stroke-width="4"/>
+</svg>

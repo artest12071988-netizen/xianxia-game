@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="噬鐵蟻群">
+<defs>
+ <radialGradient id="bg" cx="50%" cy="38%"><stop offset="0" stop-color="#d9e8f3" stop-opacity=".36"/><stop offset=".60" stop-color="#304654" stop-opacity=".52"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+ <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d9e8f3" stop-opacity=".92"/><stop offset=".48" stop-color="#304654"/><stop offset="1" stop-color="#0a1016"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="512" height="512" rx="42" fill="url(#bg)"/>
+<circle cx="256" cy="256" r="205" fill="none" stroke="#d9e8f3" stroke-opacity=".30" stroke-width="3"/>
+<circle cx="256" cy="256" r="174" fill="none" stroke="#d7b96b" stroke-opacity=".17" stroke-width="2" stroke-dasharray="8 16"/>
+<style>.body{fill:url(#body);stroke:#d9e8f3;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;filter:url(#glow)}.eye{fill:#f8dc82;filter:url(#glow)}</style>
+
+<g class="body"><g transform="translate(100 55)"><ellipse cx="120" cy="260" rx="38" ry="31"/><ellipse cx="165" cy="260" rx="30" ry="25"/><circle cx="198" cy="260" r="22"/>
+<path d="M132 240 L95 205 M132 280 L95 315 M166 238 L145 195 M166 282 L145 325 M196 242 L225 210 M196 278 L225 310"/></g>
+<g transform="translate(-10 -45) scale(.72)"><ellipse cx="250" cy="260" rx="38" ry="31"/><ellipse cx="295" cy="260" rx="30" ry="25"/><circle cx="328" cy="260" r="22"/>
+<path d="M262 240 L225 205 M262 280 L225 315 M296 238 L275 195 M296 282 L275 325 M326 242 L355 210 M326 278 L355 310"/></g>
+<g transform="translate(50 130) scale(.62)"><ellipse cx="250" cy="260" rx="38" ry="31"/><ellipse cx="295" cy="260" rx="30" ry="25"/><circle cx="328" cy="260" r="22"/>
+<path d="M262 240 L225 205 M262 280 L225 315 M296 238 L275 195 M296 282 L275 325 M326 242 L355 210 M326 278 L355 310"/></g></g>
+<path d="M72 420 Q256 478 440 420" fill="none" stroke="#d7b96b" stroke-opacity=".35" stroke-width="4"/>
+</svg>

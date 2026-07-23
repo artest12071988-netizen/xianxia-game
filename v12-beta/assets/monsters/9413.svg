@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="熔岩火蜥">
+<defs>
+ <radialGradient id="bg" cx="50%" cy="38%"><stop offset="0" stop-color="#ff744f" stop-opacity=".36"/><stop offset=".60" stop-color="#4b1714" stop-opacity=".52"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+ <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff744f" stop-opacity=".92"/><stop offset=".48" stop-color="#4b1714"/><stop offset="1" stop-color="#0a1016"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="512" height="512" rx="42" fill="url(#bg)"/>
+<circle cx="256" cy="256" r="205" fill="none" stroke="#ff744f" stroke-opacity=".30" stroke-width="3"/>
+<circle cx="256" cy="256" r="174" fill="none" stroke="#d7b96b" stroke-opacity=".17" stroke-width="2" stroke-dasharray="8 16"/>
+<style>.body{fill:url(#body);stroke:#ff744f;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;filter:url(#glow)}.eye{fill:#f8dc82;filter:url(#glow)}</style>
+
+<g class="body"><ellipse cx="260" cy="275" rx="108" ry="55"/><circle cx="370" cy="255" r="44"/>
+<path d="M152 277 Q75 230 50 305 Q112 300 180 294"/><path d="M207 308 L152 376 M301 306 L360 375 M210 243 L150 185 M306 240 L366 178"/>
+<path d="M205 217 Q230 150 250 210 Q282 135 300 215 Q330 160 340 235" fill="#ff8a49"/>
+<circle class="eye" cx="386" cy="244" r="9"/></g>
+<path d="M72 420 Q256 478 440 420" fill="none" stroke="#d7b96b" stroke-opacity=".35" stroke-width="4"/>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="玄潮蟹將">
+<defs>
+ <radialGradient id="bg" cx="50%" cy="38%"><stop offset="0" stop-color="#e0b45d" stop-opacity=".36"/><stop offset=".60" stop-color="#49381b" stop-opacity=".52"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+ <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e0b45d" stop-opacity=".92"/><stop offset=".48" stop-color="#49381b"/><stop offset="1" stop-color="#0a1016"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="512" height="512" rx="42" fill="url(#bg)"/>
+<circle cx="256" cy="256" r="205" fill="none" stroke="#e0b45d" stroke-opacity=".30" stroke-width="3"/>
+<circle cx="256" cy="256" r="174" fill="none" stroke="#d7b96b" stroke-opacity=".17" stroke-width="2" stroke-dasharray="8 16"/>
+<style>.body{fill:url(#body);stroke:#e0b45d;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;filter:url(#glow)}.eye{fill:#f8dc82;filter:url(#glow)}</style>
+
+<g class="body"><ellipse cx="256" cy="280" rx="112" ry="82"/>
+<path d="M162 250 Q100 188 58 235 Q92 290 163 288 M350 250 Q412 188 454 235 Q420 290 349 288"/>
+<path d="M180 322 L108 390 M213 340 L176 420 M332 322 L404 390 M299 340 L336 420" fill="none" stroke-width="24"/>
+<circle class="eye" cx="220" cy="245" r="10"/><circle class="eye" cx="292" cy="245" r="10"/></g>
+<path d="M72 420 Q256 478 440 420" fill="none" stroke="#d7b96b" stroke-opacity=".35" stroke-width="4"/>
+</svg>

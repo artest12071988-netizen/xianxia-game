@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="木甲巨猿">
+<defs>
+ <radialGradient id="bg" cx="50%" cy="38%"><stop offset="0" stop-color="#47c58a" stop-opacity=".36"/><stop offset=".60" stop-color="#163c31" stop-opacity=".52"/><stop offset="1" stop-color="#03070b"/></radialGradient>
+ <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#47c58a" stop-opacity=".92"/><stop offset=".48" stop-color="#163c31"/><stop offset="1" stop-color="#0a1016"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="512" height="512" rx="42" fill="url(#bg)"/>
+<circle cx="256" cy="256" r="205" fill="none" stroke="#47c58a" stroke-opacity=".30" stroke-width="3"/>
+<circle cx="256" cy="256" r="174" fill="none" stroke="#d7b96b" stroke-opacity=".17" stroke-width="2" stroke-dasharray="8 16"/>
+<style>.body{fill:url(#body);stroke:#47c58a;stroke-width:10;stroke-linecap:round;stroke-linejoin:round;filter:url(#glow)}.eye{fill:#f8dc82;filter:url(#glow)}</style>
+
+<g class="body"><circle cx="256" cy="190" r="82"/><path d="M130 410 Q142 260 256 255 Q370 260 382 410Z"/>
+<path d="M160 282 Q80 290 70 402 M352 282 Q432 290 442 402" fill="none" stroke-width="48"/>
+<circle class="eye" cx="224" cy="178" r="10"/><circle class="eye" cx="288" cy="178" r="10"/>
+<path d="M214 222 Q256 245 298 222" fill="none" stroke-width="13"/></g>
+<path d="M72 420 Q256 478 440 420" fill="none" stroke="#d7b96b" stroke-opacity=".35" stroke-width="4"/>
+</svg>
