@@ -2,7 +2,7 @@
 
 /* V12.9 遊戲數值營運後台：草稿、發布、回復、Excel 匯入匯出。 */
 (() => {
-  const state={draft:null,draftId:null,draftVersion:0,published:null,versions:[],tab:'items',breakCfg:null,dirty:false};
+  const state={draft:null,draftId:null,draftVersion:0,published:null,versions:[],tab:'items',breakCfg:null,dirty:false,lockBaseline:null,selectedMonsterId:null,itemSearch:'',itemCategory:'all'};
   const baseLoadAllV129=loadAll;
   const COMBAT_KEYS=[
     ['normal_attack_mp_cost','普通攻擊精力消耗'],['base_crit_rate','基礎暴擊率'],['base_crit_min','暴擊倍率下限'],['base_crit_max','暴擊倍率上限'],
@@ -36,7 +36,7 @@
     metal:{label:'金性暴擊',type:'金',unit:'%',defaultValue:25},
     earth:{label:'土性減傷',type:'土',unit:'%',defaultValue:25}
   };
-  const ITEM_EDITOR_BUILD='V15.4-ADMIN-FIXED-ITEM-BUILDER-PHASE1-20260724';
+  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-ITEM-MONSTER-20260725';
 
   function h(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
   function clone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
@@ -73,6 +73,8 @@
     if(document.getElementById('v129AdminStyle'))return;
     const s=document.createElement('style');s.id='v129AdminStyle';s.textContent=`
       .cfg-toolbar{display:flex;gap:8px;flex-wrap:wrap}.cfg-toolbar .btn{flex:1;min-width:130px}.cfg-tabs{display:flex;gap:6px;overflow:auto;margin:12px 0;padding-bottom:4px}.cfg-tabs button{white-space:nowrap;border:1px solid var(--line);background:#08101a;color:var(--muted);border-radius:8px;padding:9px 12px}.cfg-tabs button.on{color:var(--gold);border-color:#8f713d;background:#211a0e}.cfg-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}.cfg-table{width:100%;border-collapse:collapse;min-width:850px}.cfg-table th,.cfg-table td{border-bottom:1px solid #ffffff0d;padding:6px;vertical-align:top}.cfg-table th{position:sticky;top:0;background:#0d1723;color:var(--muted);font-size:11px;z-index:1}.cfg-table input,.cfg-table textarea,.cfg-table select{padding:8px;font-size:13px;min-width:85px}.cfg-table textarea{min-height:54px}.cfg-table .id{min-width:80px;color:var(--jade)}.cfg-mini{font-size:11px;color:var(--muted)}.fixed-item-builder{border:1px solid rgba(73,210,199,.34);background:linear-gradient(180deg,rgba(7,26,34,.96),rgba(7,13,21,.98));border-radius:12px;padding:14px;margin-bottom:14px}.fixed-item-builder h3{margin:0 0 5px;color:var(--jade)}.fixed-item-builder .builder-note{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px}.fixed-item-grid{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:9px;align-items:end}.fixed-item-grid .field{margin:0}.fixed-item-grid label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}.fixed-item-grid input,.fixed-item-grid select{width:100%;min-width:0}.fixed-item-preview{margin-top:10px;padding:10px 12px;border-left:3px solid var(--gold);background:#ffffff08;color:#e7e1d3;line-height:1.65}.fixed-lock{display:inline-flex;align-items:center;border:1px solid #ffffff1c;border-radius:999px;padding:4px 8px;background:#07111a;color:#cbd4dc;font-size:11px;white-space:nowrap}.fixed-lock.legacy{color:#d8b96a}.fixed-item-actions{display:flex;gap:8px;margin-top:10px}.fixed-item-actions .btn{flex:1}.fixed-value-wrap{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center}.fixed-value-unit{color:var(--gold);font-weight:800;min-width:28px;text-align:center}.fixed-item-list-note{margin:8px 0 10px;color:var(--muted);font-size:12px}.fixed-item-filter{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.fixed-item-filter button{border:1px solid var(--line);background:#08101a;color:var(--muted);border-radius:999px;padding:6px 10px}.fixed-item-filter button.on{border-color:#8f713d;color:var(--gold);background:#211a0e}@media(max-width:1100px){.fixed-item-grid{grid-template-columns:repeat(3,minmax(130px,1fr))}}@media(max-width:700px){.fixed-item-grid{grid-template-columns:1fr 1fr}.fixed-item-actions{flex-direction:column}}.cfg-version{display:grid;grid-template-columns:75px 90px 1fr auto;gap:8px;align-items:center;padding:8px;border-bottom:1px solid #ffffff0d}.cfg-version:last-child{border-bottom:0}.cfg-status{border:1px solid var(--line);border-radius:99px;padding:3px 7px;text-align:center;font-size:10px}.cfg-status.published{color:#77d89c}.cfg-status.draft{color:var(--gold)}.cfg-status.archived{color:var(--muted)}.cfg-json{min-height:420px;font-family:ui-monospace,Consolas,monospace;font-size:12px}.cfg-break-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.cfg-break-grid .field{background:#070d15;border:1px solid var(--line);border-radius:9px;padding:8px}@media(max-width:700px){.cfg-break-grid{grid-template-columns:1fr 1fr}.cfg-version{grid-template-columns:60px 78px 1fr}.cfg-version .btn{grid-column:1/-1}.cfg-toolbar .btn{min-width:46%}}
+
+      .phase1-scope{border:1px solid rgba(216,185,106,.32);background:#17140d;border-radius:10px;padding:10px 12px;margin-bottom:12px;color:#e5d4a4;line-height:1.65}.phase1-tools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.phase1-tools input,.phase1-tools select{min-width:180px;flex:1}.locked-cell{color:#cbd4dc}.locked-cell small{display:block;color:var(--muted);margin-top:3px}.item-value-row[hidden]{display:none}.monster-editor{display:grid;gap:12px}.monster-picker{display:grid;grid-template-columns:1fr 2fr;gap:8px}.monster-fixed{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.monster-fixed>div,.monster-stat-grid .field{border:1px solid var(--line);background:#070d15;border-radius:9px;padding:9px}.monster-fixed span{display:block;color:var(--muted);font-size:11px}.monster-fixed b{display:block;margin-top:4px}.monster-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.drop-editor{border:1px solid var(--line);border-radius:10px;padding:10px;background:#070d15}.drop-list{display:grid;gap:6px}.drop-row{display:grid;grid-template-columns:minmax(220px,1fr) 120px auto;gap:8px;align-items:center;border-bottom:1px solid #ffffff0d;padding:7px 0}.drop-row:last-child{border-bottom:0}.drop-add{display:grid;grid-template-columns:1fr 1.5fr 120px auto;gap:8px;align-items:end;margin-top:10px}.drop-invalid{color:var(--red)}.phase1-pass{color:#77d89c}.phase1-warning{color:var(--gold)}@media(max-width:850px){.monster-picker,.monster-fixed,.monster-stat-grid,.drop-add{grid-template-columns:1fr 1fr}.drop-row{grid-template-columns:1fr 100px}.drop-row .btn{grid-column:1/-1}.monster-fixed{grid-template-columns:1fr 1fr}}@media(max-width:560px){.monster-picker,.monster-fixed,.monster-stat-grid,.drop-add{grid-template-columns:1fr}}
     `;document.head.appendChild(s);
   }
 
@@ -82,7 +84,7 @@
     const main=document.getElementById('adminMain');if(!main)return;
     const section=document.createElement('section');section.id='gameConfigAdmin';section.className='card';
     section.innerHTML=`
-      <div class="head"><div><h2 style="margin:0">遊戲數值營運後台</h2><small>物品、商店、怪物、功法、戰鬥與突破參數</small></div><span id="configDirty" class="pill">尚未載入</span></div>
+      <div class="head"><div><h2 style="margin:0">遊戲數值營運後台</h2><small>第一階段：現有物品數值、怪物三圍／經驗與掉落管理</small></div><span id="configDirty" class="pill">尚未載入</span></div>
       <div class="status"><div><span>正式版本</span><b id="publishedConfigVersion">Config 0</b></div><div><span>目前草稿</span><b id="draftConfigVersion">無</b></div><div><span>最後發布</span><b id="publishedConfigAt">尚未發布</b></div><div><span>驗證</span><b id="configValidation">待檢查</b></div></div>
       <div class="field" style="margin-top:10px"><label>版本備註</label><input id="configNotes" placeholder="例如：調整元嬰怪物傷害與萬寶坊市價格"></div>
       <div class="cfg-toolbar" style="margin-top:10px"><button class="btn jade" onclick="createConfigDraftV129()">從目前正式版建立草稿</button><button class="btn" onclick="saveConfigDraftV129()">儲存草稿</button><button class="btn gold" onclick="publishConfigDraftV129()">發布草稿</button><button class="btn" onclick="exportConfigExcelV129()">匯出 Excel</button><button class="btn" onclick="document.getElementById('configExcelInput').click()">匯入 Excel</button><input id="configExcelInput" type="file" accept=".xlsx,.xls" hidden onchange="importConfigExcelV129(this.files[0])"></div>
@@ -92,7 +94,7 @@
     const cards=Array.from(main.children).filter(el=>el.matches?.('section.card'));const last=cards[cards.length-1];if(last)main.insertBefore(section,last);else main.appendChild(section);
   }
 
-  function tabs(){return [['items','物品'],['shop','NPC商店'],['monsters','怪物'],['techniques','功法'],['combat','戰鬥參數'],['breakthrough','突破成功率'],['raw','完整JSON']]}
+  function tabs(){return [['items','物品數值'],['shop','NPC商店'],['monsters','怪物平衡'],['techniques','功法'],['combat','戰鬥參數'],['breakthrough','突破成功率'],['raw','完整JSON']]}
   function renderTabs(){const e=document.getElementById('configTabs');if(!e)return;e.innerHTML=tabs().map(([id,label])=>`<button class="${state.tab===id?'on':''}" onclick="setConfigTabV129('${id}')">${label}</button>`).join('')}
   function input(value,path,type='text',attrs=''){return `<input type="${type}" value="${h(value)}" data-cfg-path="${h(path)}" ${attrs}>`}
   function textarea(value,path){return `<textarea data-cfg-path="${h(path)}">${h(value)}</textarea>`}
@@ -101,6 +103,11 @@
     return `<select data-cfg-path="${h(path)}" ${attrs}>${options.map(([v,l])=>`<option value="${h(v)}" ${String(value??'')===String(v)?'selected':''}>${h(l)}</option>`).join('')}</select>`;
   }
   function signed(v){const x=n(v);return x>0?'+'+x:String(x)}
+  function deepEqual(a,b){return JSON.stringify(a)===JSON.stringify(b)}
+  function protectedCopyItem(x){const y=clone(x||{});delete y.val;return y}
+  function protectedCopyMonster(x){const y=clone(x||{});for(const k of ['hp','atk','def','exp','drops'])delete y[k];return y}
+  function itemName(id){return state.draft?.items?.[String(id)]?.name||state.lockBaseline?.items?.[String(id)]?.name||('未知物品 '+id)}
+  function percentText(rate){const p=Math.round(n(rate)*10000)/100;return String(p)}
   function kindFromItem(x){
     const cat=String(x?.cat||''),eff=String(x?.eff||'');
     if(cat==='法器'||cat==='防具')return 'equipment';
@@ -166,19 +173,51 @@
     </div>`;
   }
   function renderItems(){
+    const cats=[...new Set(Object.values(state.draft.items||{}).map(x=>String(x?.cat||'未分類')))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+    const q=String(state.itemSearch||'').trim().toLowerCase(),cat=state.itemCategory||'all';
     const rows=Object.entries(state.draft.items||{}).sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'zh-Hant')).map(([id,x])=>{
-      const kind=kindFromItem(x),legacy=kind==='legacy';
-      return `<tr><td class="id">${h(id)}</td><td>${input(x.name,`items.${id}.name`)}</td><td><span class="fixed-lock ${legacy?'legacy':''}">${h(fixedItemLabel(x))}</span></td><td>${input(x.val??0,`items.${id}.val`,'number','step="0.01"')}</td><td>${textarea(x.detail||'',`items.${id}.detail`)}</td><td><button class="btn red" onclick="deleteConfigItemV129('${h(id)}')">刪除</button></td></tr>`;
+      const hay=(id+' '+(x.name||'')+' '+(x.cat||'')+' '+(x.eff||'')).toLowerCase();
+      const hidden=(q&&!hay.includes(q))||(cat!=='all'&&String(x.cat||'未分類')!==cat);
+      return `<tr class="item-value-row" data-item-hay="${h(hay)}" data-item-cat="${h(x.cat||'未分類')}" ${hidden?'hidden':''}><td class="id">${h(id)}</td><td class="locked-cell"><b>${h(x.name||'')}</b><small>名稱鎖定</small></td><td><span class="fixed-lock">${h(fixedItemLabel(x))}</span></td><td>${input(x.val??0,`items.${id}.val`,'number','step="0.01"')}</td><td class="locked-cell">${h(x.detail||'')}<small>說明與功能鎖定</small></td></tr>`;
     }).join('');
-    return renderFixedItemBuilder()+`<div class="fixed-item-list-note">既有物品的分類與效果已鎖定；只開放名稱、數值與說明，避免誤改功能名稱。特殊既有物品會標示為「固定功能」並原樣保留。</div><div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>ID</th><th>名稱</th><th>固定分類／效果</th><th>數值</th><th>說明</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    return `<div class="phase1-scope"><b>本頁只允許調整既有物品的「數值」。</b> ID、名稱、分類、效果、用途與說明全部鎖定；禁止新增、刪除或改名。</div>
+      <div class="phase1-tools"><input id="phase1ItemSearch" placeholder="搜尋物品 ID、名稱、分類或效果" value="${h(state.itemSearch)}" oninput="filterItemValuesV154(this.value)"><select id="phase1ItemCategory" onchange="filterItemCategoryV154(this.value)"><option value="all">全部分類</option>${cats.map(c=>`<option value="${h(c)}" ${cat===c?'selected':''}>${h(c)}</option>`).join('')}</select></div>
+      <div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>ID</th><th>名稱（鎖定）</th><th>分類／效果（鎖定）</th><th>可調整數值</th><th>說明（鎖定）</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
   function renderShop(){
     const rows=(state.draft.npcShop||[]).map((x,i)=>`<tr><td>${input(x.id,`npcShop.${i}.id`)}</td><td>${input(x.name,`npcShop.${i}.name`)}</td><td>${input(x.price??0,`npcShop.${i}.price`,'number','min="0"')}</td><td>${input(x.daily??9999,`npcShop.${i}.daily`,'number','min="0"')}</td><td><button class="btn red" onclick="deleteConfigArrayRowV129('npcShop',${i})">刪除</button></td></tr>`).join('');
     return `<div class="row" style="margin-bottom:8px"><button class="btn jade" onclick="addConfigArrayRowV129('npcShop')">新增商品</button></div><div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>物品ID</th><th>顯示名稱</th><th>售價</th><th>每日限購</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
+  function normalizeMonsterSelection(){
+    const list=state.draft?.monsters||[];
+    if(!list.length){state.selectedMonsterId=null;return null}
+    let hit=list.find(x=>String(x.id)===String(state.selectedMonsterId));
+    if(!hit){hit=list[0];state.selectedMonsterId=String(hit.id)}
+    return hit;
+  }
+  function renderDropRows(monster,index){
+    const drops=Array.isArray(monster.drops)?monster.drops:[];
+    if(!drops.length)return '<div class="notice">目前沒有掉落物品。</div>';
+    return drops.map((d,di)=>{
+      const id=String(Array.isArray(d)?d[0]:'');const rate=n(Array.isArray(d)?d[1]:0);const exists=!!state.draft.items?.[id];
+      return `<div class="drop-row ${exists?'':'drop-invalid'}"><div><b>${h(exists?itemName(id):'不存在的物品 ID')}</b><div class="cfg-mini">ID ${h(id)}${exists?'':'｜發布前必須修正'}</div></div><div><input type="number" min="0" max="100" step="0.01" value="${h(percentText(rate))}" onchange="setMonsterDropRateV154(${index},${di},this.value)"><div class="cfg-mini">掉落率 %</div></div><button class="btn red" onclick="removeMonsterDropV154(${index},${di})">移除</button></div>`;
+    }).join('');
+  }
+  function dropItemOptions(search=''){
+    const q=String(search||'').trim().toLowerCase();
+    return Object.entries(state.draft?.items||{}).filter(([id,x])=>!q||(id+' '+(x.name||'')+' '+(x.cat||'')).toLowerCase().includes(q)).sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'zh-Hant')).map(([id,x])=>`<option value="${h(id)}">${h(id)}｜${h(x.name||'')}｜${h(x.cat||'')}</option>`).join('');
+  }
   function renderMonsters(){
-    const rows=(state.draft.monsters||[]).map((x,i)=>`<tr><td>${input(x.id,`monsters.${i}.id`,'number')}</td><td>${input(x.name,`monsters.${i}.name`)}</td><td>${input(x.cat,`monsters.${i}.cat`)}</td><td>${input(x.lv??1,`monsters.${i}.lv`,'number')}</td><td>${input(x.hp??1,`monsters.${i}.hp`,'number','min="1"')}</td><td>${input(x.atk??0,`monsters.${i}.atk`,'number','min="0"')}</td><td>${input(x.def??0,`monsters.${i}.def`,'number','min="0"')}</td><td>${input(x.exp??0,`monsters.${i}.exp`,'number','min="0"')}</td><td>${input(x.spawn||'',`monsters.${i}.spawn`)}</td><td>${textarea(JSON.stringify(x.drops||[]),`monsters.${i}.drops`)}</td><td><button class="btn red" onclick="deleteConfigArrayRowV129('monsters',${i})">刪除</button></td></tr>`).join('');
-    return `<div class="row" style="margin-bottom:8px"><button class="btn jade" onclick="addConfigArrayRowV129('monsters')">新增怪物</button></div><div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>ID</th><th>名稱</th><th>分類</th><th>Lv</th><th>HP</th><th>攻擊</th><th>防禦</th><th>經驗</th><th>出沒</th><th>掉落JSON</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    const list=state.draft.monsters||[],monster=normalizeMonsterSelection();
+    if(!monster)return '<div class="notice">沒有可管理的怪物資料。</div>';
+    const index=list.indexOf(monster),options=list.map(x=>`<option value="${h(x.id)}" ${String(x.id)===String(monster.id)?'selected':''}>${h(x.id)}｜${h(x.name)}｜${h(x.cat||'')}</option>`).join('');
+    return `<div class="phase1-scope"><b>本頁只允許調整既有怪物的 HP、攻擊、防禦、擊殺經驗與掉落物品。</b> 怪物 ID、名稱、分類、等級、出沒區域與戰鬥方式全部鎖定。</div>
+      <div class="monster-editor">
+        <div class="monster-picker"><input id="phase1MonsterSearch" placeholder="搜尋怪物 ID 或名稱" oninput="filterMonsterSelectV154(this.value)"><select id="phase1MonsterSelect" onchange="selectMonsterV154(this.value)">${options}</select></div>
+        <div class="monster-fixed"><div><span>ID</span><b>${h(monster.id)}</b></div><div><span>名稱</span><b>${h(monster.name)}</b></div><div><span>分類</span><b>${h(monster.cat||'')}</b></div><div><span>等級</span><b>Lv ${h(monster.lv??1)}</b></div><div><span>出沒</span><b>${h(monster.spawn||'')}</b></div></div>
+        <div class="monster-stat-grid"><div class="field"><label>HP</label>${input(monster.hp??1,`monsters.${index}.hp`,'number','min="1" step="1"')}</div><div class="field"><label>攻擊</label>${input(monster.atk??0,`monsters.${index}.atk`,'number','min="0" step="1"')}</div><div class="field"><label>防禦</label>${input(monster.def??0,`monsters.${index}.def`,'number','min="0" step="1"')}</div><div class="field"><label>擊殺經驗</label>${input(monster.exp??0,`monsters.${index}.exp`,'number','min="0" step="1"')}</div></div>
+        <div class="drop-editor"><h3 style="margin:0 0 8px">怪物掉落</h3><div class="drop-list">${renderDropRows(monster,index)}</div><div class="drop-add"><div class="field"><label>搜尋既有物品</label><input id="phase1DropSearch" placeholder="輸入 ID 或名稱" oninput="filterMonsterDropItemsV154(this.value)"></div><div class="field"><label>選擇物品</label><select id="phase1DropItem">${dropItemOptions('')}</select></div><div class="field"><label>掉落率 %</label><input id="phase1DropRate" type="number" min="0.01" max="100" step="0.01" value="10"></div><button class="btn jade" onclick="addMonsterDropV154(${index})">加入掉落</button></div></div>
+      </div>`;
   }
   function renderTechniques(){
     const rows=(state.draft.techniques||[]).map((x,i)=>`<tr><td>${input(x.id,`techniques.${i}.id`)}</td><td>${input(x.name,`techniques.${i}.name`)}</td><td>${input(x.category,`techniques.${i}.category`)}</td><td>${input(x.price??0,`techniques.${i}.price`,'number','min="0"')}</td><td>${textarea(x.desc||'',`techniques.${i}.desc`)}</td><td>${textarea(x.details||'',`techniques.${i}.details`)}</td><td><button class="btn red" onclick="deleteConfigArrayRowV129('techniques',${i})">刪除</button></td></tr>`).join('');
@@ -192,7 +231,7 @@
     injectCard();renderTabs();const e=document.getElementById('configEditor');if(!e)return;
     if(!state.draft){e.innerHTML='<div class="notice">尚無草稿。可從目前正式版或 GitHub 靜態設定建立草稿。</div>';return}
     const map={items:renderItems,shop:renderShop,monsters:renderMonsters,techniques:renderTechniques,combat:renderCombat,breakthrough:renderBreakthroughBase,raw:renderRaw};
-    e.innerHTML=(map[state.tab]||renderItems)();bindInputs();if(state.tab==='items')setTimeout(()=>refreshFixedItemBuilder(true),0);
+    e.innerHTML=(map[state.tab]||renderItems)();bindInputs();
   }
   function pathSet(obj,path,value){
     const parts=path.split('.');let cur=obj;
@@ -202,7 +241,6 @@
   function bindInputs(){
     document.querySelectorAll('[data-cfg-path]').forEach(el=>el.addEventListener('change',()=>{
       let v=el.value;if(el.type==='number')v=n(v);
-      if(el.tagName==='TEXTAREA'&&el.dataset.cfgPath.endsWith('.drops')){try{v=JSON.parse(v||'[]')}catch(_){toast('掉落欄位必須是合法 JSON');return}}
       pathSet(state.draft,el.dataset.cfgPath,v);setDirty(true);
     }));
   }
@@ -234,14 +272,47 @@
       if(draftMeta){const {data,error}=await sb.from('game_config_versions').select('id,version,config,notes').eq('id',draftMeta.id).single();if(!error&&data){rawDraft=clone(data.config);state.draft=mergeV135Config(base,data.config);state.draftId=data.id;state.draftVersion=data.version;document.getElementById('configNotes').value=data.notes||''}}
       if(!state.draft&&pub?.config){rawDraft=clone(pub.config);state.draft=mergeV135Config(base,pub.config);state.draftId=null;state.draftVersion=0}
       if(!state.draft){state.draft=clone(base);if(!state.draft){const r=await fetch('xianxia_config_V12.json?v=20260719-fix2-1',{cache:'no-store'});state.draft=await r.json()}}
+      state.lockBaseline=clone(state.published?.config||base||state.draft);
+      normalizeMonsterSelection();
       if(rawDraft&&state.draft)compatAdded=JSON.stringify(rawDraft)!==JSON.stringify(state.draft);
       state.dirty=compatAdded;renderStatus();renderEditor();renderBreakCfg();renderVersions();
       window.dispatchEvent(new CustomEvent('xianxia:config-admin-ready',{detail:{draftVersion:state.draftVersion,compatAdded}}));
     }catch(e){document.getElementById('configEditor').innerHTML='<div class="notice">V12.9 後台尚未安裝或載入失敗：'+h(e.message||e)+'</div>'}
   }
 
+  function validatePhase1Scope(){
+    if(!state.lockBaseline)throw new Error('尚未取得正式版鎖定基準，請重新載入後台');
+    const errors=[],baseItems=state.lockBaseline.items||{},items=state.draft.items||{};
+    const baseItemIds=Object.keys(baseItems).sort(),itemIds=Object.keys(items).sort();
+    if(!deepEqual(baseItemIds,itemIds))errors.push('禁止新增或刪除物品，物品 ID 清單必須與正式版一致');
+    for(const id of baseItemIds){
+      const cur=items[id];if(!cur){errors.push('缺少物品 '+id);continue}
+      if(!deepEqual(protectedCopyItem(cur),protectedCopyItem(baseItems[id])))errors.push('物品 '+id+' 只允許修改數值，名稱／分類／效果／說明不得更動');
+      if(!Number.isFinite(Number(cur.val)))errors.push('物品 '+id+' 的數值不是有效數字');
+    }
+    const baseMonsters=state.lockBaseline.monsters||[],monsters=state.draft.monsters||[];
+    const baseMap=new Map(baseMonsters.map(x=>[String(x.id),x])),curMap=new Map(monsters.map(x=>[String(x.id),x]));
+    if(baseMap.size!==curMap.size||[...baseMap.keys()].some(id=>!curMap.has(id)))errors.push('禁止新增或刪除怪物，怪物 ID 清單必須與正式版一致');
+    for(const [id,b] of baseMap){
+      const m=curMap.get(id);if(!m){errors.push('缺少怪物 '+id);continue}
+      if(!deepEqual(protectedCopyMonster(m),protectedCopyMonster(b)))errors.push('怪物 '+id+' 只允許修改 HP、攻擊、防禦、經驗與掉落');
+      if(!Number.isFinite(Number(m.hp))||Number(m.hp)<1)errors.push('怪物 '+id+' HP 必須大於 0');
+      for(const [k,label] of [['atk','攻擊'],['def','防禦'],['exp','經驗']])if(!Number.isFinite(Number(m[k]))||Number(m[k])<0)errors.push('怪物 '+id+' '+label+'不可小於 0');
+      const seen=new Set();
+      for(const d of Array.isArray(m.drops)?m.drops:[]){
+        if(!Array.isArray(d)||d.length<2){errors.push('怪物 '+id+' 有無效掉落格式');continue}
+        const itemId=String(d[0]),rate=Number(d[1]);
+        if(!items[itemId])errors.push('怪物 '+id+' 引用了不存在的物品 '+itemId);
+        if(!Number.isFinite(rate)||rate<=0||rate>1)errors.push('怪物 '+id+' 的 '+itemId+' 掉落率必須大於 0 且不超過 100%');
+        if(seen.has(itemId))errors.push('怪物 '+id+' 重複設定掉落物品 '+itemId);seen.add(itemId);
+      }
+    }
+    if(errors.length)throw new Error(errors.slice(0,8).join('；')+(errors.length>8?'；另有 '+(errors.length-8)+' 項錯誤':''));
+    return true;
+  }
   async function validateDraft(){
     if(!state.draft)throw new Error('尚無草稿');
+    validatePhase1Scope();
     const {data,error}=await sb.rpc('validate_game_config',{p_config:state.draft});if(error)throw error;
     const e=document.getElementById('configValidation');e.textContent=data?.valid?'PASS':'FAIL';e.style.color=data?.valid?'#77d89c':'var(--red)';
     if(!data?.valid)throw new Error((data?.errors||[]).join('；'));
@@ -336,11 +407,33 @@
     }else return toast('不支援的物品分類');
     state.draft.items[id]=item;setDirty(true);renderEditor();toast('已建立 '+name+'（'+id+'），請儲存並發布');
   }
-  function addItem(){document.getElementById('fixedItemId')?.focus()}
-  function delItem(id){if(!confirm('刪除物品 '+id+'？'))return;delete state.draft.items[id];state.draft.npcShop=(state.draft.npcShop||[]).filter(x=>String(x.id)!==String(id));setDirty(true);renderEditor()}
-  function addArrayRow(cat){const defaults={npcShop:{id:'',name:'新商品',price:0,daily:9999},monsters:{id:9999,name:'新妖獸',cat:'普通妖獸',lv:1,hp:100,mp:0,atk:10,def:5,exp:10,drops:[],spawn:'荒野'},techniques:{id:'new_technique',name:'新功法',category:'靈修',price:0,desc:'',details:''}};state.draft[cat]=state.draft[cat]||[];state.draft[cat].push(defaults[cat]);setDirty(true);renderEditor()}
-  function delArrayRow(cat,i){state.draft[cat].splice(i,1);setDirty(true);renderEditor()}
+  function addItem(){toast('第一階段禁止新增物品')}
+  function delItem(){toast('第一階段禁止刪除物品')}
+  function addArrayRow(cat){if(cat==='monsters')return toast('第一階段禁止新增怪物');const defaults={npcShop:{id:'',name:'新商品',price:0,daily:9999},monsters:{id:9999,name:'新妖獸',cat:'普通妖獸',lv:1,hp:100,mp:0,atk:10,def:5,exp:10,drops:[],spawn:'荒野'},techniques:{id:'new_technique',name:'新功法',category:'靈修',price:0,desc:'',details:''}};state.draft[cat]=state.draft[cat]||[];state.draft[cat].push(defaults[cat]);setDirty(true);renderEditor()}
+  function delArrayRow(cat,i){if(cat==='monsters')return toast('第一階段禁止刪除怪物');state.draft[cat].splice(i,1);setDirty(true);renderEditor()}
   function applyRaw(){try{state.draft=JSON.parse(document.getElementById('rawConfigJson').value);setDirty(true);renderEditor();toast('JSON已套用，發布前仍會驗證')}catch(e){toast('JSON格式錯誤：'+e.message)}}
+
+  function filterItemValues(value){state.itemSearch=String(value||'');document.querySelectorAll('.item-value-row').forEach(row=>{const q=state.itemSearch.trim().toLowerCase(),cat=state.itemCategory||'all';row.hidden=(q&&!String(row.dataset.itemHay||'').includes(q))||(cat!=='all'&&row.dataset.itemCat!==cat)})}
+  function filterItemCategory(value){state.itemCategory=value||'all';filterItemValues(state.itemSearch)}
+  function selectMonster(id){state.selectedMonsterId=String(id);renderEditor()}
+  function filterMonsterSelect(value){
+    const select=document.getElementById('phase1MonsterSelect');if(!select)return;const q=String(value||'').trim().toLowerCase();
+    Array.from(select.options).forEach(o=>{o.hidden=!!q&&!o.textContent.toLowerCase().includes(q)});
+    const first=Array.from(select.options).find(o=>!o.hidden);if(first&&select.selectedOptions[0]?.hidden){select.value=first.value;selectMonster(first.value)}
+  }
+  function filterMonsterDropItems(value){const select=document.getElementById('phase1DropItem');if(select)select.innerHTML=dropItemOptions(value)}
+  function addMonsterDrop(index){
+    const m=state.draft?.monsters?.[index],id=String(document.getElementById('phase1DropItem')?.value||''),pct=Number(document.getElementById('phase1DropRate')?.value);
+    if(!m||!state.draft.items?.[id])return toast('請選擇有效的既有物品');if(!Number.isFinite(pct)||pct<=0||pct>100)return toast('掉落率必須大於 0 且不超過 100%');
+    m.drops=Array.isArray(m.drops)?m.drops:[];if(m.drops.some(d=>String(d?.[0])===id))return toast('此怪物已設定該物品，請直接調整原掉落率');
+    m.drops.push([id,Math.round(pct*10000)/1000000]);setDirty(true);renderEditor();toast('已加入 '+itemName(id)+' 掉落');
+  }
+  function removeMonsterDrop(index,dropIndex){const m=state.draft?.monsters?.[index];if(!m||!Array.isArray(m.drops))return;m.drops.splice(dropIndex,1);setDirty(true);renderEditor()}
+  function setMonsterDropRate(index,dropIndex,value){
+    const m=state.draft?.monsters?.[index],pct=Number(value);if(!m||!Array.isArray(m.drops)||!m.drops[dropIndex])return;
+    if(!Number.isFinite(pct)||pct<=0||pct>100){toast('掉落率必須大於 0 且不超過 100%');renderEditor();return}
+    m.drops[dropIndex][1]=Math.round(pct*10000)/1000000;setDirty(true);
+  }
 
   async function saveBreakCfg(){
     const keys=['foundation_seconds','core_seconds','nascent_seconds','event_radius','qi_deviation_multiplier','rebirth_foundation_rate','rebirth_core_bonus','rebirth_nascent_bonus','battle_tick_seconds','base_attack_damage'];const patch={};for(const k of keys)patch[k]=n(document.getElementById('btcfg_'+k).value);
@@ -370,10 +463,10 @@
   window.setConfigTabV129=id=>{state.tab=id;renderEditor()};
   window.createConfigDraftV129=createDraft;window.saveConfigDraftV129=saveDraft;window.publishConfigDraftV129=publishDraft;window.rollbackConfigV129=rollback;window.deleteConfigDraftV129=deleteDraft;window.deleteConfigVersionV148=deleteVersionV148;
   window.addConfigItemV129=addItem;window.deleteConfigItemV129=delItem;window.addConfigArrayRowV129=addArrayRow;window.deleteConfigArrayRowV129=delArrayRow;window.applyRawConfigV129=applyRaw;
-  window.refreshFixedItemBuilderV154=refreshFixedItemBuilder;window.assignNextFixedItemIdV154=assignNextFixedItemId;window.createFixedConfigItemV154=createFixedItem;
+  window.filterItemValuesV154=filterItemValues;window.filterItemCategoryV154=filterItemCategory;window.selectMonsterV154=selectMonster;window.filterMonsterSelectV154=filterMonsterSelect;window.filterMonsterDropItemsV154=filterMonsterDropItems;window.addMonsterDropV154=addMonsterDrop;window.removeMonsterDropV154=removeMonsterDrop;window.setMonsterDropRateV154=setMonsterDropRate;
   window.saveBreakthroughConfigV129=saveBreakCfg;window.exportConfigExcelV129=exportExcel;window.importConfigExcelV129=importExcel;
   window.V129_CONFIG_ADMIN={state,setDirty,renderEditor,refresh:loadConfigAdmin,mergeV135Config};
 
-  console.info('[V15.4 ADMIN FIXED ITEM BUILDER PHASE1] installed',ITEM_EDITOR_BUILD);
+  console.info('[V15.4 ADMIN BALANCE PHASE1] installed',ITEM_EDITOR_BUILD);
   injectCard();setTimeout(()=>{if(!document.getElementById('adminMain')?.classList.contains('hidden'))loadConfigAdmin()},800);
 })();
