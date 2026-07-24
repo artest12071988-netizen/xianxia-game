@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.4-PHASE3-STAGE3-FIX2-INDEPENDENT-EXIT-20260724';
+const BUILD='V15.4-PHASE3-STAGE3-FIX3-INDEPENDENT-CLOCK-20260724';
 const ROOT_ID='v154BreakthroughBattlefield';
 const FAILURE_ID='v154BreakthroughFailureFx';
 const state={
@@ -257,6 +257,32 @@ function resultTransition(result){
   setTimeout(()=>{state.ownerEntry=true;render();const r=root();r?.classList.add(result==='success'?'result-success':'result-failure','v154-result-flash')},900);
   setTimeout(()=>root()?.classList.remove('result-success','result-failure','v154-result-flash'),3100);
 }
+
+function updateClockOnly(){
+  const el=root();
+  const e=state.data?.event;
+  if(!el||!e)return;
+  const strong=el.querySelector('.v154-btf-clock strong');
+  if(!strong)return;
+  if(e.breakthrough_result){
+    strong.textContent=e.breakthrough_result==='success'?'成功':'失敗';
+    return;
+  }
+  const sec=secondsLeft();
+  strong.textContent=sec.toFixed(sec<10?1:0);
+  // 倒數顯示與伺服器同步分離：RPC 暫時延遲時，畫面仍會持續倒數。
+  if(sec<=0)strong.textContent='0.0';
+}
+function startClockTimer(){
+  clearInterval(state.clockTimer);
+  state.clockTimer=setInterval(updateClockOnly,200);
+  updateClockOnly();
+}
+function stopBattlefieldTimers(){
+  clearInterval(state.timer);state.timer=null;
+  clearInterval(state.clockTimer);state.clockTimer=null;
+}
+
 async function load(options={}){
   if(!state.eventId||state.busy||!enabled())return false;
   state.busy=true;
@@ -271,7 +297,7 @@ async function load(options={}){
     if(newResult&&newResult===oldResult&&!state.ownerEntry)state.ownerEntry=true;
     render();
     if(newResult&&newResult!==oldResult){state.lastResult=newResult;resultTransition(newResult)}
-    if(data?.event?.battle_status==='ended'){clearInterval(state.timer);clearDismissed(state.eventId)}
+    if(data?.event?.battle_status==='ended'){stopBattlefieldTimers();clearDismissed(state.eventId)}
     return true;
   }catch(err){
     console.warn('[V15.4 battlefield load]',err);
@@ -279,7 +305,7 @@ async function load(options={}){
     const message=String(err?.message||err);
     const fatal=message.includes('BREAKTHROUGH_NOT_FOUND')||message.includes('23514')||message.includes('owner_hp_check')||message.includes('400')||state.loadErrors>=3;
     if(fatal||options.initial){
-      clearInterval(state.timer);state.timer=null;
+      stopBattlefieldTimers();
       close();
       window.toast?.('戰場資料異常，已停止輪詢並安全返回遊戲');
     }
@@ -316,14 +342,16 @@ async function open(eventId,options={}){
   const normalizedEventId=String(eventId);
   if(state.dismissedEvents.has(normalizedEventId)&&!options.force)return false;
   state.eventId=normalizedEventId;state.role=options.role||state.role;state.selected=null;state.data=null;state.lastResult=options.lastResult||null;state.ownerEntry=!!options.ownerEntry;state.resultDialogue=null;
-  clearInterval(state.timer);state.timer=null;
+  stopBattlefieldTimers();
   const loaded=await load({initial:true});
   if(!loaded)return false;
+  // 顯示倒數與網路同步分成兩條計時器，避免單次 RPC 延遲凍結畫面。
+  startClockTimer();
   clearInterval(state.timer);state.timer=setInterval(()=>load(),900);
   return true;
 }
 function close(){
-  clearInterval(state.timer);state.timer=null;root()?.remove();document.body.classList.remove('v154-battlefield-locked');state.eventId=null;state.data=null;state.selected=null;state.ownerEntry=false;state.resultDialogue=null;
+  stopBattlefieldTimers();root()?.remove();document.body.classList.remove('v154-battlefield-locked');state.eventId=null;state.data=null;state.selected=null;state.ownerEntry=false;state.resultDialogue=null;
 }
 function dismissAndClose(){
   const eventId=state.eventId;
