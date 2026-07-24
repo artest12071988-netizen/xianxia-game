@@ -36,7 +36,7 @@
     metal:{label:'金性暴擊',type:'金',unit:'%',defaultValue:25},
     earth:{label:'土性減傷',type:'土',unit:'%',defaultValue:25}
   };
-  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-ITEM-MONSTER-20260725';
+  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-FIX1-SAFE-ITEM-CRUD-20260725';
 
   function h(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
   function clone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
@@ -156,6 +156,38 @@
     return '';
   }
 
+
+  function fixedItemIdRange(kind,item){
+    if(kind==='equipment')return item?.cat==='防具'?[3000,3999]:[2000,2999];
+    return FIXED_ITEM_KINDS[kind]?.idRange||null;
+  }
+  function itemReferences(id){
+    const key=String(id),refs=[],d=state.draft||{};
+    for(const [field,label] of [['npcShop','NPC商店'],['shop','舊商店']]){
+      (d[field]||[]).forEach((x,i)=>{if(String(x?.id)===key)refs.push(`${label}第 ${i+1} 筆`)})
+    }
+    (d.monsters||[]).forEach(m=>(Array.isArray(m?.drops)?m.drops:[]).forEach(x=>{if(String(x?.[0])===key)refs.push(`怪物「${m.name||m.id}」掉落`) }));
+    (d.zones||[]).forEach(z=>(Array.isArray(z?.pool)?z.pool:[]).forEach(x=>{if(String(x?.[0])===key)refs.push(`地圖「${z.name||z.coord}」探索掉落`) }));
+    (d.craftingRecipes||[]).forEach(r=>{
+      if(String(r?.blueprint||'')===key)refs.push(`配方「${r.name||r.id}」丹方`);
+      if(r?.materials&&Object.prototype.hasOwnProperty.call(r.materials,key))refs.push(`配方「${r.name||r.id}」材料`);
+      if(String(r?.output?.itemId||'')===key)refs.push(`配方「${r.name||r.id}」產物`);
+    });
+    (d.heavenlyTreasures||[]).forEach((x,i)=>{if(String(x?.itemId||'')===key)refs.push(`天地靈物第 ${i+1} 筆`) });
+    return [...new Set(refs)];
+  }
+  function validateNewFixedItem(id,item,errors){
+    if(!/^\d+$/.test(String(id)))errors.push('新增物品 '+id+' 的 ID 必須是純數字');
+    const kind=kindFromItem(item),range=fixedItemIdRange(kind,item),num=Number(id);
+    if(kind==='legacy'||!range)errors.push('新增物品 '+id+' 使用了後台未支援的分類或效果');
+    else if(!Number.isInteger(num)||num<range[0]||num>range[1])errors.push('新增物品 '+id+' 不在 '+FIXED_ITEM_KINDS[kind].label+' 的安全 ID 範圍 '+range[0]+'～'+range[1]);
+    if(!String(item?.name||'').trim())errors.push('新增物品 '+id+' 缺少名稱');
+    if(!Number.isFinite(Number(item?.val)))errors.push('新增物品 '+id+' 的數值不是有效數字');
+    if(kind==='equipment'&&!['法器','防具'].includes(String(item?.cat||'')))errors.push('新增裝備 '+id+' 必須是武器或防具');
+    if(kind==='medicine'&&!Object.values(MEDICINE_EFFECTS).some(x=>x.eff===item?.eff))errors.push('新增藥品 '+id+' 使用了未支援效果');
+    if(kind==='enchant'&&(item?.eff!=='五行附魔'||!['火','水','木','金','土'].includes(String(item?.type||''))))errors.push('新增附魔材料 '+id+' 使用了未支援效果');
+  }
+
   function renderFixedItemBuilder(){
     return `<div class="fixed-item-builder">
       <h3>固定物品建立器</h3>
@@ -172,18 +204,24 @@
       <div class="fixed-item-actions"><button class="btn" onclick="assignNextFixedItemIdV154()">取得未使用 ID</button><button class="btn jade" onclick="createFixedConfigItemV154()">建立物品</button></div>
     </div>`;
   }
+
   function renderItems(){
     const cats=[...new Set(Object.values(state.draft.items||{}).map(x=>String(x?.cat||'未分類')))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
     const q=String(state.itemSearch||'').trim().toLowerCase(),cat=state.itemCategory||'all';
     const rows=Object.entries(state.draft.items||{}).sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'zh-Hant')).map(([id,x])=>{
       const hay=(id+' '+(x.name||'')+' '+(x.cat||'')+' '+(x.eff||'')).toLowerCase();
       const hidden=(q&&!hay.includes(q))||(cat!=='all'&&String(x.cat||'未分類')!==cat);
-      return `<tr class="item-value-row" data-item-hay="${h(hay)}" data-item-cat="${h(x.cat||'未分類')}" ${hidden?'hidden':''}><td class="id">${h(id)}</td><td class="locked-cell"><b>${h(x.name||'')}</b><small>名稱鎖定</small></td><td><span class="fixed-lock">${h(fixedItemLabel(x))}</span></td><td>${input(x.val??0,`items.${id}.val`,'number','step="0.01"')}</td><td class="locked-cell">${h(x.detail||'')}<small>說明與功能鎖定</small></td></tr>`;
+      const refs=itemReferences(id),isNew=!state.lockBaseline?.items?.[id];
+      const action=refs.length
+        ? `<button class="btn" disabled title="${h(refs.join('；'))}">使用中</button>`
+        : `<button class="btn red" onclick="deleteConfigItemV129('${h(id)}')">刪除</button>`;
+      return `<tr class="item-value-row" data-item-hay="${h(hay)}" data-item-cat="${h(x.cat||'未分類')}" ${hidden?'hidden':''}><td class="id">${h(id)}${isNew?'<small class="phase1-pass">新建</small>':''}</td><td class="locked-cell"><b>${h(x.name||'')}</b><small>名稱鎖定</small></td><td><span class="fixed-lock">${h(fixedItemLabel(x))}</span></td><td>${input(x.val??0,`items.${id}.val`,'number','step="0.01"')}</td><td class="locked-cell">${h(x.detail||'')}<small>說明與功能鎖定</small></td><td>${action}</td></tr>`;
     }).join('');
-    return `<div class="phase1-scope"><b>本頁只允許調整既有物品的「數值」。</b> ID、名稱、分類、效果、用途與說明全部鎖定；禁止新增、刪除或改名。</div>
+    return renderFixedItemBuilder()+`<div class="phase1-scope"><b>可安全新增與刪除物品。</b> 新增時只能使用固定分類、種類與效果下拉選單；既有物品與建立完成的物品，其 ID、名稱、分類、效果、用途與說明全部鎖定，只能調整數值。被商店、怪物、地圖、配方或天地靈物引用的物品禁止刪除。</div>
       <div class="phase1-tools"><input id="phase1ItemSearch" placeholder="搜尋物品 ID、名稱、分類或效果" value="${h(state.itemSearch)}" oninput="filterItemValuesV154(this.value)"><select id="phase1ItemCategory" onchange="filterItemCategoryV154(this.value)"><option value="all">全部分類</option>${cats.map(c=>`<option value="${h(c)}" ${cat===c?'selected':''}>${h(c)}</option>`).join('')}</select></div>
-      <div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>ID</th><th>名稱（鎖定）</th><th>分類／效果（鎖定）</th><th>可調整數值</th><th>說明（鎖定）</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      <div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>ID</th><th>名稱（鎖定）</th><th>分類／效果（鎖定）</th><th>可調整數值</th><th>說明（鎖定）</th><th>管理</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
+
   function renderShop(){
     const rows=(state.draft.npcShop||[]).map((x,i)=>`<tr><td>${input(x.id,`npcShop.${i}.id`)}</td><td>${input(x.name,`npcShop.${i}.name`)}</td><td>${input(x.price??0,`npcShop.${i}.price`,'number','min="0"')}</td><td>${input(x.daily??9999,`npcShop.${i}.daily`,'number','min="0"')}</td><td><button class="btn red" onclick="deleteConfigArrayRowV129('npcShop',${i})">刪除</button></td></tr>`).join('');
     return `<div class="row" style="margin-bottom:8px"><button class="btn jade" onclick="addConfigArrayRowV129('npcShop')">新增商品</button></div><div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>物品ID</th><th>顯示名稱</th><th>售價</th><th>每日限購</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
@@ -280,15 +318,22 @@
     }catch(e){document.getElementById('configEditor').innerHTML='<div class="notice">V12.9 後台尚未安裝或載入失敗：'+h(e.message||e)+'</div>'}
   }
 
+
   function validatePhase1Scope(){
     if(!state.lockBaseline)throw new Error('尚未取得正式版鎖定基準，請重新載入後台');
     const errors=[],baseItems=state.lockBaseline.items||{},items=state.draft.items||{};
     const baseItemIds=Object.keys(baseItems).sort(),itemIds=Object.keys(items).sort();
-    if(!deepEqual(baseItemIds,itemIds))errors.push('禁止新增或刪除物品，物品 ID 清單必須與正式版一致');
+    for(const id of itemIds){
+      const cur=items[id];
+      if(baseItems[id]){
+        if(!deepEqual(protectedCopyItem(cur),protectedCopyItem(baseItems[id])))errors.push('既有物品 '+id+' 只允許修改數值，名稱／分類／效果／說明不得更動');
+      }else validateNewFixedItem(id,cur,errors);
+      if(!Number.isFinite(Number(cur?.val)))errors.push('物品 '+id+' 的數值不是有效數字');
+    }
     for(const id of baseItemIds){
-      const cur=items[id];if(!cur){errors.push('缺少物品 '+id);continue}
-      if(!deepEqual(protectedCopyItem(cur),protectedCopyItem(baseItems[id])))errors.push('物品 '+id+' 只允許修改數值，名稱／分類／效果／說明不得更動');
-      if(!Number.isFinite(Number(cur.val)))errors.push('物品 '+id+' 的數值不是有效數字');
+      if(items[id])continue;
+      const refs=itemReferences(id);
+      if(refs.length)errors.push('已刪除物品 '+id+' 仍被引用：'+refs.slice(0,3).join('、'));
     }
     const baseMonsters=state.lockBaseline.monsters||[],monsters=state.draft.monsters||[];
     const baseMap=new Map(baseMonsters.map(x=>[String(x.id),x])),curMap=new Map(monsters.map(x=>[String(x.id),x]));
@@ -310,6 +355,7 @@
     if(errors.length)throw new Error(errors.slice(0,8).join('；')+(errors.length>8?'；另有 '+(errors.length-8)+' 項錯誤':''));
     return true;
   }
+
   async function validateDraft(){
     if(!state.draft)throw new Error('尚無草稿');
     validatePhase1Scope();
@@ -407,8 +453,22 @@
     }else return toast('不支援的物品分類');
     state.draft.items[id]=item;setDirty(true);renderEditor();toast('已建立 '+name+'（'+id+'），請儲存並發布');
   }
-  function addItem(){toast('第一階段禁止新增物品')}
-  function delItem(){toast('第一階段禁止刪除物品')}
+
+  function addItem(){
+    state.tab='items';renderEditor();
+    setTimeout(()=>{const el=document.querySelector('.fixed-item-builder');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('fixedItemName')?.focus()},0);
+  }
+  function delItem(id){
+    id=String(id);const item=state.draft?.items?.[id];if(!item)return toast('找不到物品 '+id);
+    const refs=itemReferences(id);if(refs.length)return toast('無法刪除：'+refs.slice(0,4).join('；')+(refs.length>4?'；另有 '+(refs.length-4)+' 處引用':''));
+    const published=!!state.lockBaseline?.items?.[id];
+    const message=published
+      ? `物品 ${id}「${item.name||''}」已存在於正式版。確認目前商店、掉落、地圖、配方與天地靈物皆未引用後刪除？`
+      : `刪除新建物品 ${id}「${item.name||''}」？`;
+    if(!confirm(message))return;
+    delete state.draft.items[id];setDirty(true);renderEditor();toast('已刪除 '+(item.name||id)+'，請儲存並發布');
+  }
+
   function addArrayRow(cat){if(cat==='monsters')return toast('第一階段禁止新增怪物');const defaults={npcShop:{id:'',name:'新商品',price:0,daily:9999},monsters:{id:9999,name:'新妖獸',cat:'普通妖獸',lv:1,hp:100,mp:0,atk:10,def:5,exp:10,drops:[],spawn:'荒野'},techniques:{id:'new_technique',name:'新功法',category:'靈修',price:0,desc:'',details:''}};state.draft[cat]=state.draft[cat]||[];state.draft[cat].push(defaults[cat]);setDirty(true);renderEditor()}
   function delArrayRow(cat,i){if(cat==='monsters')return toast('第一階段禁止刪除怪物');state.draft[cat].splice(i,1);setDirty(true);renderEditor()}
   function applyRaw(){try{state.draft=JSON.parse(document.getElementById('rawConfigJson').value);setDirty(true);renderEditor();toast('JSON已套用，發布前仍會驗證')}catch(e){toast('JSON格式錯誤：'+e.message)}}
