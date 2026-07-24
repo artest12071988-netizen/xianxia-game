@@ -9,21 +9,24 @@
    4) revision 衝突時採伺服器資料，不允許本機覆蓋。
    ============================================================ */
 
-const V154_CLOUD_GUARD_BUILD = 'V15.4-WORLD-SAVE-RECOVERY-FIX1-20260724';
+const V154_RUNTIME_BUILD = 'V15.4-WORLD-SAVE-RECOVERY-FIX2-20260724';
+const V154_CLOUD_REQUIRED_BUILD = 'V15.4-PHASE3-STAGE3-FIX2-CLOUD-GUARD-20260724';
 const V154_CLOUD_GUARD_CACHE_KEY = 'xianxia_v154_world_save_recovery_fix1';
 
 Object.assign(cloudState, {
   cloudReady: false,
   writeEnabled: false,
-  clientBuildGuard: V154_CLOUD_GUARD_BUILD,
-  staleClientBlocked: false
+  clientBuildGuard: V154_CLOUD_REQUIRED_BUILD,
+  staleClientBlocked: false,
+  conflictRetryCount: 0,
+  conflictRetryTimer: null
 });
 
 function v154PurgeLegacyLocalSave() {
   try {
     localStorage.removeItem(V12_LOCAL_CACHE);
     localStorage.removeItem(V12_RECOVERY_CONFLICT);
-    localStorage.setItem(V154_CLOUD_GUARD_CACHE_KEY, V154_CLOUD_GUARD_BUILD);
+    localStorage.setItem(V154_CLOUD_GUARD_CACHE_KEY, V154_RUNTIME_BUILD);
   } catch (error) {
     console.warn('[V15.4 CLOUD GUARD] local cache purge failed', error);
   }
@@ -61,12 +64,12 @@ function v154BuildPayload() {
       ai
     };
   }
-  payload.clientBuildGuard = V154_CLOUD_GUARD_BUILD;
-  payload.build = V154_CLOUD_GUARD_BUILD;
+  payload.clientBuildGuard = V154_CLOUD_REQUIRED_BUILD;
+  payload.build = V154_CLOUD_REQUIRED_BUILD;
   payload.clientRevision = Number(cloudState.revision || 0);
   payload.savedAt = Date.now();
   if (payload.g) {
-    payload.g.build = V154_CLOUD_GUARD_BUILD;
+    payload.g.build = V154_CLOUD_REQUIRED_BUILD;
     payload.g.lastSavedAt = payload.savedAt;
   }
   return payload;
@@ -97,7 +100,8 @@ afterCloudLogin = async function () {
   if (continueButton) continueButton.style.display = cloudState.remoteSave ? 'block' : 'none';
   updateCloudBadge();
   console.info('[V15.4 CLOUD GUARD] cloud-first login ready', {
-    build: V154_CLOUD_GUARD_BUILD,
+    build: V154_RUNTIME_BUILD,
+    requiredBuild: V154_CLOUD_REQUIRED_BUILD,
     revision: cloudState.revision,
     hasRemoteSave: !!cloudState.remoteSave
   });
@@ -228,10 +232,21 @@ flushCloudSave = async function (force = false) {
       cloudState.revision = Number(row.server_revision || cloudState.revision || 0);
       cloudState.remoteSave = row.server_save || cloudState.remoteSave || null;
       cloudState.lastError = 'SAVE_CONFLICT_RETRY_REQUIRED';
-      cloudState.pending = true;
-      console.warn('[V15.4 WORLD SAVE RECOVERY] revision conflict retained current runtime; retry queued', {
-        revision: cloudState.revision
-      });
+      cloudState.pending = false;
+      cloudState.conflictRetryCount = Math.min(Number(cloudState.conflictRetryCount || 0) + 1, 6);
+      const retryDelay = Math.min(1000 * Math.pow(2, cloudState.conflictRetryCount - 1), 30000);
+      if (cloudState.conflictRetryTimer) clearTimeout(cloudState.conflictRetryTimer);
+      cloudState.conflictRetryTimer = setTimeout(() => {
+        cloudState.conflictRetryTimer = null;
+        if (cloudState.writeEnabled && cloudState.cloudReady && !cloudState.saving) scheduleCloudSave(true);
+      }, retryDelay);
+      if (cloudState.conflictRetryCount <= 2 || cloudState.conflictRetryCount === 6) {
+        console.warn('[V15.4 WORLD SAVE RECOVERY] revision conflict; retry scheduled', {
+          revision: cloudState.revision,
+          retryInMs: retryDelay,
+          attempt: cloudState.conflictRetryCount
+        });
+      }
       return;
     }
 
@@ -241,6 +256,8 @@ flushCloudSave = async function (force = false) {
       : Date.now();
     cloudState.remoteSave = payload;
     cloudState.lastError = '';
+    cloudState.conflictRetryCount = 0;
+    if (cloudState.conflictRetryTimer) { clearTimeout(cloudState.conflictRetryTimer); cloudState.conflictRetryTimer = null; }
     v154PurgeLegacyLocalSave();
   } catch (error) {
     const message = error?.message || String(error);
@@ -296,4 +313,4 @@ try {
   }
 } catch (_) {}
 
-console.info('[V15.4 WORLD SAVE RECOVERY FIX1] installed', V154_CLOUD_GUARD_BUILD);
+console.info('[V15.4 WORLD SAVE RECOVERY FIX2] installed', { runtime: V154_RUNTIME_BUILD, requiredBuild: V154_CLOUD_REQUIRED_BUILD });
