@@ -9,8 +9,8 @@
    4) revision 衝突時採伺服器資料，不允許本機覆蓋。
    ============================================================ */
 
-const V154_CLOUD_GUARD_BUILD = 'V15.4-PHASE3-STAGE3-FIX2-CLOUD-GUARD-20260724';
-const V154_CLOUD_GUARD_CACHE_KEY = 'xianxia_v154_cloud_guard_build';
+const V154_CLOUD_GUARD_BUILD = 'V15.4-WORLD-SAVE-RECOVERY-FIX1-20260724';
+const V154_CLOUD_GUARD_CACHE_KEY = 'xianxia_v154_world_save_recovery_fix1';
 
 Object.assign(cloudState, {
   cloudReady: false,
@@ -182,13 +182,8 @@ scheduleCloudSave = function (force = false) {
 
 flushCloudSave = async function (force = false) {
   if (
-    !g ||
-    g.dead ||
-    !cloudState.enabled ||
-    !cloudState.user ||
-    !cloudState.cloudReady ||
-    !cloudState.writeEnabled ||
-    cloudState.staleClientBlocked
+    !g || g.dead || !cloudState.enabled || !cloudState.user ||
+    !cloudState.cloudReady || !cloudState.writeEnabled || cloudState.staleClientBlocked
   ) return;
 
   if (!navigator.onLine) {
@@ -203,36 +198,50 @@ flushCloudSave = async function (force = false) {
   cloudState.saving = true;
   cloudState.pending = false;
   updateCloudBadge();
-  const payload = v154BuildPayload();
 
-  try {
+  // 每次送出前都重新建立最新執行中狀態，避免舊 payload 回滾玩家動作。
+  let payload = v154BuildPayload();
+
+  async function sendOnce(revision) {
     const { data, error } = await cloudState.client.rpc('save_game_state', {
       p_save: payload,
-      p_client_revision: Number(cloudState.revision || 0)
+      p_client_revision: Number(revision || 0)
     });
     if (error) throw error;
-
     const row = Array.isArray(data) ? data[0] : data;
     if (!row) throw new Error('伺服器未回傳存檔結果');
+    return row;
+  }
 
-    if (row.accepted) {
-      cloudState.revision = Number(row.server_revision || cloudState.revision + 1);
-      cloudState.lastSyncedAt = row.server_updated_at
-        ? Date.parse(row.server_updated_at)
-        : Date.now();
-      cloudState.remoteSave = payload;
-      cloudState.lastError = '';
-      v154PurgeLegacyLocalSave();
-    } else {
-      cloudState.revision = Number(row.server_revision || 0);
-      cloudState.remoteSave = row.server_save || null;
-      if (row.server_save?.g) {
-        applySavePayload(row.server_save);
-        render();
-      }
-      v154PurgeLegacyLocalSave();
-      toast('偵測到舊版或舊分頁，已採用伺服器最新存檔');
+  try {
+    let row = await sendOnce(cloudState.revision);
+
+    // revision 衝突不再把伺服器舊畫面直接套回目前遊戲。
+    // 先採用伺服器 revision，再用玩家目前最新狀態安全重試一次。
+    if (!row.accepted) {
+      cloudState.revision = Number(row.server_revision || cloudState.revision || 0);
+      payload = v154BuildPayload();
+      row = await sendOnce(cloudState.revision);
     }
+
+    if (!row.accepted) {
+      cloudState.revision = Number(row.server_revision || cloudState.revision || 0);
+      cloudState.remoteSave = row.server_save || cloudState.remoteSave || null;
+      cloudState.lastError = 'SAVE_CONFLICT_RETRY_REQUIRED';
+      cloudState.pending = true;
+      console.warn('[V15.4 WORLD SAVE RECOVERY] revision conflict retained current runtime; retry queued', {
+        revision: cloudState.revision
+      });
+      return;
+    }
+
+    cloudState.revision = Number(row.server_revision || cloudState.revision + 1);
+    cloudState.lastSyncedAt = row.server_updated_at
+      ? Date.parse(row.server_updated_at)
+      : Date.now();
+    cloudState.remoteSave = payload;
+    cloudState.lastError = '';
+    v154PurgeLegacyLocalSave();
   } catch (error) {
     const message = error?.message || String(error);
     cloudState.lastError = message;
@@ -241,11 +250,14 @@ flushCloudSave = async function (force = false) {
       cloudState.writeEnabled = false;
       toast('目前頁面版本已失效，雲端已拒絕舊版存檔');
     }
-    console.error('[V15.4 CLOUD GUARD] cloud save failed', error);
+    console.error('[V15.4 WORLD SAVE RECOVERY] cloud save failed', error);
   } finally {
     cloudState.saving = false;
     updateCloudBadge();
-    if (cloudState.pending && cloudState.writeEnabled) scheduleCloudSave(true);
+    if (cloudState.pending && cloudState.writeEnabled) {
+      cloudState.pending = false;
+      setTimeout(() => scheduleCloudSave(true), 250);
+    }
   }
 };
 
@@ -284,4 +296,4 @@ try {
   }
 } catch (_) {}
 
-console.info('[V15.4 CLOUD SAVE GUARD] installed', V154_CLOUD_GUARD_BUILD);
+console.info('[V15.4 WORLD SAVE RECOVERY FIX1] installed', V154_CLOUD_GUARD_BUILD);

@@ -1,7 +1,7 @@
 'use strict';
 (() => {
-  const VERSION = 'V13.3-OBS-FIX1';
-  const S = { timer: null, busy: false, lastResult: null, lastError: null };
+  const VERSION = 'V13.3-OBS-SAFE-MISSING-RPC-FIX1';
+  const S = { timer: null, busy: false, disabled: false, lastResult: null, lastError: null };
 
   function cloud() { try { return typeof cloudState !== 'undefined' && cloudState ? cloudState : (window.cloudState || null); } catch (_) { return window.cloudState || null; } }
 
@@ -14,7 +14,7 @@
   }
 
   async function heartbeat() {
-    if (S.busy || document.visibilityState === 'hidden') return S.lastResult;
+    if (S.disabled || S.busy || document.visibilityState === 'hidden') return S.lastResult;
     S.busy = true;
     try {
       S.lastResult = await rpc('run_ai_observatory_cycle');
@@ -23,7 +23,14 @@
       return S.lastResult;
     } catch (error) {
       S.lastError = error?.message || String(error);
-      if (S.lastError !== 'CLOUD_NOT_READY') console.warn('[V13.3 Observatory]', S.lastError);
+      const missingRpc = /run_ai_observatory_cycle|PGRST202|404|schema cache|Could not find the function/i.test(S.lastError);
+      if (missingRpc) {
+        S.disabled = true;
+        stop();
+        console.warn('[V13.3 Observatory] optional RPC unavailable; observatory disabled without affecting world loop');
+      } else if (S.lastError !== 'CLOUD_NOT_READY') {
+        console.warn('[V13.3 Observatory]', S.lastError);
+      }
       return null;
     } finally {
       S.busy = false;
