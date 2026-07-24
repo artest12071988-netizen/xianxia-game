@@ -10,6 +10,34 @@
     ['npc_sell_rate','NPC回收倍率'],['meditate_hp_gain','打坐體力恢復'],['meditate_mp_gain','打坐精力恢復'],['meditate_exp_interval_sec','一般打坐修為間隔秒數']
   ];
 
+  /* V15.4 後台固定物品建立器：只提供遊戲已支援的資料結構，不允許自由輸入類別或效果名稱。 */
+  const FIXED_ITEM_KINDS={
+    equipment:{label:'裝備',idRange:[2000,3999]},
+    material:{label:'材料',idRange:[4000,4999]},
+    herb:{label:'藥材',idRange:[4100,4999]},
+    recipe:{label:'丹方',idRange:[7000,7999]},
+    medicine:{label:'藥品',idRange:[1000,1999]},
+    enchant:{label:'附魔材料',idRange:[8600,8699]}
+  };
+  const EQUIPMENT_TYPES={
+    weapon:{label:'武器',cat:'法器',eff:'攻擊',types:['長劍','飛劍']},
+    armor:{label:'防具',cat:'防具',eff:'防禦',types:['法袍','重甲']}
+  };
+  const MEDICINE_EFFECTS={
+    hp:{label:'體力回復',eff:'體力回復',unit:'點'},
+    mp:{label:'精力回復',eff:'精力回復',unit:'點'},
+    heal:{label:'解除外傷',eff:'療傷',unit:'固定'},
+    breakthrough:{label:'突破成功率',eff:'突破增益',unit:'%'}
+  };
+  const ENCHANT_EFFECTS={
+    fire:{label:'火性追加傷害',type:'火',unit:'%',defaultValue:20},
+    water:{label:'水性削減法力',type:'水',unit:'%',defaultValue:3},
+    wood:{label:'木性吸血',type:'木',unit:'%',defaultValue:20},
+    metal:{label:'金性暴擊',type:'金',unit:'%',defaultValue:25},
+    earth:{label:'土性減傷',type:'土',unit:'%',defaultValue:25}
+  };
+  const ITEM_EDITOR_BUILD='V15.4-ADMIN-FIXED-ITEM-BUILDER-PHASE1-20260724';
+
   function h(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
   function clone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
   function plainObject(x){return !!x&&typeof x==='object'&&!Array.isArray(x)}
@@ -44,7 +72,7 @@
   function injectStyles(){
     if(document.getElementById('v129AdminStyle'))return;
     const s=document.createElement('style');s.id='v129AdminStyle';s.textContent=`
-      .cfg-toolbar{display:flex;gap:8px;flex-wrap:wrap}.cfg-toolbar .btn{flex:1;min-width:130px}.cfg-tabs{display:flex;gap:6px;overflow:auto;margin:12px 0;padding-bottom:4px}.cfg-tabs button{white-space:nowrap;border:1px solid var(--line);background:#08101a;color:var(--muted);border-radius:8px;padding:9px 12px}.cfg-tabs button.on{color:var(--gold);border-color:#8f713d;background:#211a0e}.cfg-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}.cfg-table{width:100%;border-collapse:collapse;min-width:850px}.cfg-table th,.cfg-table td{border-bottom:1px solid #ffffff0d;padding:6px;vertical-align:top}.cfg-table th{position:sticky;top:0;background:#0d1723;color:var(--muted);font-size:11px;z-index:1}.cfg-table input,.cfg-table textarea,.cfg-table select{padding:8px;font-size:13px;min-width:85px}.cfg-table textarea{min-height:54px}.cfg-table .id{min-width:80px;color:var(--jade)}.cfg-mini{font-size:11px;color:var(--muted)}.cfg-version{display:grid;grid-template-columns:75px 90px 1fr auto;gap:8px;align-items:center;padding:8px;border-bottom:1px solid #ffffff0d}.cfg-version:last-child{border-bottom:0}.cfg-status{border:1px solid var(--line);border-radius:99px;padding:3px 7px;text-align:center;font-size:10px}.cfg-status.published{color:#77d89c}.cfg-status.draft{color:var(--gold)}.cfg-status.archived{color:var(--muted)}.cfg-json{min-height:420px;font-family:ui-monospace,Consolas,monospace;font-size:12px}.cfg-break-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.cfg-break-grid .field{background:#070d15;border:1px solid var(--line);border-radius:9px;padding:8px}@media(max-width:700px){.cfg-break-grid{grid-template-columns:1fr 1fr}.cfg-version{grid-template-columns:60px 78px 1fr}.cfg-version .btn{grid-column:1/-1}.cfg-toolbar .btn{min-width:46%}}
+      .cfg-toolbar{display:flex;gap:8px;flex-wrap:wrap}.cfg-toolbar .btn{flex:1;min-width:130px}.cfg-tabs{display:flex;gap:6px;overflow:auto;margin:12px 0;padding-bottom:4px}.cfg-tabs button{white-space:nowrap;border:1px solid var(--line);background:#08101a;color:var(--muted);border-radius:8px;padding:9px 12px}.cfg-tabs button.on{color:var(--gold);border-color:#8f713d;background:#211a0e}.cfg-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}.cfg-table{width:100%;border-collapse:collapse;min-width:850px}.cfg-table th,.cfg-table td{border-bottom:1px solid #ffffff0d;padding:6px;vertical-align:top}.cfg-table th{position:sticky;top:0;background:#0d1723;color:var(--muted);font-size:11px;z-index:1}.cfg-table input,.cfg-table textarea,.cfg-table select{padding:8px;font-size:13px;min-width:85px}.cfg-table textarea{min-height:54px}.cfg-table .id{min-width:80px;color:var(--jade)}.cfg-mini{font-size:11px;color:var(--muted)}.fixed-item-builder{border:1px solid rgba(73,210,199,.34);background:linear-gradient(180deg,rgba(7,26,34,.96),rgba(7,13,21,.98));border-radius:12px;padding:14px;margin-bottom:14px}.fixed-item-builder h3{margin:0 0 5px;color:var(--jade)}.fixed-item-builder .builder-note{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px}.fixed-item-grid{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:9px;align-items:end}.fixed-item-grid .field{margin:0}.fixed-item-grid label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}.fixed-item-grid input,.fixed-item-grid select{width:100%;min-width:0}.fixed-item-preview{margin-top:10px;padding:10px 12px;border-left:3px solid var(--gold);background:#ffffff08;color:#e7e1d3;line-height:1.65}.fixed-lock{display:inline-flex;align-items:center;border:1px solid #ffffff1c;border-radius:999px;padding:4px 8px;background:#07111a;color:#cbd4dc;font-size:11px;white-space:nowrap}.fixed-lock.legacy{color:#d8b96a}.fixed-item-actions{display:flex;gap:8px;margin-top:10px}.fixed-item-actions .btn{flex:1}.fixed-value-wrap{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center}.fixed-value-unit{color:var(--gold);font-weight:800;min-width:28px;text-align:center}.fixed-item-list-note{margin:8px 0 10px;color:var(--muted);font-size:12px}.fixed-item-filter{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.fixed-item-filter button{border:1px solid var(--line);background:#08101a;color:var(--muted);border-radius:999px;padding:6px 10px}.fixed-item-filter button.on{border-color:#8f713d;color:var(--gold);background:#211a0e}@media(max-width:1100px){.fixed-item-grid{grid-template-columns:repeat(3,minmax(130px,1fr))}}@media(max-width:700px){.fixed-item-grid{grid-template-columns:1fr 1fr}.fixed-item-actions{flex-direction:column}}.cfg-version{display:grid;grid-template-columns:75px 90px 1fr auto;gap:8px;align-items:center;padding:8px;border-bottom:1px solid #ffffff0d}.cfg-version:last-child{border-bottom:0}.cfg-status{border:1px solid var(--line);border-radius:99px;padding:3px 7px;text-align:center;font-size:10px}.cfg-status.published{color:#77d89c}.cfg-status.draft{color:var(--gold)}.cfg-status.archived{color:var(--muted)}.cfg-json{min-height:420px;font-family:ui-monospace,Consolas,monospace;font-size:12px}.cfg-break-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.cfg-break-grid .field{background:#070d15;border:1px solid var(--line);border-radius:9px;padding:8px}@media(max-width:700px){.cfg-break-grid{grid-template-columns:1fr 1fr}.cfg-version{grid-template-columns:60px 78px 1fr}.cfg-version .btn{grid-column:1/-1}.cfg-toolbar .btn{min-width:46%}}
     `;document.head.appendChild(s);
   }
 
@@ -69,9 +97,80 @@
   function input(value,path,type='text',attrs=''){return `<input type="${type}" value="${h(value)}" data-cfg-path="${h(path)}" ${attrs}>`}
   function textarea(value,path){return `<textarea data-cfg-path="${h(path)}">${h(value)}</textarea>`}
 
+  function select(value,path,options,attrs=''){
+    return `<select data-cfg-path="${h(path)}" ${attrs}>${options.map(([v,l])=>`<option value="${h(v)}" ${String(value??'')===String(v)?'selected':''}>${h(l)}</option>`).join('')}</select>`;
+  }
+  function signed(v){const x=n(v);return x>0?'+'+x:String(x)}
+  function kindFromItem(x){
+    const cat=String(x?.cat||''),eff=String(x?.eff||'');
+    if(cat==='法器'||cat==='防具')return 'equipment';
+    if(cat==='丹藥')return 'medicine';
+    if(cat==='丹方')return 'recipe';
+    if(cat==='藥材')return 'herb';
+    if(cat==='附魔材料'&&eff==='五行附魔')return 'enchant';
+    if(cat==='材料')return 'material';
+    return 'legacy';
+  }
+  function fixedItemLabel(x){
+    const kind=kindFromItem(x);
+    if(kind==='equipment')return x.cat==='防具'?'裝備／防具':'裝備／武器';
+    if(kind==='medicine')return '藥品／'+(x.eff||'未設定');
+    if(kind==='recipe')return '丹方／習得配方';
+    if(kind==='herb')return '藥材／合成材料';
+    if(kind==='enchant')return '附魔材料／'+(x.type||'五行');
+    if(kind==='material')return '材料／合成材料';
+    return (x.cat||'既有特殊項目')+'／'+(x.eff||'固定功能');
+  }
+  function nextFixedItemId(kind,subtype){
+    const items=state.draft?.items||{};let range=FIXED_ITEM_KINDS[kind]?.idRange||[8700,8999];
+    if(kind==='equipment')range=subtype==='armor'?[3000,3999]:[2000,2999];
+    for(let i=range[0];i<=range[1];i++)if(!items[String(i)])return String(i);
+    return '';
+  }
+  function builderDetail(kind,subtype,effect,value){
+    const v=n(value);
+    if(kind==='equipment')return subtype==='armor'?`裝備後防禦力 ${signed(v)}。`:`裝備後攻擊力 ${signed(v)}。`;
+    if(kind==='material')return '可作為煉丹或煉器材料。';
+    if(kind==='herb')return '藥材，可作為煉丹材料。';
+    if(kind==='recipe')return `使用後習得配方編號 ${Math.max(0,Math.floor(v))}。`;
+    if(kind==='medicine'){
+      if(effect==='hp')return `使用後恢復 ${v} 點體力。`;
+      if(effect==='mp')return `使用後恢復 ${v} 點精力。`;
+      if(effect==='heal')return '使用後解除一項外傷狀態。';
+      if(effect==='breakthrough')return `突破成功率增加 ${v}%。`;
+    }
+    if(kind==='enchant'){
+      if(effect==='fire')return `火性附魔：追加 ${v}% 火性傷害。`;
+      if(effect==='water')return `水性附魔：削減對方最大法力 ${v}%。`;
+      if(effect==='wood')return `木性附魔：實際傷害 ${v}% 轉為自身體力。`;
+      if(effect==='metal')return `金性附魔：暴擊率增加 ${v}%。`;
+      if(effect==='earth')return `土性附魔：最終承傷降低 ${v}%。`;
+    }
+    return '';
+  }
+
+  function renderFixedItemBuilder(){
+    return `<div class="fixed-item-builder">
+      <h3>固定物品建立器</h3>
+      <div class="builder-note">先建立唯一 ID，再依固定分類、固定效果與數值建立物品。類別與效果不能自由輸入，避免產生遊戲無法辨識的資料。</div>
+      <div class="fixed-item-grid">
+        <div class="field"><label>物品 ID</label><input id="fixedItemId" inputmode="numeric" placeholder="不可重複"></div>
+        <div class="field"><label>名稱</label><input id="fixedItemName" placeholder="輸入物品名稱"></div>
+        <div class="field"><label>分類</label><select id="fixedItemKind" onchange="refreshFixedItemBuilderV154()">${Object.entries(FIXED_ITEM_KINDS).map(([id,x])=>`<option value="${id}">${x.label}</option>`).join('')}</select></div>
+        <div class="field" id="fixedItemSubtypeField"><label>種類</label><select id="fixedItemSubtype" onchange="refreshFixedItemBuilderV154()"></select></div>
+        <div class="field" id="fixedItemEffectField"><label>效果</label><select id="fixedItemEffect" onchange="refreshFixedItemBuilderV154()"></select></div>
+        <div class="field"><label>數值</label><div class="fixed-value-wrap"><input id="fixedItemValue" type="number" step="0.01" value="0" oninput="refreshFixedItemBuilderV154(false)"><span id="fixedItemValueUnit" class="fixed-value-unit">點</span></div></div>
+      </div>
+      <div id="fixedItemPreview" class="fixed-item-preview">請選擇分類。</div>
+      <div class="fixed-item-actions"><button class="btn" onclick="assignNextFixedItemIdV154()">取得未使用 ID</button><button class="btn jade" onclick="createFixedConfigItemV154()">建立物品</button></div>
+    </div>`;
+  }
   function renderItems(){
-    const rows=Object.entries(state.draft.items||{}).sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'zh-Hant')).map(([id,x])=>`<tr><td class="id">${h(id)}</td><td>${input(x.name,`items.${id}.name`)}</td><td>${input(x.cat,`items.${id}.cat`)}</td><td>${input(x.type||'',`items.${id}.type`)}</td><td>${input(x.eff||'',`items.${id}.eff`)}</td><td>${input(x.val??0,`items.${id}.val`,'number','step="0.01"')}</td><td>${textarea(x.detail||'',`items.${id}.detail`)}</td><td><button class="btn red" onclick="deleteConfigItemV129('${h(id)}')">刪除</button></td></tr>`).join('');
-    return `<div class="row" style="margin-bottom:8px"><button class="btn jade" onclick="addConfigItemV129()">新增物品</button></div><div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>ID</th><th>名稱</th><th>類別</th><th>型別</th><th>效果</th><th>數值</th><th>說明</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    const rows=Object.entries(state.draft.items||{}).sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'zh-Hant')).map(([id,x])=>{
+      const kind=kindFromItem(x),legacy=kind==='legacy';
+      return `<tr><td class="id">${h(id)}</td><td>${input(x.name,`items.${id}.name`)}</td><td><span class="fixed-lock ${legacy?'legacy':''}">${h(fixedItemLabel(x))}</span></td><td>${input(x.val??0,`items.${id}.val`,'number','step="0.01"')}</td><td>${textarea(x.detail||'',`items.${id}.detail`)}</td><td><button class="btn red" onclick="deleteConfigItemV129('${h(id)}')">刪除</button></td></tr>`;
+    }).join('');
+    return renderFixedItemBuilder()+`<div class="fixed-item-list-note">既有物品的分類與效果已鎖定；只開放名稱、數值與說明，避免誤改功能名稱。特殊既有物品會標示為「固定功能」並原樣保留。</div><div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>ID</th><th>名稱</th><th>固定分類／效果</th><th>數值</th><th>說明</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
   function renderShop(){
     const rows=(state.draft.npcShop||[]).map((x,i)=>`<tr><td>${input(x.id,`npcShop.${i}.id`)}</td><td>${input(x.name,`npcShop.${i}.name`)}</td><td>${input(x.price??0,`npcShop.${i}.price`,'number','min="0"')}</td><td>${input(x.daily??9999,`npcShop.${i}.daily`,'number','min="0"')}</td><td><button class="btn red" onclick="deleteConfigArrayRowV129('npcShop',${i})">刪除</button></td></tr>`).join('');
@@ -93,7 +192,7 @@
     injectCard();renderTabs();const e=document.getElementById('configEditor');if(!e)return;
     if(!state.draft){e.innerHTML='<div class="notice">尚無草稿。可從目前正式版或 GitHub 靜態設定建立草稿。</div>';return}
     const map={items:renderItems,shop:renderShop,monsters:renderMonsters,techniques:renderTechniques,combat:renderCombat,breakthrough:renderBreakthroughBase,raw:renderRaw};
-    e.innerHTML=(map[state.tab]||renderItems)();bindInputs();
+    e.innerHTML=(map[state.tab]||renderItems)();bindInputs();if(state.tab==='items')setTimeout(()=>refreshFixedItemBuilder(true),0);
   }
   function pathSet(obj,path,value){
     const parts=path.split('.');let cur=obj;
@@ -117,7 +216,7 @@
   }
   function renderVersions(){
     const e=document.getElementById('configVersions');if(!e)return;
-    e.innerHTML=(state.versions||[]).map(v=>`<div class="cfg-version"><b>Config ${v.version}</b><span class="cfg-status ${v.status}">${h(v.status)}</span><div><div>${h(v.notes||'無備註')}</div><small>${h(v.published_at?new Date(v.published_at).toLocaleString('zh-TW'):new Date(v.updated_at).toLocaleString('zh-TW'))}</small></div>${v.status==='draft'?`<button class="btn red" onclick="deleteConfigDraftV129('${v.id}')">刪除草稿</button>`:`<button class="btn" onclick="rollbackConfigV129(${v.version})">回復此版</button>`}</div>`).join('')||'<div class="notice">尚無版本紀錄。</div>';
+    e.innerHTML=(state.versions||[]).map(v=>`<div class="cfg-version"><b>Config ${v.version}</b><span class="cfg-status ${v.status}">${h(v.status)}</span><div><div>${h(v.notes||'無備註')}</div><small>${h(v.published_at?new Date(v.published_at).toLocaleString('zh-TW'):new Date(v.updated_at).toLocaleString('zh-TW'))}</small></div>${v.status==='draft'?`<button class="btn red" onclick="deleteConfigDraftV129('${v.id}')">刪除草稿</button>`:v.status==='published'?`<button class="btn" onclick="rollbackConfigV129(${v.version})">目前正式／回復</button>`:`<button class="btn red" onclick="deleteConfigVersionV148('${v.id}',${v.version})">刪除此版</button>`}</div>`).join('')||'<div class="notice">尚無版本紀錄。</div>';
   }
   function renderStatus(){
     const p=state.published;document.getElementById('publishedConfigVersion').textContent='Config '+Number(p?.version||0);document.getElementById('draftConfigVersion').textContent=state.draftId?'Config '+state.draftVersion:'本機草稿';document.getElementById('publishedConfigAt').textContent=p?.published_at?new Date(p.published_at).toLocaleString('zh-TW'):'尚未發布';setDirty(state.dirty);
@@ -148,10 +247,19 @@
     if(!data?.valid)throw new Error((data?.errors||[]).join('；'));
     return true;
   }
+  async function chooseReplaceSlot(){
+    const all=state.versions||[];
+    if(all.length<5)return null;
+    const eligible=all.filter(v=>v.status==='archived');
+    if(!eligible.length)throw new Error('版本已達 5 個，沒有可覆蓋的封存版本。請先刪除一個草稿。');
+    const msg='版本最多 5 個。請輸入要覆蓋的 Config 編號：\n'+eligible.map(v=>'Config '+v.version+'｜'+(v.notes||'無備註')).join('\n');
+    const n=Number(prompt(msg));const hit=eligible.find(v=>Number(v.version)===n);
+    if(!hit)throw new Error('未選擇有效的封存版本');return hit.id;
+  }
   async function createDraft(){
     try{
       if(!state.draft){const r=await fetch('xianxia_config_V12.json',{cache:'no-store'});state.draft=await r.json()}
-      await validateDraft();const {data,error}=await sb.rpc('admin_create_game_config_draft',{p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()});if(error)throw error;
+      await validateDraft();const replaceId=await chooseReplaceSlot();const rpc=replaceId?'admin_replace_game_config_slot':'admin_create_game_config_draft';const args=replaceId?{p_replace_id:replaceId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim(),p_publish:false}:{p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()};const {data,error}=await sb.rpc(rpc,args);if(error)throw error;
       state.draftId=data.id;state.draftVersion=data.version;state.dirty=false;toast('已建立 Config '+data.version+' 草稿');addLog('建立 Config '+data.version+' 草稿');await loadConfigAdmin();
     }catch(e){toast('建立草稿失敗：'+e.message)}
   }
@@ -164,9 +272,71 @@
     catch(e){toast('發布失敗：'+e.message)}
   }
   async function rollback(version){if(!confirm('確定回復至 Config '+version+'？系統會建立一個新的正式版本，不會刪除歷史。'))return;try{const {data,error}=await sb.rpc('admin_rollback_game_config',{p_version:version,p_notes:'後台回復自 Config '+version});if(error)throw error;toast('已回復並發布 Config '+data.version);addLog('回復自 Config '+version);await loadConfigAdmin()}catch(e){toast('回復失敗：'+e.message)}}
+
+  async function deleteVersionV148(id,version){if(!confirm('確定刪除封存 Config '+version+'？此動作不可復原。'))return;const {error}=await sb.rpc('admin_delete_archived_game_config',{p_id:id});if(error)return toast('刪除失敗：'+error.message);toast('已刪除 Config '+version);await loadConfigAdmin()}
   async function deleteDraft(id){if(!confirm('確定刪除此草稿？'))return;const {error}=await sb.rpc('admin_delete_game_config_draft',{p_id:id});if(error)return toast(error.message);state.draftId=null;state.draft=null;toast('草稿已刪除');await loadConfigAdmin()}
 
-  function addItem(){const id=prompt('輸入新的物品 ID，例如 8010');if(!id)return;if(!/^[A-Za-z0-9_-]+$/.test(id))return toast('物品 ID 只能使用英數字、底線或連字號');if(state.draft.items[id])return toast('此物品 ID 已存在');state.draft.items[id]={name:'新物品',cat:'材料',type:'',eff:'',val:0,stack:999,rarity:'普通',detail:''};setDirty(true);renderEditor()}
+  function refreshFixedItemBuilder(resetDefaults=true){
+    const kind=document.getElementById('fixedItemKind')?.value||'equipment';
+    const subtypeEl=document.getElementById('fixedItemSubtype'),effectEl=document.getElementById('fixedItemEffect');
+    if(!subtypeEl||!effectEl)return;
+    const currentSubtype=subtypeEl.value,currentEffect=effectEl.value;
+    let subtypes=[],effects=[],unit='點',defaultValue=0;
+    if(kind==='equipment'){
+      subtypes=Object.entries(EQUIPMENT_TYPES).map(([id,x])=>[id,x.label]);
+      const subtype=(currentSubtype&&EQUIPMENT_TYPES[currentSubtype])?currentSubtype:'weapon';
+      const spec=EQUIPMENT_TYPES[subtype];effects=[[spec.eff,spec.eff]];defaultValue=10;
+    }else if(kind==='material'){
+      subtypes=[['general','一般材料']];effects=[['craft','合成材料']];unit='固定';defaultValue=0;
+    }else if(kind==='herb'){
+      subtypes=[['herb','煉丹藥材']];effects=[['craft','合成材料']];unit='固定';defaultValue=0;
+    }else if(kind==='recipe'){
+      subtypes=[['alchemy','丹方']];effects=[['learn','習得配方']];unit='配方ID';defaultValue=1;
+    }else if(kind==='medicine'){
+      subtypes=[['pill','丹藥']];effects=Object.entries(MEDICINE_EFFECTS).map(([id,x])=>[id,x.label]);
+      const effect=(currentEffect&&MEDICINE_EFFECTS[currentEffect])?currentEffect:'hp';unit=MEDICINE_EFFECTS[effect].unit;defaultValue=effect==='heal'?0:20;
+    }else if(kind==='enchant'){
+      subtypes=[['five_element','五行附魔']];effects=Object.entries(ENCHANT_EFFECTS).map(([id,x])=>[id,x.label]);
+      const effect=(currentEffect&&ENCHANT_EFFECTS[currentEffect])?currentEffect:'fire';unit=ENCHANT_EFFECTS[effect].unit;defaultValue=ENCHANT_EFFECTS[effect].defaultValue;
+    }
+    subtypeEl.innerHTML=subtypes.map(([v,l])=>`<option value="${h(v)}">${h(l)}</option>`).join('');
+    if(subtypes.some(([v])=>v===currentSubtype))subtypeEl.value=currentSubtype;
+    effectEl.innerHTML=effects.map(([v,l])=>`<option value="${h(v)}">${h(l)}</option>`).join('');
+    if(effects.some(([v])=>v===currentEffect))effectEl.value=currentEffect;
+    const effect=effectEl.value,subtype=subtypeEl.value;
+    if(kind==='medicine')unit=MEDICINE_EFFECTS[effect]?.unit||unit;
+    if(kind==='enchant')unit=ENCHANT_EFFECTS[effect]?.unit||unit;
+    const valueEl=document.getElementById('fixedItemValue');
+    if(resetDefaults&&valueEl)valueEl.value=kind==='enchant'?(ENCHANT_EFFECTS[effect]?.defaultValue??defaultValue):(kind==='medicine'&&effect==='heal'?0:defaultValue);
+    const unitEl=document.getElementById('fixedItemValueUnit');if(unitEl)unitEl.textContent=unit;
+    const idEl=document.getElementById('fixedItemId');if(resetDefaults&&idEl&&!idEl.value)idEl.value=nextFixedItemId(kind,subtype);
+    const preview=document.getElementById('fixedItemPreview');if(preview)preview.textContent=builderDetail(kind,subtype,effect,valueEl?.value||0)||'固定資料將由系統自動帶入。';
+  }
+  function assignNextFixedItemId(){
+    const kind=document.getElementById('fixedItemKind')?.value||'equipment',subtype=document.getElementById('fixedItemSubtype')?.value||'';
+    const id=nextFixedItemId(kind,subtype);if(!id)return toast('此分類的建議 ID 範圍已無空位');document.getElementById('fixedItemId').value=id;
+  }
+  function createFixedItem(){
+    if(!state.draft?.items)return toast('設定尚未載入');
+    const id=String(document.getElementById('fixedItemId')?.value||'').trim(),name=String(document.getElementById('fixedItemName')?.value||'').trim();
+    const kind=document.getElementById('fixedItemKind')?.value||'',subtype=document.getElementById('fixedItemSubtype')?.value||'',effect=document.getElementById('fixedItemEffect')?.value||'',value=n(document.getElementById('fixedItemValue')?.value);
+    if(!/^\d+$/.test(id))return toast('物品 ID 必須是純數字');
+    if(state.draft.items[id])return toast('物品 ID '+id+' 已存在，禁止重複');
+    if(!name)return toast('請輸入物品名稱');
+    let item={name,cat:'材料',type:null,eff:'合成材料',val:value,stack:999,rarity:'普通',detail:builderDetail(kind,subtype,effect,value)};
+    if(kind==='equipment'){
+      const spec=EQUIPMENT_TYPES[subtype]||EQUIPMENT_TYPES.weapon;item={...item,cat:spec.cat,type:spec.types[0],eff:spec.eff,stack:1,detail:builderDetail(kind,subtype,effect,value)};
+    }else if(kind==='material')item={...item,cat:'材料',type:null,eff:'合成材料',val:0};
+    else if(kind==='herb')item={...item,cat:'藥材',type:null,eff:'合成材料',val:0};
+    else if(kind==='recipe')item={...item,cat:'丹方',type:null,eff:'習得配方',val:Math.max(0,Math.floor(value)),stack:1};
+    else if(kind==='medicine'){
+      const spec=MEDICINE_EFFECTS[effect]||MEDICINE_EFFECTS.hp;item={...item,cat:'丹藥',type:null,eff:spec.eff,val:effect==='heal'?0:value};
+    }else if(kind==='enchant'){
+      const spec=ENCHANT_EFFECTS[effect]||ENCHANT_EFFECTS.fire;item={...item,cat:'附魔材料',type:spec.type,eff:'五行附魔',val:value};
+    }else return toast('不支援的物品分類');
+    state.draft.items[id]=item;setDirty(true);renderEditor();toast('已建立 '+name+'（'+id+'），請儲存並發布');
+  }
+  function addItem(){document.getElementById('fixedItemId')?.focus()}
   function delItem(id){if(!confirm('刪除物品 '+id+'？'))return;delete state.draft.items[id];state.draft.npcShop=(state.draft.npcShop||[]).filter(x=>String(x.id)!==String(id));setDirty(true);renderEditor()}
   function addArrayRow(cat){const defaults={npcShop:{id:'',name:'新商品',price:0,daily:9999},monsters:{id:9999,name:'新妖獸',cat:'普通妖獸',lv:1,hp:100,mp:0,atk:10,def:5,exp:10,drops:[],spawn:'荒野'},techniques:{id:'new_technique',name:'新功法',category:'靈修',price:0,desc:'',details:''}};state.draft[cat]=state.draft[cat]||[];state.draft[cat].push(defaults[cat]);setDirty(true);renderEditor()}
   function delArrayRow(cat,i){state.draft[cat].splice(i,1);setDirty(true);renderEditor()}
@@ -198,10 +368,12 @@
   loadAll=async function(){await baseLoadAllV129();await loadConfigAdmin()};
 
   window.setConfigTabV129=id=>{state.tab=id;renderEditor()};
-  window.createConfigDraftV129=createDraft;window.saveConfigDraftV129=saveDraft;window.publishConfigDraftV129=publishDraft;window.rollbackConfigV129=rollback;window.deleteConfigDraftV129=deleteDraft;
+  window.createConfigDraftV129=createDraft;window.saveConfigDraftV129=saveDraft;window.publishConfigDraftV129=publishDraft;window.rollbackConfigV129=rollback;window.deleteConfigDraftV129=deleteDraft;window.deleteConfigVersionV148=deleteVersionV148;
   window.addConfigItemV129=addItem;window.deleteConfigItemV129=delItem;window.addConfigArrayRowV129=addArrayRow;window.deleteConfigArrayRowV129=delArrayRow;window.applyRawConfigV129=applyRaw;
+  window.refreshFixedItemBuilderV154=refreshFixedItemBuilder;window.assignNextFixedItemIdV154=assignNextFixedItemId;window.createFixedConfigItemV154=createFixedItem;
   window.saveBreakthroughConfigV129=saveBreakCfg;window.exportConfigExcelV129=exportExcel;window.importConfigExcelV129=importExcel;
   window.V129_CONFIG_ADMIN={state,setDirty,renderEditor,refresh:loadConfigAdmin,mergeV135Config};
 
+  console.info('[V15.4 ADMIN FIXED ITEM BUILDER PHASE1] installed',ITEM_EDITOR_BUILD);
   injectCard();setTimeout(()=>{if(!document.getElementById('adminMain')?.classList.contains('hidden'))loadConfigAdmin()},800);
 })();
