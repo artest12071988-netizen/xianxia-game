@@ -1784,3 +1784,75 @@ setTimeout(async()=>{
 console.log('[V15.4 PVP DEATH AUTHORITY FIX3] installed');
 
 console.log('[V15.4 CONSOLE FINAL CLEANUP FIX1] installed');
+
+/* V15.4 ADMIN DELIVERY FIX1: reliable server-authoritative admin grants */
+(function(){
+  'use strict';
+  if(window.__V154_ADMIN_DELIVERY_FIX1__)return;
+  window.__V154_ADMIN_DELIVERY_FIX1__=true;
+  let busy=false;
+  let timer=null;
+
+  async function claimAdminDeliveries(){
+    if(busy||!window.cloudState?.enabled||!window.cloudState?.user||!window.cloudState?.client||!window.g)return;
+    busy=true;
+    try{
+      const response=await window.cloudState.client.rpc('claim_player_admin_deliveries',{});
+      if(response?.error){
+        const msg=String(response.error.message||response.error);
+        if(!msg.includes('claim_player_admin_deliveries'))console.warn('[V15.4 ADMIN DELIVERY FIX1] claim failed',response.error);
+        return;
+      }
+      const payload=response?.data||{};
+      const rows=Array.isArray(payload.deliveries)?payload.deliveries:[];
+      if(!rows.length)return;
+
+      if(payload.save_data?.g){
+        const serverG=payload.save_data.g;
+        window.g.inv=serverG.inv&&typeof serverG.inv==='object'?structuredClone(serverG.inv):(window.g.inv||{});
+        window.g.lingshi=Number(serverG.lingshi??window.g.lingshi??0);
+      }else{
+        for(const row of rows){
+          if(!row?.ok)continue;
+          if(row.type==='item'){
+            window.g.inv=window.g.inv||{};
+            window.g.inv[String(row.item_id)]=Number(row.value||0);
+          }else if(row.type==='lingshi')window.g.lingshi=Number(row.value||0);
+        }
+      }
+      if(Number.isFinite(Number(payload.yuanbao))){
+        window.g.yuanbao=Number(payload.yuanbao);
+        window.cloudState.walletBalance=Number(payload.yuanbao);
+      }
+      if(Number.isFinite(Number(payload.save_revision)))window.cloudState.revision=Number(payload.save_revision);
+      if(Number.isFinite(Number(payload.wallet_revision)))window.cloudState.walletRevision=Number(payload.wallet_revision);
+      window.cloudState.remoteSave=payload.save_data||window.cloudState.remoteSave;
+
+      const labels=rows.filter(x=>x?.ok).map(x=>{
+        if(x.type==='item')return `${window.IT?.[String(x.item_id)]?.name||x.item_id} ${Number(x.delta)>=0?'+':''}${x.delta}`;
+        return `${x.type==='yuanbao'?'元寶':'靈石'} ${Number(x.delta)>=0?'+':''}${x.delta}`;
+      });
+      if(labels.length){
+        window.toast?.(`後台補發已入帳：${labels.join('、')}`);
+        window.log?.(`【後台補發】${labels.join('、')}。`,'lg');
+      }
+      window.render?.();
+      window.renderBag?.();
+      window.renderShop?.();
+      console.info('[V15.4 ADMIN DELIVERY FIX1] deliveries applied',rows);
+    }catch(error){
+      console.warn('[V15.4 ADMIN DELIVERY FIX1] non-blocking claim error',error);
+    }finally{busy=false;}
+  }
+
+  function start(){
+    if(timer)return;
+    claimAdminDeliveries();
+    timer=setInterval(claimAdminDeliveries,3000);
+  }
+  window.addEventListener('focus',claimAdminDeliveries);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)claimAdminDeliveries();});
+  setTimeout(start,1200);
+  window.claimAdminDeliveriesV154=claimAdminDeliveries;
+  console.info('[V15.4 ADMIN DELIVERY FIX1] installed');
+})();

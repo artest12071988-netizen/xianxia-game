@@ -24,8 +24,8 @@ function bind(){
  $('paMoveBtn').onclick=()=>act('admin_player_move',{p_user_id:S.selected.user_id,p_coord:$('paMoveCoord').value,p_reason:$('paMoveReason').value},'玩家已移動');
  $('paUnstuckBtn').onclick=()=>{if(confirm('確定將玩家移至 A-1 並清除打坐與狀態資料？'))act('admin_player_unstuck',{p_user_id:S.selected.user_id,p_reason:$('paMoveReason').value},'卡點已解除')};
  $('paItemSearch').addEventListener('input',renderItemOptions);
- $('paItemBtn').onclick=()=>{const itemId=$('paItemId').value;if(!itemId)return msg('請先選擇物品');act('admin_player_adjust_item',{p_user_id:S.selected.user_id,p_item_id:itemId,p_delta:Number($('paItemDelta').value),p_reason:$('paItemReason').value},'物品已調整')};
- $('paResourceBtn').onclick=()=>{const r=$('paResource').value,d=Number($('paResourceDelta').value);if(r==='yuanbao'&&!confirm('元寶是永久帳號資產，確定調整？'))return;act('admin_player_adjust_resource',{p_user_id:S.selected.user_id,p_resource:r,p_delta:d,p_reason:$('paResourceReason').value},'資產已調整')};
+ $('paItemBtn').onclick=()=>{const itemId=$('paItemId').value;if(!itemId)return msg('請先選擇物品');act('admin_player_adjust_item',{p_user_id:S.selected.user_id,p_item_id:itemId,p_delta:Number($('paItemDelta').value),p_reason:$('paItemReason').value},'物品補發已排入，玩家在線時會自動入帳')};
+ $('paResourceBtn').onclick=()=>{const r=$('paResource').value,d=Number($('paResourceDelta').value);if(r==='yuanbao'&&!confirm('元寶是永久帳號資產，確定調整？'))return;act('admin_player_adjust_resource',{p_user_id:S.selected.user_id,p_resource:r,p_delta:d,p_reason:$('paResourceReason').value},'資產補發已排入，玩家在線時會自動入帳')};
  $('paResetPasswordBtn').onclick=resetPassword;
 }
 
