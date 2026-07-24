@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.4-PHASE3-STAGE3-FIX1-EXIT-SUPPRESS-20260724';
+const BUILD='V15.4-PHASE3-STAGE3-FIX2-INDEPENDENT-EXIT-20260724';
 const ROOT_ID='v154BreakthroughBattlefield';
 const FAILURE_ID='v154BreakthroughFailureFx';
 const state={
@@ -9,6 +9,17 @@ const state={
   lastResult:null,lastLogKey:null,speechTimer:null,ownerEntry:false,resultDialogue:null,
   dismissedEvents:new Set()
 };
+const DISMISS_KEY='v154_breakthrough_dismissed_events';
+function loadDismissed(){
+  try{
+    const rows=JSON.parse(sessionStorage.getItem(DISMISS_KEY)||'[]');
+    if(Array.isArray(rows))rows.forEach(x=>state.dismissedEvents.add(String(x)));
+  }catch(_){ }
+}
+function persistDismissed(){
+  try{sessionStorage.setItem(DISMISS_KEY,JSON.stringify([...state.dismissedEvents].slice(-40)))}catch(_){ }
+}
+loadDismissed();
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
@@ -185,11 +196,13 @@ function render(){
   if(state.selected&&!targetAllowed(state.selected))state.selected=null;
   const targetName=state.selected==='owner'?state.data.owner?.name:(state.data.participants||[]).find(p=>p.key===state.selected)?.name;
   const act=myCanAct(),phase=e.breakthrough_result?(ended?'戰場結束':'突破者已出關'):'天象異變同步中';
-  const actionHtml=ended?`<button class="wait" data-close><span class="v154-action-icon">門</span><b>離開戰場</b></button>`:`
+  const exitButton=`<button class="wait independent-exit" data-close><span class="v154-action-icon">門</span><b>離開戰場</b><small>只關閉自己的畫面</small></button>`;
+  const actionHtml=ended?exitButton:`
     <button class="attack" data-action="attack" ${!act||!state.selected?'disabled':''}><span class="v154-action-icon">⚔</span><b>攻擊</b><small>全力出擊</small></button>
     <button class="wait" data-action="wait" ${!act?'disabled':''}><span class="v154-action-icon">◉</span><b>靜觀其變</b><small>等待時機</small></button>
-    <button class="flee" data-action="flee" ${!act?'disabled':''}><span class="v154-action-icon">➜</span><b>遁走</b><small>暫離孤島</small></button>
-    <div class="v154-target-note">${act?(targetName?`已鎖定：${esc(targetName)}`:'點選敵方修士作為攻擊目標'):(state.role==='owner'&&!e.breakthrough_result?'突破尚未結束，暫時無法行動':'目前無法行動')}</div>`;
+    <button class="flee" data-action="flee" ${!act?'disabled':''}><span class="v154-action-icon">➜</span><b>遁走</b><small>退出戰鬥狀態</small></button>
+    ${exitButton}
+    <div class="v154-target-note">${act?(targetName?`已鎖定：${esc(targetName)}`:'點選敵方修士作為攻擊目標'):(state.role==='owner'&&!e.breakthrough_result?'突破尚未結束；你仍可自行離開畫面':'目前無法行動；仍可自行離開畫面')}</div>`;
   el.innerHTML=`
     <div class="v154-btf-bg"></div><div class="v154-btf-qi"></div>${anomalyMarkup(info)}
     <header class="v154-btf-top">
@@ -314,11 +327,18 @@ function close(){
 }
 function dismissAndClose(){
   const eventId=state.eventId;
-  if(eventId)state.dismissedEvents.add(String(eventId));
+  if(eventId){
+    state.dismissedEvents.add(String(eventId));
+    persistDismissed();
+  }
   close();
+  window.toast?.('已離開戰場畫面；本場事件不會再自動開啟');
 }
 function clearDismissed(eventId){
-  if(eventId)state.dismissedEvents.delete(String(eventId));
+  if(eventId){
+    state.dismissedEvents.delete(String(eventId));
+    persistDismissed();
+  }
 }
 function failureScene(options={}){
   document.getElementById(FAILURE_ID)?.remove();
@@ -342,16 +362,25 @@ function restoreJoined(rows){
   const active=rows.find(x=>x?.battle_status==='active'&&['guardian','attacker'].includes(x?.faction)&&!state.dismissedEvents.has(String(x.event_id)));
   if(active)setTimeout(()=>open(active.event_id,{role:active.faction}),80);
 }
-function openJoined(eventId,role){
-  clearDismissed(eventId);
-  return open(eventId,{role,force:true});
+function openJoined(eventId,role,options={}){
+  // 背景輪詢只能嘗試開啟，不得解除玩家已離場的紀錄。
+  // 只有玩家明確點擊「重新進入戰場」時，才可傳入 {userInitiated:true}。
+  if(options?.userInitiated===true){
+    clearDismissed(eventId);
+    return open(eventId,{role,force:true});
+  }
+  return open(eventId,{role,force:false});
+}
+function reenterJoined(eventId,role){
+  return openJoined(eventId,role,{userInitiated:true});
 }
 
 window.openBreakthroughBattlefieldV154=open;
 window.closeBreakthroughBattlefieldV154=close;
 window.dismissBreakthroughBattlefieldV154=dismissAndClose;
 window.openJoinedBreakthroughBattlefieldV154=openJoined;
+window.reenterJoinedBreakthroughBattlefieldV154=reenterJoined;
 window.restoreJoinedBattlefieldV154=restoreJoined;
 window.playBreakthroughOutcomeAndEnterBattleV154=playOutcomeAndEnterBattle;
-window.V154_BREAKTHROUGH_BATTLEFIELD={build:BUILD,open,close,load,act,playOutcomeAndEnterBattle};
+window.V154_BREAKTHROUGH_BATTLEFIELD={build:BUILD,open,close,dismiss:dismissAndClose,reenter:reenterJoined,load,act,playOutcomeAndEnterBattle};
 })();
