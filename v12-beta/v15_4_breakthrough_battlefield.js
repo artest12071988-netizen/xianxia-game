@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.4-PHASE3-STAGE2-FIX1-OWNER-EMERGE-REFINED-COLLAPSE-20260723';
+const BUILD='V15.4-PHASE3-STAGE2-FIX2-SAFE-BATTLEFIELD-BOOT-20260724';
 const ROOT_ID='v154BreakthroughBattlefield';
 const FAILURE_ID='v154BreakthroughFailureFx';
 const state={
@@ -216,23 +216,30 @@ function resultTransition(result){
   setTimeout(()=>{state.ownerEntry=true;render();root()?.classList.add(result==='success'?'result-success':'result-failure')},1150);
   setTimeout(()=>root()?.classList.remove('result-success','result-failure'),2850);
 }
-async function load(){
-  if(!state.eventId||state.busy||!enabled())return;
+async function load(options={}){
+  if(!state.eventId||state.busy||!enabled())return false;
   state.busy=true;
   try{
     const {data,error}=await client().rpc('get_breakthrough_battlefield_v154',{p_event_id:state.eventId});
     if(error)throw error;
     const oldResult=state.data?.event?.breakthrough_result||state.lastResult;
     state.data=data;state.role=data?.my_role||state.role||'spectator';
+    if(!root())createRoot();
     const newResult=data?.event?.breakthrough_result||null;
     if(newResult&&newResult===oldResult&&!state.ownerEntry)state.ownerEntry=true;
     render();
     if(newResult&&newResult!==oldResult){state.lastResult=newResult;resultTransition(newResult)}
     if(data?.event?.battle_status==='ended')clearInterval(state.timer);
+    return true;
   }catch(err){
     console.warn('[V15.4 battlefield load]',err);
     const message=String(err?.message||err);
     if(message.includes('BREAKTHROUGH_NOT_FOUND'))close();
+    else if(options.initial){
+      close();
+      window.toast?.('戰場資料讀取失敗，已安全返回遊戲');
+    }
+    return false;
   }finally{state.busy=false}
 }
 async function act(action){
@@ -260,10 +267,14 @@ function createRoot(){
   let el=root();if(el)return el;
   el=document.createElement('section');el.id=ROOT_ID;el.className='v154-btf';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','突破護法戰場');document.body.appendChild(el);document.body.classList.add('v154-battlefield-locked');return el;
 }
-function open(eventId,options={}){
-  if(!eventId)return Promise.resolve(false);
+async function open(eventId,options={}){
+  if(!eventId)return false;
   state.eventId=String(eventId);state.role=options.role||state.role;state.selected=null;state.data=null;state.lastResult=options.lastResult||null;state.ownerEntry=!!options.ownerEntry;
-  createRoot();clearInterval(state.timer);state.timer=setInterval(load,900);load();return Promise.resolve(true);
+  clearInterval(state.timer);state.timer=null;
+  const loaded=await load({initial:true});
+  if(!loaded)return false;
+  clearInterval(state.timer);state.timer=setInterval(()=>load(),900);
+  return true;
 }
 function close(){
   clearInterval(state.timer);state.timer=null;root()?.remove();document.body.classList.remove('v154-battlefield-locked');state.eventId=null;state.data=null;state.selected=null;state.ownerEntry=false;
