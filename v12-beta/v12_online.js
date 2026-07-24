@@ -1312,14 +1312,51 @@ async function challengePlayer(userId){
   try{const {data,error}=await cloudState.client.rpc('create_pvp_challenge',{p_target:userId,p_snapshot:pvpSnapshot()});if(error)throw error;cloudState.pvpCurrent=Array.isArray(data)?data[0]:data;closeOv();toast('鬥法邀請已送出，60秒內有效');pollPvp()}catch(e){toast('無法發起鬥法：'+translatePvpError(e.message))}
 }
 function translatePvpError(m){const s=String(m||'');if(s.includes('SAFE_ZONE'))return'安全區禁止鬥法';if(s.includes('NOT_SAME'))return'對方已不在同一地域';if(s.includes('NOT_ONLINE'))return'對方已離線';if(s.includes('ALREADY_IN_DUEL'))return'其中一方已有鬥法';if(s.includes('NOT_YOUR_TURN'))return'尚未輪到你';if(s.includes('INSUFFICIENT_MP'))return'精力不足，僅能遁走';return s}
+// V15.4 PVP DEATH AUTHORITY FIX3
+// Finished duels are historical records. They may only affect the exact character that joined
+// that duel; an old finished duel must never kill a newer/living character on login.
+function pvpSnapshotForMe(d){
+  if(!d||!cloudState.user)return null;
+  return d.challenger_user_id===cloudState.user.id?d.challenger_snapshot:d.target_snapshot;
+}
+function pvpDuelMatchesCurrentCharacter(d){
+  if(!d||!g||!cloudState.user)return false;
+  const snap=pvpSnapshotForMe(d);
+  const duelCharacterId=String(snap?.characterId||snap?.character_id||'');
+  const currentCharacterId=String(g.characterId||'');
+  if(duelCharacterId&&currentCharacterId)return duelCharacterId===currentCharacterId;
+  // Legacy rows without characterId are only actionable while already tracked in this session.
+  return !!cloudState.pvpCurrent && String(cloudState.pvpCurrent.id)===String(d.id);
+}
+async function cloudConfirmsCurrentCharacterAlive(){
+  if(!cloudState.enabled||!cloudState.user||!cloudState.client)return false;
+  try{
+    const {data,error}=await cloudState.client.from('game_saves').select('save_data,revision,updated_at').eq('user_id',cloudState.user.id).maybeSingle();
+    if(error||!data?.save_data?.g)return false;
+    const sg=data.save_data.g;
+    const sameCharacter=!sg.characterId||!g?.characterId||String(sg.characterId)===String(g.characterId);
+    if(sameCharacter&&sg.dead!==true&&Number(sg.hp||0)>0){
+      cloudState.remoteSave=data.save_data;
+      cloudState.revision=Number(data.revision||cloudState.revision||0);
+      cloudState.lastSyncedAt=data.updated_at?Date.parse(data.updated_at):cloudState.lastSyncedAt;
+      return true;
+    }
+  }catch(e){console.warn('[V15.4 PVP DEATH AUTHORITY FIX3] living-save check deferred',e)}
+  return false;
+}
 async function pollPvp(){
   if(!cloudState.enabled||!cloudState.user||!g||g.dead)return;
   const uid=cloudState.user.id;
-  const {data,error}=await cloudState.client.from('pvp_duels').select('*').or('challenger_user_id.eq.'+uid+',target_user_id.eq.'+uid).order('updated_at',{ascending:false}).limit(5);
+  const {data,error}=await cloudState.client.from('pvp_duels').select('*').or('challenger_user_id.eq.'+uid+',target_user_id.eq.'+uid).order('updated_at',{ascending:false}).limit(8);
   if(error)return;
-  const active=(data||[]).find(d=>d.status==='active');
-  const pending=(data||[]).find(d=>d.status==='pending'&&d.target_user_id===uid&&Date.parse(d.expires_at)>Date.now());
-  const finished=(data||[]).find(d=>d.status==='finished'&&!cloudState.pvpHandled.has(String(d.id)));
+  const rows=data||[];
+  // Permanently ignore historical finished duels belonging to previous characters/sessions.
+  for(const d of rows){
+    if(d.status==='finished'&&!pvpDuelMatchesCurrentCharacter(d))cloudState.pvpHandled.add(String(d.id));
+  }
+  const active=rows.find(d=>d.status==='active'&&pvpDuelMatchesCurrentCharacter(d));
+  const pending=rows.find(d=>d.status==='pending'&&d.target_user_id===uid&&Date.parse(d.expires_at)>Date.now());
+  const finished=rows.find(d=>d.status==='finished'&&pvpDuelMatchesCurrentCharacter(d)&&!cloudState.pvpHandled.has(String(d.id)));
   if(finished)return handlePvpFinished(finished);
   if(active){cloudState.pvpCurrent=active;applyPvpLocalState(active);renderPvpDuel(active);return}
   if(pending&&!cloudState.pvpPrompted.has(String(pending.id))){cloudState.pvpPrompted.add(String(pending.id));showPvpChallenge(pending)}
@@ -1349,9 +1386,27 @@ async function pvpFlee(id){
   if(!confirm('遁走認敗會使目前角色永久死亡，確定嗎？'))return;
   try{const {data,error}=await cloudState.client.rpc('pvp_flee',{p_duel_id:id});if(error)throw error;handlePvpFinished(Array.isArray(data)?data[0]:data)}catch(e){toast('遁走失敗：'+translatePvpError(e.message))}
 }
-function handlePvpFinished(d){
-  if(!d||cloudState.pvpHandled.has(String(d.id)))return;cloudState.pvpHandled.add(String(d.id));
-  const uid=cloudState.user.id,won=d.winner_user_id===uid;
+async function handlePvpFinished(d){
+  if(!d||cloudState.pvpHandled.has(String(d.id)))return;
+  const uid=cloudState.user?.id,won=d.winner_user_id===uid;
+  if(!pvpDuelMatchesCurrentCharacter(d)){
+    cloudState.pvpHandled.add(String(d.id));
+    console.warn('[V15.4 PVP DEATH AUTHORITY FIX3] ignored historical duel',{duelId:d.id});
+    return;
+  }
+  if(!won){
+    // A living authoritative game_saves row always wins over an old/stale finished duel row.
+    if(await cloudConfirmsCurrentCharacterAlive()){
+      cloudState.pvpHandled.add(String(d.id));
+      g.dead=false;
+      const layer=document.getElementById('graveLock');if(layer)layer.remove();
+      try{localStorage.removeItem(V121_DEATH_LOCK)}catch(_){ }
+      render();
+      console.warn('[V15.4 PVP DEATH AUTHORITY FIX3] blocked false duel death',{duelId:d.id,hp:g.hp,characterId:g.characterId});
+      return;
+    }
+  }
+  cloudState.pvpHandled.add(String(d.id));
   if(!won){
     clearInterval(tickTimer);clearInterval(aiTimer);clearInterval(cloudState.playerTimer);clearInterval(cloudState.safeZoneTimer);clearInterval(cloudState.pvpTimer);
     g.hp=0;g.dead=true;g.meditating=false;cloudState.remoteSave=null;cloudState.revision=0;localStorage.removeItem(V12_LOCAL_CACHE);localStorage.removeItem(SAVE_KEY);
@@ -1701,3 +1756,16 @@ const v1264BaseStartOnlineWorld=startOnlineWorld;
 startOnlineWorld=async function(){const r=await v1264BaseStartOnlineWorld();await loadAdRewardStatus();return r};
 
 console.log('[V15.4 FALSE DEATH EMERGENCY FIX1] installed');
+
+
+/* V15.4 PVP DEATH AUTHORITY FIX3 — startup reconciliation */
+setTimeout(async()=>{
+  try{
+    if(await cloudConfirmsCurrentCharacterAlive()){
+      const layer=document.getElementById('graveLock');if(layer)layer.remove();
+      if(g){g.dead=false;render();}
+      try{localStorage.removeItem(V121_DEATH_LOCK)}catch(_){ }
+    }
+  }catch(e){console.warn('[V15.4 PVP DEATH AUTHORITY FIX3] startup reconciliation deferred',e)}
+},800);
+console.log('[V15.4 PVP DEATH AUTHORITY FIX3] installed');
