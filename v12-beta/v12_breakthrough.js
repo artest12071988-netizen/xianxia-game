@@ -226,7 +226,18 @@
         });
         if(error)throw error;eventId=data?.event_id||null;endsAt=Date.parse(data?.ends_at)||endsAt;
       }
-    }catch(e){toast('無法開始突破：'+String(e.message||e));return}
+    }catch(e){
+      const msg=String(e?.message||e||'');
+      if(msg.includes('BREAKTHROUGH_ALREADY_ACTIVE')){
+        // P1：伺服器仍有舊 active 事件時，先嘗試恢復該事件；
+        // SQL FIX 已安裝後，逾時殘留事件會在 start RPC 內自動取消並不再卡鎖。
+        const restored=await restoreOwnerBreakthrough();
+        if(restored){toast('已恢復上一場尚未結束的突破');return}
+        toast('伺服器仍有舊突破鎖，請先執行本封包的 SQL 修復後再試');
+        return;
+      }
+      toast('無法開始突破：'+msg);return
+    }
 
     consumeBreakthroughItems(info);
     g.meditating=false;g.meditateSec=0;
@@ -358,8 +369,18 @@
     if(Date.now()-cloudState.breakthroughLastWorldLoad<800)return;
     cloudState.breakthroughLastWorldLoad=Date.now();
     try{
-      const {data,error}=await cloudState.client.from('breakthrough_events').select('id,owner_user_id,owner_name,origin_coord,target_realm,ends_at,status,battle_status,breakthrough_result').eq('battle_status','active');
-      if(error)throw error;cloudState.breakthroughEvents=data||[];
+      let worldQuery=await cloudState.client.from('breakthrough_events')
+        .select('id,owner_user_id,owner_name,origin_coord,target_realm,ends_at,status,battle_status,breakthrough_result')
+        .eq('battle_status','active');
+      if(worldQuery.error){
+        // P2 相容：舊資料庫尚無 V15.4 欄位時，不讓 400 中斷整個突破世界載入。
+        const legacy=await cloudState.client.from('breakthrough_events')
+          .select('id,owner_user_id,owner_name,origin_coord,target_realm,ends_at,status')
+          .eq('status','active');
+        if(legacy.error)throw legacy.error;
+        worldQuery={data:(legacy.data||[]).map(x=>({...x,battle_status:'active',breakthrough_result:null})),error:null};
+      }
+      const data=worldQuery.data;cloudState.breakthroughEvents=data||[];
       if(cloudState.breakthroughPendingChoice&&!cloudState.breakthroughEvents.some(x=>String(x.id)===String(cloudState.breakthroughPendingChoice.id)))cloudState.breakthroughPendingChoice=null;
       const {data:near,error:nearError}=await cloudState.client.rpc('list_nearby_breakthrough_events',{p_coord:currentBreakCoord()});if(nearError)throw nearError;
       for(const e of near||[]){
