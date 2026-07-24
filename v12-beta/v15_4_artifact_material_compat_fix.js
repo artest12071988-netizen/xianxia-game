@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const BUILD='V15.4-ARTIFACT-MATERIAL-COMPAT-FIX2-20260724';
+const BUILD='V15.4-ARTIFACT-MATERIAL-COMPAT-FIX3-20260724';
 const CANON={
  '8401':{name:'赤陽器紋砂',cat:'器紋材料',eff:'刻印器紋',val:0,detail:'攻擊器紋 3%～8%'},
  '8402':{name:'玄甲器紋砂',cat:'器紋材料',eff:'刻印器紋',val:0,detail:'防禦器紋 3%～8%'},
@@ -30,8 +30,7 @@ function normalizeInventory(){
    const n=Math.max(0,Math.floor(Number(inv[wrong])||0));
    if(n){inv[canon]=(Number(inv[canon])||0)+n;delete inv[wrong];changed=true;}
   }
-  const oldForge=Math.max(0,Math.floor(Number(inv['8301'])||0));
-  if(oldForge){inv['8410']=(Number(inv['8410'])||0)+oldForge;delete inv['8301'];changed=true;}
+  // 8301 庚金是正式商店物品，禁止轉換、刪除或併入淬器石。
   if(changed){
    window.log?.('器紋材料已校正為天工器紋閣正式格式。','lg');
    Promise.resolve(window.saveGame?.(false)).catch(()=>{});
@@ -42,9 +41,9 @@ function normalizeInventory(){
 }
 function wrap(name){
  const fn=window[name];
- if(typeof fn!=='function'||fn.__v154ArtifactFix2)return false;
+ if(typeof fn!=='function'||fn.__v154ArtifactFix3)return false;
  const wrapped=function(){normalizeInventory();return fn.apply(this,arguments)};
- wrapped.__v154ArtifactFix2=true;
+ wrapped.__v154ArtifactFix3=true;
  window[name]=wrapped;
  return true;
 }
@@ -59,5 +58,5 @@ const timer=setInterval(()=>{
 },250);
 window.addEventListener('xianxia:save-applied',()=>setTimeout(normalizeInventory,0));
 window.addEventListener('focus',()=>setTimeout(normalizeInventory,0));
-console.info('[V15.4 ARTIFACT MATERIAL COMPAT FIX2] installed',{build:BUILD});
+console.info('[V15.4 ARTIFACT MATERIAL COMPAT FIX3] installed',{build:BUILD});
 })();
