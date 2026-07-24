@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const VERSION = 'V13.3-OBS-SAFE-MISSING-RPC-FIX1';
+  const VERSION = 'V13.3-OBS-NO-MISSING-RPC-FIX2';
   const S = { timer: null, busy: false, disabled: false, lastResult: null, lastError: null };
 
   function cloud() { try { return typeof cloudState !== 'undefined' && cloudState ? cloudState : (window.cloudState || null); } catch (_) { return window.cloudState || null; } }
@@ -14,27 +14,15 @@
   }
 
   async function heartbeat() {
-    if (S.disabled || S.busy || document.visibilityState === 'hidden') return S.lastResult;
-    S.busy = true;
-    try {
-      S.lastResult = await rpc('run_ai_observatory_cycle');
-      S.lastError = null;
-      window.dispatchEvent(new CustomEvent('xianxia:observatory-updated', { detail: S.lastResult }));
-      return S.lastResult;
-    } catch (error) {
-      S.lastError = error?.message || String(error);
-      const missingRpc = /run_ai_observatory_cycle|PGRST202|404|schema cache|Could not find the function/i.test(S.lastError);
-      if (missingRpc) {
-        S.disabled = true;
-        stop();
-        console.warn('[V13.3 Observatory] optional RPC unavailable; observatory disabled without affecting world loop');
-      } else if (S.lastError !== 'CLOUD_NOT_READY') {
-        console.warn('[V13.3 Observatory]', S.lastError);
-      }
-      return null;
-    } finally {
-      S.busy = false;
-    }
+    // Observatory scheduling is optional. The production database currently
+    // has no run_ai_observatory_cycle RPC, so do not issue a known 404 request.
+    // Admin read/replay RPC methods below remain available when explicitly used.
+    if (S.disabled) return null;
+    S.disabled = true;
+    stop();
+    S.lastResult = null;
+    S.lastError = null;
+    return null;
   }
 
   async function getOverview() { return rpc('admin_get_ai_observatory'); }
