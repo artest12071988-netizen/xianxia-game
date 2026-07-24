@@ -2,6 +2,7 @@
 (function(){
 'use strict';
 const S={selected:null,rows:[],items:[]};
+const LEGACY_ARTIFACT_ITEM_IDS=new Set(['8420','8421','8422','8423','8424']);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function msg(t){if(typeof window.toast==='function')window.toast(t);else alert(t)}
@@ -38,17 +39,19 @@ async function loadFormalItems(){
     if(error)throw error;
     const items=data?.config?.items||data?.items||{};
     const supplementalItems={
+      '8301':{name:'庚精',cat:'強化石'},
       '8501':{name:'赤陽器紋砂',cat:'器紋材料'},
       '8502':{name:'玄甲器紋砂',cat:'器紋材料'},
       '8503':{name:'雷鳴器紋砂',cat:'器紋材料'},
       '8504':{name:'長生器紋砂',cat:'器紋材料'},
       '8505':{name:'靈泉器紋砂',cat:'器紋材料'},
       '8410':{name:'淬器石',cat:'淬鍊材料'},
-      '8411':{name:'護器符',cat:'護器材料'},
+      '8411':{name:'保護符',cat:'保護材料'},
       '8412':{name:'天工石',cat:'增幅材料'},
-      '8413':{name:'洗煉石',cat:'洗煉材料'}
+      '8413':{name:'洗鍊石',cat:'洗鍊材料'}
     };
     const merged={...items};
+    for(const legacyId of LEGACY_ARTIFACT_ITEM_IDS)delete merged[legacyId];
     for(const [id,it] of Object.entries(supplementalItems))merged[id]={...(merged[id]||{}),...it};
     S.items=Object.entries(merged).map(([id,it])=>({id:String(id),name:String(it?.name||id),cat:String(it?.cat||it?.type||'')})).sort((a,b)=>a.name.localeCompare(b.name,'zh-Hant'));
     renderItemOptions();
