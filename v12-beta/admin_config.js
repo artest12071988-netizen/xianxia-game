@@ -12,16 +12,16 @@
 
   /* V15.4 後台固定物品建立器：只提供遊戲已支援的資料結構，不允許自由輸入類別或效果名稱。 */
   const FIXED_ITEM_KINDS={
-    equipment:{label:'裝備',idRange:[2000,3999]},
-    material:{label:'材料',idRange:[4000,4999]},
-    herb:{label:'藥材',idRange:[4100,4999]},
-    recipe:{label:'丹方',idRange:[7000,7999]},
-    medicine:{label:'藥品',idRange:[1000,1999]},
-    enchant:{label:'附魔材料',idRange:[8600,8699]}
+    equipment:{label:'裝備',idRange:[10000,11999]},
+    medicine:{label:'藥品',idRange:[12000,12999]},
+    material:{label:'材料',idRange:[13000,13999]},
+    herb:{label:'藥材',idRange:[14000,14999]},
+    recipe:{label:'丹方',idRange:[15000,15999]},
+    enchant:{label:'附魔材料',idRange:[16000,16999]}
   };
   const EQUIPMENT_TYPES={
-    weapon:{label:'武器',cat:'法器',eff:'攻擊',types:['長劍','飛劍']},
-    armor:{label:'防具',cat:'防具',eff:'防禦',types:['法袍','重甲']}
+    weapon:{label:'武器',cat:'法器',eff:'攻擊',effectLabel:'增加攻擊',types:['長劍','飛劍'],idRange:[10000,10999]},
+    armor:{label:'防具',cat:'防具',eff:'防禦',effectLabel:'增加防禦',types:['法袍','重甲'],idRange:[11000,11999]}
   };
   const MEDICINE_EFFECTS={
     hp:{label:'體力回復',eff:'體力回復',unit:'點'},
@@ -36,7 +36,7 @@
     metal:{label:'金性暴擊',type:'金',unit:'%',defaultValue:25},
     earth:{label:'土性減傷',type:'土',unit:'%',defaultValue:25}
   };
-  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-FIX1-SAFE-ITEM-CRUD-20260725';
+  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-FIX2-LINKED-DROPDOWNS-5DIGIT-ID-20260725';
 
   function h(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
   function clone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
@@ -128,9 +128,13 @@
     if(kind==='material')return '材料／合成材料';
     return (x.cat||'既有特殊項目')+'／'+(x.eff||'固定功能');
   }
+  function builderIdRange(kind,subtype){
+    if(kind==='equipment')return EQUIPMENT_TYPES[subtype]?.idRange||EQUIPMENT_TYPES.weapon.idRange;
+    return FIXED_ITEM_KINDS[kind]?.idRange||null;
+  }
   function nextFixedItemId(kind,subtype){
-    const items=state.draft?.items||{};let range=FIXED_ITEM_KINDS[kind]?.idRange||[8700,8999];
-    if(kind==='equipment')range=subtype==='armor'?[3000,3999]:[2000,2999];
+    const items=state.draft?.items||{},range=builderIdRange(kind,subtype);
+    if(!range)return '';
     for(let i=range[0];i<=range[1];i++)if(!items[String(i)])return String(i);
     return '';
   }
@@ -158,7 +162,7 @@
 
 
   function fixedItemIdRange(kind,item){
-    if(kind==='equipment')return item?.cat==='防具'?[3000,3999]:[2000,2999];
+    if(kind==='equipment')return item?.cat==='防具'?EQUIPMENT_TYPES.armor.idRange:EQUIPMENT_TYPES.weapon.idRange;
     return FIXED_ITEM_KINDS[kind]?.idRange||null;
   }
   function itemReferences(id){
@@ -191,9 +195,9 @@
   function renderFixedItemBuilder(){
     return `<div class="fixed-item-builder">
       <h3>固定物品建立器</h3>
-      <div class="builder-note">先建立唯一 ID，再依固定分類、固定效果與數值建立物品。類別與效果不能自由輸入，避免產生遊戲無法辨識的資料。</div>
+      <div class="builder-note">系統依分類自動分配五位數唯一 ID，再用固定種類、固定效果與數值建立物品。種類與效果只能使用既定下拉選單。</div>
       <div class="fixed-item-grid">
-        <div class="field"><label>物品 ID</label><input id="fixedItemId" inputmode="numeric" placeholder="不可重複"></div>
+        <div class="field"><label>物品 ID</label><input id="fixedItemId" inputmode="numeric" placeholder="由系統自動分配" readonly></div>
         <div class="field"><label>名稱</label><input id="fixedItemName" placeholder="輸入物品名稱"></div>
         <div class="field"><label>分類</label><select id="fixedItemKind" onchange="refreshFixedItemBuilderV154()">${Object.entries(FIXED_ITEM_KINDS).map(([id,x])=>`<option value="${id}">${x.label}</option>`).join('')}</select></div>
         <div class="field" id="fixedItemSubtypeField"><label>種類</label><select id="fixedItemSubtype" onchange="refreshFixedItemBuilderV154()"></select></div>
@@ -217,7 +221,7 @@
         : `<button class="btn red" onclick="deleteConfigItemV129('${h(id)}')">刪除</button>`;
       return `<tr class="item-value-row" data-item-hay="${h(hay)}" data-item-cat="${h(x.cat||'未分類')}" ${hidden?'hidden':''}><td class="id">${h(id)}${isNew?'<small class="phase1-pass">新建</small>':''}</td><td class="locked-cell"><b>${h(x.name||'')}</b><small>名稱鎖定</small></td><td><span class="fixed-lock">${h(fixedItemLabel(x))}</span></td><td>${input(x.val??0,`items.${id}.val`,'number','step="0.01"')}</td><td class="locked-cell">${h(x.detail||'')}<small>說明與功能鎖定</small></td><td>${action}</td></tr>`;
     }).join('');
-    return renderFixedItemBuilder()+`<div class="phase1-scope"><b>可安全新增與刪除物品。</b> 新增時只能使用固定分類、種類與效果下拉選單；既有物品與建立完成的物品，其 ID、名稱、分類、效果、用途與說明全部鎖定，只能調整數值。被商店、怪物、地圖、配方或天地靈物引用的物品禁止刪除。</div>
+    return renderFixedItemBuilder()+`<div class="phase1-scope"><b>可安全新增與刪除物品。</b> 新增時由系統按分類分配五位數 ID，並只能使用固定分類、種類與效果下拉選單；既有物品與建立完成的物品，其 ID、名稱、分類、效果、用途與說明全部鎖定，只能調整數值。被商店、怪物、地圖、配方或天地靈物引用的物品禁止刪除。</div>
       <div class="phase1-tools"><input id="phase1ItemSearch" placeholder="搜尋物品 ID、名稱、分類或效果" value="${h(state.itemSearch)}" oninput="filterItemValuesV154(this.value)"><select id="phase1ItemCategory" onchange="filterItemCategoryV154(this.value)"><option value="all">全部分類</option>${cats.map(c=>`<option value="${h(c)}" ${cat===c?'selected':''}>${h(c)}</option>`).join('')}</select></div>
       <div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>ID</th><th>名稱（鎖定）</th><th>分類／效果（鎖定）</th><th>可調整數值</th><th>說明（鎖定）</th><th>管理</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
@@ -270,6 +274,7 @@
     if(!state.draft){e.innerHTML='<div class="notice">尚無草稿。可從目前正式版或 GitHub 靜態設定建立草稿。</div>';return}
     const map={items:renderItems,shop:renderShop,monsters:renderMonsters,techniques:renderTechniques,combat:renderCombat,breakthrough:renderBreakthroughBase,raw:renderRaw};
     e.innerHTML=(map[state.tab]||renderItems)();bindInputs();
+    if(state.tab==='items')setTimeout(()=>refreshFixedItemBuilder(true),0);
   }
   function pathSet(obj,path,value){
     const parts=path.split('.');let cur=obj;
@@ -402,7 +407,7 @@
     if(kind==='equipment'){
       subtypes=Object.entries(EQUIPMENT_TYPES).map(([id,x])=>[id,x.label]);
       const subtype=(currentSubtype&&EQUIPMENT_TYPES[currentSubtype])?currentSubtype:'weapon';
-      const spec=EQUIPMENT_TYPES[subtype];effects=[[spec.eff,spec.eff]];defaultValue=10;
+      const spec=EQUIPMENT_TYPES[subtype];effects=[[spec.eff,spec.effectLabel]];defaultValue=10;
     }else if(kind==='material'){
       subtypes=[['general','一般材料']];effects=[['craft','合成材料']];unit='固定';defaultValue=0;
     }else if(kind==='herb'){
@@ -426,8 +431,8 @@
     const valueEl=document.getElementById('fixedItemValue');
     if(resetDefaults&&valueEl)valueEl.value=kind==='enchant'?(ENCHANT_EFFECTS[effect]?.defaultValue??defaultValue):(kind==='medicine'&&effect==='heal'?0:defaultValue);
     const unitEl=document.getElementById('fixedItemValueUnit');if(unitEl)unitEl.textContent=unit;
-    const idEl=document.getElementById('fixedItemId');if(resetDefaults&&idEl&&!idEl.value)idEl.value=nextFixedItemId(kind,subtype);
-    const preview=document.getElementById('fixedItemPreview');if(preview)preview.textContent=builderDetail(kind,subtype,effect,valueEl?.value||0)||'固定資料將由系統自動帶入。';
+    const idEl=document.getElementById('fixedItemId');if(resetDefaults&&idEl)idEl.value=nextFixedItemId(kind,subtype);
+    const preview=document.getElementById('fixedItemPreview');if(preview){const range=builderIdRange(kind,subtype);const flow=kind==='equipment'?`${EQUIPMENT_TYPES[subtype]?.label||'武器'} → ${EQUIPMENT_TYPES[subtype]?.effectLabel||'增加攻擊'}`:(FIXED_ITEM_KINDS[kind]?.label||'固定分類');preview.textContent=`${flow}｜可用 ID ${range?range[0]+'～'+range[1]:'未設定'}｜`+(builderDetail(kind,subtype,effect,valueEl?.value||0)||'固定資料將由系統自動帶入。');}
   }
   function assignNextFixedItemId(){
     const kind=document.getElementById('fixedItemKind')?.value||'equipment',subtype=document.getElementById('fixedItemSubtype')?.value||'';
@@ -440,6 +445,8 @@
     if(!/^\d+$/.test(id))return toast('物品 ID 必須是純數字');
     if(state.draft.items[id])return toast('物品 ID '+id+' 已存在，禁止重複');
     if(!name)return toast('請輸入物品名稱');
+    const allowedRange=builderIdRange(kind,subtype),numericId=Number(id);
+    if(!allowedRange||!Number.isInteger(numericId)||numericId<allowedRange[0]||numericId>allowedRange[1])return toast('此分類只能使用 ID '+(allowedRange?allowedRange[0]+'～'+allowedRange[1]:'未設定'));
     let item={name,cat:'材料',type:null,eff:'合成材料',val:value,stack:999,rarity:'普通',detail:builderDetail(kind,subtype,effect,value)};
     if(kind==='equipment'){
       const spec=EQUIPMENT_TYPES[subtype]||EQUIPMENT_TYPES.weapon;item={...item,cat:spec.cat,type:spec.types[0],eff:spec.eff,stack:1,detail:builderDetail(kind,subtype,effect,value)};
@@ -523,10 +530,11 @@
   window.setConfigTabV129=id=>{state.tab=id;renderEditor()};
   window.createConfigDraftV129=createDraft;window.saveConfigDraftV129=saveDraft;window.publishConfigDraftV129=publishDraft;window.rollbackConfigV129=rollback;window.deleteConfigDraftV129=deleteDraft;window.deleteConfigVersionV148=deleteVersionV148;
   window.addConfigItemV129=addItem;window.deleteConfigItemV129=delItem;window.addConfigArrayRowV129=addArrayRow;window.deleteConfigArrayRowV129=delArrayRow;window.applyRawConfigV129=applyRaw;
+  window.refreshFixedItemBuilderV154=refreshFixedItemBuilder;window.assignNextFixedItemIdV154=assignNextFixedItemId;window.createFixedConfigItemV154=createFixedItem;
   window.filterItemValuesV154=filterItemValues;window.filterItemCategoryV154=filterItemCategory;window.selectMonsterV154=selectMonster;window.filterMonsterSelectV154=filterMonsterSelect;window.filterMonsterDropItemsV154=filterMonsterDropItems;window.addMonsterDropV154=addMonsterDrop;window.removeMonsterDropV154=removeMonsterDrop;window.setMonsterDropRateV154=setMonsterDropRate;
   window.saveBreakthroughConfigV129=saveBreakCfg;window.exportConfigExcelV129=exportExcel;window.importConfigExcelV129=importExcel;
   window.V129_CONFIG_ADMIN={state,setDirty,renderEditor,refresh:loadConfigAdmin,mergeV135Config};
 
-  console.info('[V15.4 ADMIN BALANCE PHASE1] installed',ITEM_EDITOR_BUILD);
+  console.info('[V15.4 ADMIN BALANCE PHASE1 FIX2] installed',ITEM_EDITOR_BUILD);
   injectCard();setTimeout(()=>{if(!document.getElementById('adminMain')?.classList.contains('hidden'))loadConfigAdmin()},800);
 })();
