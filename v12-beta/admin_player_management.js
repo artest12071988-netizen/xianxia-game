@@ -37,7 +37,20 @@ async function loadFormalItems(){
     const {data,error}=await client.rpc('get_published_game_config');
     if(error)throw error;
     const items=data?.config?.items||data?.items||{};
-    S.items=Object.entries(items).map(([id,it])=>({id:String(id),name:String(it?.name||id),cat:String(it?.cat||it?.type||'')})).sort((a,b)=>a.name.localeCompare(b.name,'zh-Hant'));
+    const supplementalItems={
+      '8501':{name:'赤陽器紋砂',cat:'器紋材料'},
+      '8502':{name:'玄甲器紋砂',cat:'器紋材料'},
+      '8503':{name:'雷鳴器紋砂',cat:'器紋材料'},
+      '8504':{name:'長生器紋砂',cat:'器紋材料'},
+      '8505':{name:'靈泉器紋砂',cat:'器紋材料'},
+      '8410':{name:'淬器石',cat:'淬鍊材料'},
+      '8411':{name:'護器符',cat:'護器材料'},
+      '8412':{name:'天工石',cat:'增幅材料'},
+      '8413':{name:'洗煉石',cat:'洗煉材料'}
+    };
+    const merged={...items};
+    for(const [id,it] of Object.entries(supplementalItems))merged[id]={...(merged[id]||{}),...it};
+    S.items=Object.entries(merged).map(([id,it])=>({id:String(id),name:String(it?.name||id),cat:String(it?.cat||it?.type||'')})).sort((a,b)=>a.name.localeCompare(b.name,'zh-Hant'));
     renderItemOptions();
   }catch(e){select.innerHTML='<option value="">物品載入失敗</option>';msg('正式物品載入失敗：'+e.message)}
 }
