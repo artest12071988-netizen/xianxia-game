@@ -563,6 +563,12 @@ async function loadCloudSave(){
 }
 async function archiveLegacyDeadSave(){
   if(!cloudState.remoteSave?.g?.dead)return false;
+  const legacyHp=Number(cloudState.remoteSave?.g?.hp||0);
+  if(legacyHp>0){
+    cloudState.remoteSave.g.dead=false;
+    console.warn('[V15.4 DEATH SAFETY] false dead flag cleared from live cloud save',{hp:legacyHp});
+    return false;
+  }
   const payload=cloudState.remoteSave;
   try{await cloudState.client.rpc('record_character_death',{p_snapshot:payload,p_cause:'舊版本死亡紀錄'});}catch(e){console.warn(e)}
   cloudState.remoteSave=null;cloudState.revision=0;
@@ -573,6 +579,12 @@ async function retryDeathLock(){
   let lock=null;
   try{lock=JSON.parse(localStorage.getItem(V121_DEATH_LOCK)||'null')}catch(_){lock=null}
   if(!lock||lock.userId!==cloudState.user?.id)return;
+  const lockHp=Number(lock?.snapshot?.g?.hp||0);
+  if(lockHp>0){
+    localStorage.removeItem(V121_DEATH_LOCK);
+    console.warn('[V15.4 DEATH SAFETY] invalid death lock discarded',{hp:lockHp});
+    return;
+  }
   try{
     const {error}=await cloudState.client.rpc('record_character_death',{p_snapshot:lock.snapshot,p_cause:lock.cause||'身隕道消'});
     if(error)throw error;
@@ -692,6 +704,13 @@ function flushOnUnload(){
 
 async function finalizePermanentDeath(cause){
   if(!g)return;
+  if(Number(g.hp||0)>0){
+    g.dead=false;
+    localStorage.removeItem(V121_DEATH_LOCK);
+    console.error('[V15.4 DEATH SAFETY] blocked false permanent death',{cause,hp:g.hp,hpMax:g.hpMax});
+    render();
+    return;
+  }
   clearInterval(tickTimer);clearInterval(aiTimer);g.dead=true;g.meditating=false;
   const snapshot={savedAt:Date.now(),build:V12_BUILD,userId:cloudState.user?.id||null,g:{...g,yuanbao:undefined}};
   const lock={userId:cloudState.user?.id||null,cause,snapshot};
@@ -1635,3 +1654,5 @@ setInterval(renderMeditationUI,1000);
 
 const v1264BaseStartOnlineWorld=startOnlineWorld;
 startOnlineWorld=async function(){const r=await v1264BaseStartOnlineWorld();await loadAdRewardStatus();return r};
+
+console.log('[V15.4 FALSE DEATH EMERGENCY FIX1] installed');
