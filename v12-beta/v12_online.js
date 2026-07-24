@@ -164,6 +164,7 @@ continueGame = async function(){
       await loadCloudSave();
       if(!cloudState.remoteSave){toast('雲端尚無角色');show('create');return}
       applySavePayload(cloudState.remoteSave);
+      clearStaleDeathUiAndLock('continue-living-character');
     }else if(cloudState.preview){
       applySavePayload(JSON.parse(localStorage.getItem(V12_LOCAL_CACHE)));
     }else return openServerSetup();
@@ -561,6 +562,33 @@ async function loadCloudSave(){
   cloudState.revision=data?.revision||0;
   cloudState.lastSyncedAt=data?.updated_at?Date.parse(data.updated_at):null;
 }
+// V15.4 FALSE DEATH AUTHORITY FIX2
+// A live cloud save (dead=false and hp>0) is authoritative. Stale local locks / grave overlays
+// must never be allowed to replace or visually override that living character.
+function isAuthoritativeLivingSave(save){
+  const sg=save?.g;
+  return !!sg && sg.dead!==true && Number(sg.hp||0)>0;
+}
+function clearStaleDeathUiAndLock(reason='alive-cloud-save'){
+  const livingRemote=isAuthoritativeLivingSave(cloudState.remoteSave);
+  const livingRuntime=!!g && g.dead!==true && Number(g.hp||0)>0;
+  if(!livingRemote && !livingRuntime)return false;
+  try{localStorage.removeItem(V121_DEATH_LOCK)}catch(_){ }
+  const layer=document.getElementById('graveLock');
+  if(layer)layer.remove();
+  if(g){g.dead=false}
+  console.warn('[V15.4 FALSE DEATH AUTHORITY FIX2] stale death state cleared',{reason,hp:Number(g?.hp||cloudState.remoteSave?.g?.hp||0)});
+  return true;
+}
+async function purgeServerStaleGraveForLivingSave(){
+  if(!cloudState.enabled||!cloudState.user||!isAuthoritativeLivingSave(cloudState.remoteSave))return;
+  try{
+    const {error}=await cloudState.client.rpc('clear_stale_character_graves_for_living_save');
+    if(error && !String(error.message||'').includes('Could not find the function')){
+      console.warn('[V15.4 FALSE DEATH AUTHORITY FIX2] stale grave cleanup deferred',error);
+    }
+  }catch(e){console.warn('[V15.4 FALSE DEATH AUTHORITY FIX2] stale grave cleanup deferred',e)}
+}
 async function archiveLegacyDeadSave(){
   if(!cloudState.remoteSave?.g?.dead)return false;
   const legacyHp=Number(cloudState.remoteSave?.g?.hp||0);
@@ -598,9 +626,12 @@ async function afterCloudLogin(){
   try{
     await loadCloudSave();
     await loadAccountWallet();
+    clearStaleDeathUiAndLock('after-first-cloud-load');
     await retryDeathLock();
     await loadCloudSave();
+    clearStaleDeathUiAndLock('after-death-lock-check');
     await archiveLegacyDeadSave();
+    await purgeServerStaleGraveForLivingSave();
     await syncWorldCultivators(true);
     await recoverEmergencyCache();
     await initRealtime();
@@ -726,12 +757,26 @@ async function finalizePermanentDeath(cause){
   showDeathScreen(cause,archived);
 }
 function showDeathScreen(cause,archived){
+  // Never display a permanent-death overlay over a living runtime/cloud character.
+  if((g && g.dead!==true && Number(g.hp||0)>0) || isAuthoritativeLivingSave(cloudState.remoteSave)){
+    clearStaleDeathUiAndLock('blocked-false-death-screen');
+    return;
+  }
   closeOv();
   let layer=document.getElementById('graveLock');if(layer)layer.remove();
   layer=document.createElement('div');layer.id='graveLock';layer.className='grave-lock';
   layer.innerHTML='<div class="grave-card"><div class="intro-seal" style="width:72px;height:72px;font-size:30px">墓</div><h2>身隕道消</h2><p><b>'+esc(g?.name||'此世道體')+'</b> 已永久死亡。</p><p class="small">死因：'+esc(cause)+'<br>'+(archived?'死亡紀錄已封存至伺服器。':'網路異常，死亡鎖已保存；重新連線後會自動封存。')+'</p><div class="notice">此角色的境界、功法、裝備、靈石與進度不可恢復。帳號商城元寶保留：'+cloudState.walletBalance.toLocaleString()+'。</div><button class="btn gold" style="width:100%;margin-top:14px" onclick="beginNewCharacter()">建立全新道體</button></div>';
   document.body.appendChild(layer);
 }
+// Late-loaded PvP/lifecycle modules may attempt to recreate an old grave overlay.
+// Keep the living cloud save authoritative without touching genuine hp<=0 deaths.
+setInterval(()=>{
+  if((g && g.dead!==true && Number(g.hp||0)>0) || isAuthoritativeLivingSave(cloudState.remoteSave)){
+    const layer=document.getElementById('graveLock');
+    if(layer)clearStaleDeathUiAndLock('late-overlay-guard');
+  }
+},1000);
+
 function beginNewCharacter(){
   const layer=document.getElementById('graveLock');if(layer)layer.remove();
   g=null;fight=null;corpse=null;localStorage.removeItem(V12_LOCAL_CACHE);$('continueBtn').style.display='none';show('create');
