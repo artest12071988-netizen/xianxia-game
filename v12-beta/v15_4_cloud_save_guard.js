@@ -1,0 +1,287 @@
+'use strict';
+
+/* ============================================================
+   V15.4 CLOUD SAVE GUARD FIX1
+   目標：
+   1) 正式雲端模式不再從 emergency cache 回灌角色資料。
+   2) 雲端尚未完成載入前，所有自動存檔均封鎖。
+   3) 每次正式存檔帶入 clientBuildGuard，交由 SQL 端拒絕舊客戶端。
+   4) revision 衝突時採伺服器資料，不允許本機覆蓋。
+   ============================================================ */
+
+const V154_CLOUD_GUARD_BUILD = 'V15.4-PHASE3-STAGE3-FIX2-CLOUD-GUARD-20260724';
+const V154_CLOUD_GUARD_CACHE_KEY = 'xianxia_v154_cloud_guard_build';
+
+Object.assign(cloudState, {
+  cloudReady: false,
+  writeEnabled: false,
+  clientBuildGuard: V154_CLOUD_GUARD_BUILD,
+  staleClientBlocked: false
+});
+
+function v154PurgeLegacyLocalSave() {
+  try {
+    localStorage.removeItem(V12_LOCAL_CACHE);
+    localStorage.removeItem(V12_RECOVERY_CONFLICT);
+    localStorage.setItem(V154_CLOUD_GUARD_CACHE_KEY, V154_CLOUD_GUARD_BUILD);
+  } catch (error) {
+    console.warn('[V15.4 CLOUD GUARD] local cache purge failed', error);
+  }
+}
+
+async function v154PurgeBrowserCaches() {
+  try {
+    if ('caches' in window) {
+      const names = await caches.keys();
+      await Promise.all(names.map(name => caches.delete(name)));
+    }
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(reg => reg.unregister()));
+    }
+  } catch (error) {
+    console.warn('[V15.4 CLOUD GUARD] browser cache purge failed', error);
+  }
+}
+
+function v154BuildPayload() {
+  let payload;
+  if (typeof buildSavePayload === 'function') {
+    payload = buildSavePayload();
+  } else {
+    const cleanG = typeof structuredClone === 'function'
+      ? structuredClone(g)
+      : JSON.parse(JSON.stringify(g));
+    payload = {
+      savedAt: Date.now(),
+      build: V12_BUILD,
+      userId: cloudState.user?.id || null,
+      clientRevision: cloudState.revision,
+      g: cleanG,
+      ai
+    };
+  }
+  payload.clientBuildGuard = V154_CLOUD_GUARD_BUILD;
+  payload.build = V154_CLOUD_GUARD_BUILD;
+  payload.clientRevision = Number(cloudState.revision || 0);
+  payload.savedAt = Date.now();
+  if (payload.g) {
+    payload.g.build = V154_CLOUD_GUARD_BUILD;
+    payload.g.lastSavedAt = payload.savedAt;
+  }
+  return payload;
+}
+
+// 正式雲端模式：永遠禁止 emergency cache 回灌。
+recoverEmergencyCache = async function () {
+  v154PurgeLegacyLocalSave();
+  return false;
+};
+
+// 登入順序：先鎖寫入 → 讀雲端 → 清本機舊資料 → 才開放寫入。
+afterCloudLogin = async function () {
+  cloudState.lastError = '';
+  cloudState.cloudReady = false;
+  cloudState.writeEnabled = false;
+  cloudState.staleClientBlocked = false;
+
+  await loadCloudSave();
+  v154PurgeLegacyLocalSave();
+  await v154PurgeBrowserCaches();
+
+  cloudState.cloudReady = true;
+  cloudState.writeEnabled = true;
+
+  await initRealtime();
+  const continueButton = $('continueBtn');
+  if (continueButton) continueButton.style.display = cloudState.remoteSave ? 'block' : 'none';
+  updateCloudBadge();
+  console.info('[V15.4 CLOUD GUARD] cloud-first login ready', {
+    build: V154_CLOUD_GUARD_BUILD,
+    revision: cloudState.revision,
+    hasRemoteSave: !!cloudState.remoteSave
+  });
+};
+
+continueGame = async function () {
+  try {
+    if (cloudState.enabled) {
+      if (!cloudState.user) {
+        show('auth');
+        return;
+      }
+      cloudState.cloudReady = false;
+      cloudState.writeEnabled = false;
+      await loadCloudSave();
+      if (!cloudState.remoteSave) {
+        toast('雲端尚無角色');
+        show('create');
+        return;
+      }
+      applySavePayload(cloudState.remoteSave);
+      v154PurgeLegacyLocalSave();
+      cloudState.cloudReady = true;
+      cloudState.writeEnabled = true;
+    } else if (cloudState.preview) {
+      const raw = localStorage.getItem(V12_LOCAL_CACHE);
+      if (!raw) throw new Error('沒有離線預覽存檔');
+      applySavePayload(JSON.parse(raw));
+    } else {
+      openServerSetup();
+      return;
+    }
+    show('game');
+    startLoops();
+    render();
+    log('神識歸位，已載入伺服器最新存檔。', 'lg');
+  } catch (error) {
+    toast('存檔載入失敗：' + (error?.message || String(error)));
+  }
+};
+
+saveGame = function (showToast = false) {
+  if (!g) return;
+  const payload = v154BuildPayload();
+
+  // 預覽模式仍可本機暫存；正式雲端模式不保存可回灌的角色快取。
+  if (cloudState.preview) {
+    localStorage.setItem(V12_LOCAL_CACHE, JSON.stringify(payload));
+  } else {
+    v154PurgeLegacyLocalSave();
+  }
+
+  if (
+    cloudState.enabled &&
+    cloudState.user &&
+    cloudState.cloudReady &&
+    cloudState.writeEnabled
+  ) {
+    scheduleCloudSave();
+  }
+
+  if (showToast) {
+    toast(
+      cloudState.enabled
+        ? (cloudState.cloudReady ? '已排入雲端同步' : '雲端載入中，暫停寫入')
+        : '僅為離線預覽暫存'
+    );
+  }
+};
+
+scheduleCloudSave = function (force = false) {
+  if (!cloudState.cloudReady || !cloudState.writeEnabled || cloudState.staleClientBlocked) {
+    console.warn('[V15.4 CLOUD GUARD] save blocked before cloud ready');
+    return;
+  }
+  clearTimeout(cloudState.saveTimer);
+  cloudState.saveTimer = setTimeout(
+    () => flushCloudSave(force),
+    force ? 0 : (P?.autosave_debounce_ms || 450)
+  );
+};
+
+flushCloudSave = async function (force = false) {
+  if (
+    !g ||
+    g.dead ||
+    !cloudState.enabled ||
+    !cloudState.user ||
+    !cloudState.cloudReady ||
+    !cloudState.writeEnabled ||
+    cloudState.staleClientBlocked
+  ) return;
+
+  if (!navigator.onLine) {
+    updateCloudBadge();
+    return;
+  }
+  if (cloudState.saving) {
+    cloudState.pending = true;
+    return;
+  }
+
+  cloudState.saving = true;
+  cloudState.pending = false;
+  updateCloudBadge();
+  const payload = v154BuildPayload();
+
+  try {
+    const { data, error } = await cloudState.client.rpc('save_game_state', {
+      p_save: payload,
+      p_client_revision: Number(cloudState.revision || 0)
+    });
+    if (error) throw error;
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) throw new Error('伺服器未回傳存檔結果');
+
+    if (row.accepted) {
+      cloudState.revision = Number(row.server_revision || cloudState.revision + 1);
+      cloudState.lastSyncedAt = row.server_updated_at
+        ? Date.parse(row.server_updated_at)
+        : Date.now();
+      cloudState.remoteSave = payload;
+      cloudState.lastError = '';
+      v154PurgeLegacyLocalSave();
+    } else {
+      cloudState.revision = Number(row.server_revision || 0);
+      cloudState.remoteSave = row.server_save || null;
+      if (row.server_save?.g) {
+        applySavePayload(row.server_save);
+        render();
+      }
+      v154PurgeLegacyLocalSave();
+      toast('偵測到舊版或舊分頁，已採用伺服器最新存檔');
+    }
+  } catch (error) {
+    const message = error?.message || String(error);
+    cloudState.lastError = message;
+    if (message.includes('STALE_CLIENT_BUILD')) {
+      cloudState.staleClientBlocked = true;
+      cloudState.writeEnabled = false;
+      toast('目前頁面版本已失效，雲端已拒絕舊版存檔');
+    }
+    console.error('[V15.4 CLOUD GUARD] cloud save failed', error);
+  } finally {
+    cloudState.saving = false;
+    updateCloudBadge();
+    if (cloudState.pending && cloudState.writeEnabled) scheduleCloudSave(true);
+  }
+};
+
+flushOnUnload = function () {
+  if (
+    !g || g.dead || !cloudState.enabled || !cloudState.user || !navigator.onLine ||
+    !cloudState.cloudReady || !cloudState.writeEnabled || cloudState.staleClientBlocked
+  ) return;
+
+  const payload = v154BuildPayload();
+  cloudState.client.auth.getSession().then(({ data }) => {
+    const token = data.session?.access_token;
+    if (!token) return;
+    fetch(V12_ONLINE.supabaseUrl + '/rest/v1/rpc/save_game_state', {
+      method: 'POST',
+      keepalive: true,
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: V12_ONLINE.supabasePublishableKey,
+        Authorization: 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        p_save: payload,
+        p_client_revision: Number(cloudState.revision || 0)
+      })
+    }).catch(() => {});
+  }).catch(() => {});
+};
+
+// 將舊查詢參數換成目前版本標記；不更換路徑，不破壞 GitHub Pages。
+try {
+  const url = new URL(location.href);
+  if (url.searchParams.get('update') !== '15430302') {
+    url.searchParams.set('update', '15430302');
+    history.replaceState(null, '', url.toString());
+  }
+} catch (_) {}
+
+console.info('[V15.4 CLOUD SAVE GUARD] installed', V154_CLOUD_GUARD_BUILD);
