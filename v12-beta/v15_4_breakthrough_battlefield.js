@@ -1,12 +1,12 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.4-PHASE3-STAGE2-FIX2-SAFE-BATTLEFIELD-BOOT-20260724';
+const BUILD='V15.4-PHASE3-STAGE3-RESULT-SCENE-20260724';
 const ROOT_ID='v154BreakthroughBattlefield';
 const FAILURE_ID='v154BreakthroughFailureFx';
 const state={
   eventId:null,role:null,data:null,timer:null,busy:false,selected:null,
-  lastResult:null,lastLogKey:null,speechTimer:null,ownerEntry:false
+  lastResult:null,lastLogKey:null,speechTimer:null,ownerEntry:false,resultDialogue:null
 };
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
@@ -140,13 +140,37 @@ function logHtml(){
     return `<p><b>${esc(x.actor||'戰場')}</b>：${action}</p>`;
   }).join('')||'<p>雙方氣機交纏，戰事一觸即發。</p>';
 }
+const RESULT_DIALOGUES={
+  success:[
+    '道心不滅……我終於踏過此關！',
+    '天門既開，前路再無桎梏！',
+    '萬法歸一，此境今日終成！',
+    '此身承天命，從此再進一重天！',
+    '靈海圓滿，天地皆為我證道！',
+    '多年苦修，今日終不負道心！'
+  ],
+  failure:[
+    '靈氣逆行……我絕不會在此倒下！',
+    '此劫雖敗，道心未碎！',
+    '天道阻我一次，阻不了我第二次！',
+    '經脈受創……但我的路還沒有結束！',
+    '今日之敗，我必百倍討回！',
+    '靈海崩散又如何，我仍會重登此關！'
+  ]
+};
+function chooseResultDialogue(result){
+  const lines=RESULT_DIALOGUES[result]||[];
+  if(!lines.length)return '';
+  const seed=String(state.eventId||'').split('').reduce((n,c)=>n+c.charCodeAt(0),0)+Date.now();
+  return lines[Math.abs(seed)%lines.length];
+}
 function currentSpeech(){
   const logs=Array.isArray(state.data?.event?.battle_log)?state.data.event.battle_log:[];
   const last=logs[logs.length-1];
   const owner=state.data?.owner?.name;
   if(last&&last.action==='attack'&&last.target===owner)return '無恥小人！待我出關，必將此仇百倍奉還！';
-  if(state.data?.event?.breakthrough_result==='success')return '天門已開，誰還能阻我！';
-  if(state.data?.event?.breakthrough_result==='failure')return '靈氣逆行……我絕不會在此倒下！';
+  const result=state.data?.event?.breakthrough_result;
+  if(result)return state.resultDialogue||(state.resultDialogue=chooseResultDialogue(result));
   const lines=['我命由我不由天！','天地靈機，盡歸我身！','今日若不破境，誓不罷休！','此關一破，我道自成！'];
   return lines[Math.floor(Date.now()/6500)%lines.length];
 }
@@ -155,6 +179,8 @@ function render(){
   const e=state.data.event||{},sec=secondsLeft(),ended=e.battle_status==='ended',info=stageInfo();
   el.dataset.stage=String(Math.min(4,info.index));
   el.classList.toggle('v154-anomaly-peak',!e.breakthrough_result&&info.index>=3);
+  el.classList.toggle('outcome-success',e.breakthrough_result==='success');
+  el.classList.toggle('outcome-failure',e.breakthrough_result==='failure');
   if(state.selected&&!targetAllowed(state.selected))state.selected=null;
   const targetName=state.selected==='owner'?state.data.owner?.name:(state.data.participants||[]).find(p=>p.key===state.selected)?.name;
   const act=myCanAct(),phase=e.breakthrough_result?(ended?'戰場結束':'突破者已出關'):'天象異變同步中';
@@ -186,7 +212,7 @@ function render(){
       <i class="v154-fx-shards"></i>
       <i class="v154-fx-mist"></i>
     </div>
-    <div class="v154-result-banner"><small>${e.breakthrough_result==='success'?'BREAKTHROUGH COMPLETE':'BREAKTHROUGH FAILED'}</small><b>${e.breakthrough_result==='success'?'天門大開':e.breakthrough_result==='failure'?'靈氣崩散':''}</b><span>${e.breakthrough_result==='success'?`已晉升 ${esc(e.target_realm||'新境界')}`:e.breakthrough_result==='failure'?'突破失敗，陷入走火入魔':''}</span></div>
+    <div class="v154-result-banner"><small>${e.breakthrough_result==='success'?'BREAKTHROUGH COMPLETE':'BREAKTHROUGH FAILED'}</small><b>${e.breakthrough_result==='success'?'天門大開':e.breakthrough_result==='failure'?'靈氣崩散':''}</b><span>${e.breakthrough_result==='success'?`已晉升 ${esc(e.target_realm||'新境界')}`:e.breakthrough_result==='failure'?'突破失敗，陷入走火入魔':''}</span><em>${e.breakthrough_result?`「${esc(currentSpeech())}」`:''}</em></div>
     <footer class="v154-bottom">
       <div class="v154-log-head"><b>戰況日誌</b><button data-log-toggle>戰況詳情</button></div>
       <div class="v154-log">${logHtml()}</div>
@@ -209,12 +235,13 @@ function bind(){
 }
 function resultTransition(result){
   const el=root();if(!el||!result)return;
-  el.classList.remove('result-success','result-failure');
+  state.resultDialogue=chooseResultDialogue(result);
+  el.classList.remove('result-success','result-failure','v154-result-flash');
   void el.offsetWidth;
-  el.classList.add(result==='success'?'result-success':'result-failure');
+  el.classList.add('v154-result-flash',result==='success'?'result-success':'result-failure');
   try{navigator.vibrate?.(result==='success'?[55,30,100,40,130]:[80,35,90,35,110])}catch(_){ }
-  setTimeout(()=>{state.ownerEntry=true;render();root()?.classList.add(result==='success'?'result-success':'result-failure')},1150);
-  setTimeout(()=>root()?.classList.remove('result-success','result-failure'),2850);
+  setTimeout(()=>{state.ownerEntry=true;render();const r=root();r?.classList.add(result==='success'?'result-success':'result-failure','v154-result-flash')},900);
+  setTimeout(()=>root()?.classList.remove('result-success','result-failure','v154-result-flash'),3100);
 }
 async function load(options={}){
   if(!state.eventId||state.busy||!enabled())return false;
@@ -272,7 +299,7 @@ function createRoot(){
 }
 async function open(eventId,options={}){
   if(!eventId)return false;
-  state.eventId=String(eventId);state.role=options.role||state.role;state.selected=null;state.data=null;state.lastResult=options.lastResult||null;state.ownerEntry=!!options.ownerEntry;
+  state.eventId=String(eventId);state.role=options.role||state.role;state.selected=null;state.data=null;state.lastResult=options.lastResult||null;state.ownerEntry=!!options.ownerEntry;state.resultDialogue=null;
   clearInterval(state.timer);state.timer=null;
   const loaded=await load({initial:true});
   if(!loaded)return false;
@@ -280,7 +307,7 @@ async function open(eventId,options={}){
   return true;
 }
 function close(){
-  clearInterval(state.timer);state.timer=null;root()?.remove();document.body.classList.remove('v154-battlefield-locked');state.eventId=null;state.data=null;state.selected=null;state.ownerEntry=false;
+  clearInterval(state.timer);state.timer=null;root()?.remove();document.body.classList.remove('v154-battlefield-locked');state.eventId=null;state.data=null;state.selected=null;state.ownerEntry=false;state.resultDialogue=null;
 }
 function failureScene(options={}){
   document.getElementById(FAILURE_ID)?.remove();

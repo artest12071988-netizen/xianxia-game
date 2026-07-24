@@ -144,3 +144,58 @@ body.v154-battlefield-locked{overflow:hidden}
   .v154-hidden-breaker{width:58px;height:58px;top:55%}
   .v154-owner.flying{animation-duration:1.35s!important}
 }
+
+/* ============================================================
+   V15.4 Phase 3 Stage 3
+   結果全亮轉場、成功/失敗雙背景、結果隨機台詞
+   ============================================================ */
+.v154-btf::after{
+  content:"";position:absolute;inset:0;z-index:48;pointer-events:none;
+  background:#fff;opacity:0;mix-blend-mode:screen
+}
+.v154-btf.v154-result-flash::after{animation:v154ResultWhiteout 1.5s cubic-bezier(.2,.72,.2,1) both}
+@keyframes v154ResultWhiteout{
+  0%{opacity:0}
+  18%{opacity:.28}
+  42%{opacity:1}
+  58%{opacity:.96}
+  100%{opacity:0}
+}
+.v154-btf.outcome-success .v154-btf-bg{
+  background:
+    linear-gradient(180deg,rgba(5,7,10,.08),rgba(4,7,11,.28)),
+    radial-gradient(circle at 50% 18%,rgba(255,244,182,.28),transparent 34%),
+    url('assets/breakthrough_result_success_v154_stage3.webp') center 18%/cover no-repeat!important;
+  filter:saturate(1.08) contrast(1.03) brightness(1.08)!important;
+  animation:v154OutcomeBgReveal 1.65s ease-out both
+}
+.v154-btf.outcome-failure .v154-btf-bg{
+  background:
+    linear-gradient(180deg,rgba(4,3,12,.12),rgba(5,3,11,.42)),
+    radial-gradient(circle at 50% 20%,rgba(255,91,133,.18),transparent 35%),
+    url('assets/breakthrough_result_failure_v154_stage3.webp') center 18%/cover no-repeat!important;
+  filter:saturate(1.12) contrast(1.06) brightness(.92)!important;
+  animation:v154OutcomeBgReveal 1.65s ease-out both
+}
+@keyframes v154OutcomeBgReveal{
+  0%{opacity:.05;transform:scale(1.08);filter:blur(12px) brightness(2.2)}
+  52%{opacity:1;transform:scale(1.025);filter:blur(2px) brightness(1.35)}
+  100%{opacity:1;transform:scale(1);}
+}
+.v154-btf.outcome-success .v154-anomaly-field,
+.v154-btf.outcome-failure .v154-anomaly-field{opacity:.34;transition:opacity .8s ease}
+.v154-btf.outcome-success .v154-btf-qi{opacity:.48}
+.v154-btf.outcome-failure .v154-btf-qi{opacity:.28;filter:hue-rotate(285deg)}
+.v154-result-banner em{
+  display:block;margin-top:8px;color:#fff;font-style:normal;font-size:clamp(12px,1.45vw,20px);
+  letter-spacing:.08em;text-shadow:0 2px 14px rgba(0,0,0,.9);max-width:min(720px,78vw)
+}
+.v154-btf.outcome-success .v154-result-banner em{color:#fff3bd}
+.v154-btf.outcome-failure .v154-result-banner em{color:#ffc0ca}
+.v154-btf.outcome-success .v154-speech{border-color:rgba(255,218,112,.72);background:rgba(25,18,5,.84)}
+.v154-btf.outcome-failure .v154-speech{border-color:rgba(255,106,139,.62);background:rgba(25,5,14,.86)}
+@media(max-width:820px){
+  .v154-btf.outcome-success .v154-btf-bg,.v154-btf.outcome-failure .v154-btf-bg{background-position:center top!important}
+  .v154-result-banner em{font-size:11px;max-width:88vw;line-height:1.5}
+}
+@media(prefers-reduced-motion:reduce){.v154-btf.v154-result-flash::after,.v154-btf.outcome-success .v154-btf-bg,.v154-btf.outcome-failure .v154-btf-bg{animation:none!important}}
