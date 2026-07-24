@@ -1,12 +1,13 @@
 (()=>{
 'use strict';
 
-const BUILD='V15.4-PHASE3-STAGE3-RESULT-SCENE-20260724';
+const BUILD='V15.4-PHASE3-STAGE3-FIX1-EXIT-SUPPRESS-20260724';
 const ROOT_ID='v154BreakthroughBattlefield';
 const FAILURE_ID='v154BreakthroughFailureFx';
 const state={
   eventId:null,role:null,data:null,timer:null,busy:false,selected:null,
-  lastResult:null,lastLogKey:null,speechTimer:null,ownerEntry:false,resultDialogue:null
+  lastResult:null,lastLogKey:null,speechTimer:null,ownerEntry:false,resultDialogue:null,
+  dismissedEvents:new Set()
 };
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
@@ -230,7 +231,7 @@ function bind(){
     state.selected=state.selected===key?null:key;render();
   }));
   el.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>act(b.dataset.action)));
-  el.querySelector('[data-close]')?.addEventListener('click',close);
+  el.querySelector('[data-close]')?.addEventListener('click',dismissAndClose);
   el.querySelector('[data-log-toggle]')?.addEventListener('click',()=>el.classList.toggle('log-open'));
 }
 function resultTransition(result){
@@ -257,7 +258,7 @@ async function load(options={}){
     if(newResult&&newResult===oldResult&&!state.ownerEntry)state.ownerEntry=true;
     render();
     if(newResult&&newResult!==oldResult){state.lastResult=newResult;resultTransition(newResult)}
-    if(data?.event?.battle_status==='ended')clearInterval(state.timer);
+    if(data?.event?.battle_status==='ended'){clearInterval(state.timer);clearDismissed(state.eventId)}
     return true;
   }catch(err){
     console.warn('[V15.4 battlefield load]',err);
@@ -299,7 +300,9 @@ function createRoot(){
 }
 async function open(eventId,options={}){
   if(!eventId)return false;
-  state.eventId=String(eventId);state.role=options.role||state.role;state.selected=null;state.data=null;state.lastResult=options.lastResult||null;state.ownerEntry=!!options.ownerEntry;state.resultDialogue=null;
+  const normalizedEventId=String(eventId);
+  if(state.dismissedEvents.has(normalizedEventId)&&!options.force)return false;
+  state.eventId=normalizedEventId;state.role=options.role||state.role;state.selected=null;state.data=null;state.lastResult=options.lastResult||null;state.ownerEntry=!!options.ownerEntry;state.resultDialogue=null;
   clearInterval(state.timer);state.timer=null;
   const loaded=await load({initial:true});
   if(!loaded)return false;
@@ -308,6 +311,14 @@ async function open(eventId,options={}){
 }
 function close(){
   clearInterval(state.timer);state.timer=null;root()?.remove();document.body.classList.remove('v154-battlefield-locked');state.eventId=null;state.data=null;state.selected=null;state.ownerEntry=false;state.resultDialogue=null;
+}
+function dismissAndClose(){
+  const eventId=state.eventId;
+  if(eventId)state.dismissedEvents.add(String(eventId));
+  close();
+}
+function clearDismissed(eventId){
+  if(eventId)state.dismissedEvents.delete(String(eventId));
 }
 function failureScene(options={}){
   document.getElementById(FAILURE_ID)?.remove();
@@ -328,13 +339,17 @@ async function playOutcomeAndEnterBattle(options={}){
 }
 function restoreJoined(rows){
   if(root()||state.eventId||!Array.isArray(rows))return;
-  const active=rows.find(x=>x?.battle_status==='active'&&['guardian','attacker'].includes(x?.faction));
+  const active=rows.find(x=>x?.battle_status==='active'&&['guardian','attacker'].includes(x?.faction)&&!state.dismissedEvents.has(String(x.event_id)));
   if(active)setTimeout(()=>open(active.event_id,{role:active.faction}),80);
 }
-function openJoined(eventId,role){return open(eventId,{role})}
+function openJoined(eventId,role){
+  clearDismissed(eventId);
+  return open(eventId,{role,force:true});
+}
 
 window.openBreakthroughBattlefieldV154=open;
 window.closeBreakthroughBattlefieldV154=close;
+window.dismissBreakthroughBattlefieldV154=dismissAndClose;
 window.openJoinedBreakthroughBattlefieldV154=openJoined;
 window.restoreJoinedBattlefieldV154=restoreJoined;
 window.playBreakthroughOutcomeAndEnterBattleV154=playOutcomeAndEnterBattle;

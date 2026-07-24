@@ -165,7 +165,7 @@ body.v154-battlefield-locked{overflow:hidden}
   background:
     linear-gradient(180deg,rgba(5,7,10,.08),rgba(4,7,11,.28)),
     radial-gradient(circle at 50% 18%,rgba(255,244,182,.28),transparent 34%),
-    url('assets/breakthrough_result_success_v154_stage3.webp') center 18%/cover no-repeat!important;
+    url('assets/breakthrough_result_success_v154_stage3_fix1.webp') center 18%/cover no-repeat!important;
   filter:saturate(1.08) contrast(1.03) brightness(1.08)!important;
   animation:v154OutcomeBgReveal 1.65s ease-out both
 }
@@ -173,7 +173,7 @@ body.v154-battlefield-locked{overflow:hidden}
   background:
     linear-gradient(180deg,rgba(4,3,12,.12),rgba(5,3,11,.42)),
     radial-gradient(circle at 50% 20%,rgba(255,91,133,.18),transparent 35%),
-    url('assets/breakthrough_result_failure_v154_stage3.webp') center 18%/cover no-repeat!important;
+    url('assets/breakthrough_result_failure_v154_stage3_fix1.webp') center 18%/cover no-repeat!important;
   filter:saturate(1.12) contrast(1.06) brightness(.92)!important;
   animation:v154OutcomeBgReveal 1.65s ease-out both
 }
