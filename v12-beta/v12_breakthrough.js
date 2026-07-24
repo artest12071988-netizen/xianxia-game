@@ -548,7 +548,7 @@
     if(operationBlocked())return;
     const dest=coordOf(Number(r),Number(c));if(neutralCannotEnter(dest)){toast('你已選擇中立，本次突破期間禁止重返異變區域');return}
     const before=currentBreakCoord();const out=baseMoveTo(r,c);const after=currentBreakCoord();
-    if(before!==after&&cloudState.enabled&&cloudState.client&&cloudState.user)cloudState.client.rpc('update_breakthrough_participant_coord',{p_coord:after}).catch(()=>{});
+    if(before!==after&&cloudState.enabled&&cloudState.client&&cloudState.user)Promise.resolve(cloudState.client.rpc('update_breakthrough_participant_coord',{p_coord:after})).catch(()=>{});
     setTimeout(loadBreakthroughWorld,250);return out;
   };
   explore=function(){if(operationBlocked())return;return baseExplore()};

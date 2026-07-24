@@ -9,9 +9,10 @@
    4) revision 衝突時採伺服器資料，不允許本機覆蓋。
    ============================================================ */
 
-const V154_RUNTIME_BUILD = 'V15.4-WORLD-SAVE-RECOVERY-FIX2-20260724';
+const V154_RUNTIME_BUILD = 'V15.4-ASSET-INTEGRITY-FIX1-20260724';
 const V154_CLOUD_REQUIRED_BUILD = 'V15.4-PHASE3-STAGE3-FIX2-CLOUD-GUARD-20260724';
-const V154_CLOUD_GUARD_CACHE_KEY = 'xianxia_v154_world_save_recovery_fix1';
+const V154_CLOUD_GUARD_CACHE_KEY = 'xianxia_v154_asset_integrity_fix1';
+const V154_ASSET_SAFETY_KEY = 'xianxia_v154_asset_safety_snapshot';
 
 Object.assign(cloudState, {
   cloudReady: false,
@@ -47,7 +48,76 @@ async function v154PurgeBrowserCaches() {
   }
 }
 
+
+
+function v154Clone(value) {
+  try {
+    return typeof structuredClone === 'function'
+      ? structuredClone(value)
+      : JSON.parse(JSON.stringify(value));
+  } catch (_) {
+    return null;
+  }
+}
+
+function v154CaptureAssetSafety(sourceG = g) {
+  if (!sourceG || !cloudState.user) return;
+  try {
+    const snapshot = {
+      userId: cloudState.user.id,
+      characterId: sourceG.characterId || null,
+      savedAt: Date.now(),
+      inv: v154Clone(sourceG.inv || {}),
+      techniques: Array.isArray(sourceG.techniques) ? [...sourceG.techniques] : [],
+      equipment: Array.isArray(sourceG.equipment) ? v154Clone(sourceG.equipment) : [],
+      weaponUid: sourceG.weaponUid || null,
+      armorUid: sourceG.armorUid || null,
+      lingshi: Number(sourceG.lingshi || 0),
+      boundStone: Number(sourceG.boundStone || 0)
+    };
+    localStorage.setItem(V154_ASSET_SAFETY_KEY, JSON.stringify(snapshot));
+  } catch (error) {
+    console.warn('[V15.4 ASSET INTEGRITY] safety snapshot failed', error);
+  }
+}
+
+function v154ReadAssetSafety(targetG) {
+  try {
+    const raw = localStorage.getItem(V154_ASSET_SAFETY_KEY);
+    if (!raw) return null;
+    const snapshot = JSON.parse(raw);
+    if (!snapshot || snapshot.userId !== cloudState.user?.id) return null;
+    if (snapshot.characterId && targetG?.characterId && snapshot.characterId !== targetG.characterId) return null;
+    return snapshot;
+  } catch (_) {
+    return null;
+  }
+}
+
+function v154RestoreMissingAssets(payload) {
+  if (!payload?.g) return payload;
+  const target = payload.g;
+  const backup = v154ReadAssetSafety(target);
+  if (!backup) return payload;
+
+  const invMissing = !target.inv || typeof target.inv !== 'object' || Object.keys(target.inv).length === 0;
+  const techniquesMissing = !Array.isArray(target.techniques) || target.techniques.length === 0;
+  const equipmentMissing = !Array.isArray(target.equipment) || target.equipment.length === 0;
+
+  if (invMissing && backup.inv && Object.keys(backup.inv).length) target.inv = v154Clone(backup.inv);
+  if (techniquesMissing && backup.techniques?.length) target.techniques = [...backup.techniques];
+  if (equipmentMissing && backup.equipment?.length) {
+    target.equipment = v154Clone(backup.equipment);
+    target.weaponUid = target.weaponUid || backup.weaponUid || null;
+    target.armorUid = target.armorUid || backup.armorUid || null;
+  }
+  if (target.lingshi == null && Number.isFinite(backup.lingshi)) target.lingshi = backup.lingshi;
+  if (target.boundStone == null && Number.isFinite(backup.boundStone)) target.boundStone = backup.boundStone;
+  return payload;
+}
+
 function v154BuildPayload() {
+  v154CaptureAssetSafety(g);
   let payload;
   if (typeof buildSavePayload === 'function') {
     payload = buildSavePayload();
@@ -89,6 +159,8 @@ afterCloudLogin = async function () {
   cloudState.staleClientBlocked = false;
 
   await loadCloudSave();
+  if (typeof loadAccountWallet === 'function') await loadAccountWallet();
+  cloudState.remoteSave = v154RestoreMissingAssets(cloudState.remoteSave);
   v154PurgeLegacyLocalSave();
   await v154PurgeBrowserCaches();
 
@@ -117,12 +189,16 @@ continueGame = async function () {
       cloudState.cloudReady = false;
       cloudState.writeEnabled = false;
       await loadCloudSave();
+      if (typeof loadAccountWallet === 'function') await loadAccountWallet();
+      cloudState.remoteSave = v154RestoreMissingAssets(cloudState.remoteSave);
       if (!cloudState.remoteSave) {
         toast('雲端尚無角色');
         show('create');
         return;
       }
       applySavePayload(cloudState.remoteSave);
+      if (typeof setWallet === 'function') setWallet(cloudState.walletBalance, cloudState.walletRevision, cloudState.walletUpdatedAt);
+      v154CaptureAssetSafety(g);
       v154PurgeLegacyLocalSave();
       cloudState.cloudReady = true;
       cloudState.writeEnabled = true;
@@ -256,6 +332,7 @@ flushCloudSave = async function (force = false) {
       : Date.now();
     cloudState.remoteSave = payload;
     cloudState.lastError = '';
+    v154CaptureAssetSafety(g);
     cloudState.conflictRetryCount = 0;
     if (cloudState.conflictRetryTimer) { clearTimeout(cloudState.conflictRetryTimer); cloudState.conflictRetryTimer = null; }
     v154PurgeLegacyLocalSave();
@@ -313,4 +390,4 @@ try {
   }
 } catch (_) {}
 
-console.info('[V15.4 WORLD SAVE RECOVERY FIX2] installed', { runtime: V154_RUNTIME_BUILD, requiredBuild: V154_CLOUD_REQUIRED_BUILD });
+console.info('[V15.4 ASSET INTEGRITY FIX1] installed', { runtime: V154_RUNTIME_BUILD, requiredBuild: V154_CLOUD_REQUIRED_BUILD });
