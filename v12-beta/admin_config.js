@@ -36,7 +36,7 @@
     metal:{label:'金性暴擊',type:'金',unit:'%',defaultValue:25},
     earth:{label:'土性減傷',type:'土',unit:'%',defaultValue:25}
   };
-  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-FIX2-LINKED-DROPDOWNS-5DIGIT-ID-20260725';
+  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-FIX3-PERSISTENCE-20260725';
 
   function h(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
   function clone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
@@ -61,6 +61,20 @@
     const out=deepServerPriority(base,server),specs={realms:x=>x?.lv,monsters:x=>x?.id,zones:x=>x?.coord,shop:x=>x?.id,npcShop:x=>x?.id,paymentPackages:x=>x?.id,techniques:x=>x?.id,aiCultivators:x=>x?.id,heavenlyTreasures:x=>x?.itemId,craftingRecipes:x=>x?.id};
     for(const [field,keyOf] of Object.entries(specs))out[field]=mergeKeyed(base[field],server[field],keyOf);
     return out;
+  }
+  function selectUsableDraftMeta(versions,publishedVersion){
+    const published=Number(publishedVersion||0);
+    return (Array.isArray(versions)?versions:[])
+      .filter(v=>v?.status==='draft'&&Number(v?.version||0)>published)
+      .sort((a,b)=>Number(b.version||0)-Number(a.version||0))[0]||null;
+  }
+  function configItemIds(config){return Object.keys(config?.items||{}).map(String).sort()}
+  async function verifyStoredConfigItems(configId,expectedIds){
+    if(!configId)return;
+    const {data,error}=await sb.from('game_config_versions').select('config').eq('id',configId).single();
+    if(error)throw error;
+    const stored=data?.config?.items||{},missing=(expectedIds||[]).filter(id=>!Object.prototype.hasOwnProperty.call(stored,String(id)));
+    if(missing.length)throw new Error('伺服器未保存物品 ID：'+missing.slice(0,8).join('、')+(missing.length>8?'…':''));
   }
   let staticConfigPromise=null;
   function loadStaticV135(){
@@ -311,8 +325,10 @@
       state.published=pub?{...pub,config:pub.config?mergeV135Config(base,pub.config):pub.config}:null;state.versions=vers||[];state.breakCfg=be?null:bc;
       state.draft=null;state.draftId=null;state.draftVersion=0;
       let rawDraft=null,compatAdded=false;
-      const draftMeta=state.versions.find(v=>v.status==='draft');
-      if(draftMeta){const {data,error}=await sb.from('game_config_versions').select('id,version,config,notes').eq('id',draftMeta.id).single();if(!error&&data){rawDraft=clone(data.config);state.draft=mergeV135Config(base,data.config);state.draftId=data.id;state.draftVersion=data.version;document.getElementById('configNotes').value=data.notes||''}}
+      const notesEl=document.getElementById('configNotes');if(notesEl)notesEl.value='';
+      // 僅接續比正式版更新的草稿，避免舊草稿覆蓋已發布的新物品。
+      const draftMeta=selectUsableDraftMeta(state.versions,pub?.version);
+      if(draftMeta){const {data,error}=await sb.from('game_config_versions').select('id,version,config,notes').eq('id',draftMeta.id).single();if(!error&&data){rawDraft=clone(data.config);state.draft=mergeV135Config(base,data.config);state.draftId=data.id;state.draftVersion=data.version;if(notesEl)notesEl.value=data.notes||''}}
       if(!state.draft&&pub?.config){rawDraft=clone(pub.config);state.draft=mergeV135Config(base,pub.config);state.draftId=null;state.draftVersion=0}
       if(!state.draft){state.draft=clone(base);if(!state.draft){const r=await fetch('xianxia_config_V12.json?v=20260719-fix2-1',{cache:'no-store'});state.draft=await r.json()}}
       state.lockBaseline=clone(state.published?.config||base||state.draft);
@@ -381,16 +397,17 @@
   async function createDraft(){
     try{
       if(!state.draft){const r=await fetch('xianxia_config_V12.json',{cache:'no-store'});state.draft=await r.json()}
-      await validateDraft();const replaceId=await chooseReplaceSlot();const rpc=replaceId?'admin_replace_game_config_slot':'admin_create_game_config_draft';const args=replaceId?{p_replace_id:replaceId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim(),p_publish:false}:{p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()};const {data,error}=await sb.rpc(rpc,args);if(error)throw error;
-      state.draftId=data.id;state.draftVersion=data.version;state.dirty=false;toast('已建立 Config '+data.version+' 草稿');addLog('建立 Config '+data.version+' 草稿');await loadConfigAdmin();
+      await validateDraft();const expectedItemIds=configItemIds(state.draft);const replaceId=await chooseReplaceSlot();const rpc=replaceId?'admin_replace_game_config_slot':'admin_create_game_config_draft';const args=replaceId?{p_replace_id:replaceId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim(),p_publish:false}:{p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()};const {data,error}=await sb.rpc(rpc,args);if(error)throw error;
+      await verifyStoredConfigItems(data.id,expectedItemIds);
+      state.draftId=data.id;state.draftVersion=data.version;state.dirty=false;toast('已建立 Config '+data.version+' 草稿，伺服器保存確認完成');addLog('建立 Config '+data.version+' 草稿');await loadConfigAdmin();
     }catch(e){toast('建立草稿失敗：'+e.message)}
   }
   async function saveDraft(){
-    try{if(!state.draftId){await createDraft();return !!state.draftId}await validateDraft();const {error}=await sb.rpc('admin_update_game_config_draft',{p_id:state.draftId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()});if(error)throw error;state.dirty=false;setDirty(false);toast('草稿已儲存');addLog('儲存 Config '+state.draftVersion+' 草稿');return true}
+    try{if(!state.draftId){await createDraft();return !!state.draftId}await validateDraft();const expectedItemIds=configItemIds(state.draft);const {error}=await sb.rpc('admin_update_game_config_draft',{p_id:state.draftId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()});if(error)throw error;await verifyStoredConfigItems(state.draftId,expectedItemIds);state.dirty=false;setDirty(false);toast('草稿已儲存，伺服器保存確認完成');addLog('儲存 Config '+state.draftVersion+' 草稿');return true}
     catch(e){toast('儲存失敗：'+e.message);return false}
   }
   async function publishDraft(){
-    try{if(!state.draftId)throw new Error('請先建立並儲存草稿');if(!await saveDraft())return;const {data,error}=await sb.rpc('admin_publish_game_config',{p_id:state.draftId});if(error)throw error;toast('Config '+data.version+' 已發布');addLog('發布 Config '+data.version);state.draftId=null;await loadConfigAdmin()}
+    try{if(!state.draftId)throw new Error('請先建立並儲存草稿');if(!await saveDraft())return;const publishingId=state.draftId,expectedItemIds=configItemIds(state.draft);const {data,error}=await sb.rpc('admin_publish_game_config',{p_id:publishingId});if(error)throw error;await verifyStoredConfigItems(publishingId,expectedItemIds);const {data:publishedCheck,error:publishedError}=await sb.rpc('get_published_game_config');if(publishedError)throw publishedError;const publishedItems=publishedCheck?.config?.items||{},missing=expectedItemIds.filter(id=>!Object.prototype.hasOwnProperty.call(publishedItems,id));if(missing.length)throw new Error('正式版缺少物品 ID：'+missing.slice(0,8).join('、'));toast('Config '+data.version+' 已發布，重新登入持久化驗證完成');addLog('發布 Config '+data.version);state.draftId=null;await loadConfigAdmin()}
     catch(e){toast('發布失敗：'+e.message)}
   }
   async function rollback(version){if(!confirm('確定回復至 Config '+version+'？系統會建立一個新的正式版本，不會刪除歷史。'))return;try{const {data,error}=await sb.rpc('admin_rollback_game_config',{p_version:version,p_notes:'後台回復自 Config '+version});if(error)throw error;toast('已回復並發布 Config '+data.version);addLog('回復自 Config '+version);await loadConfigAdmin()}catch(e){toast('回復失敗：'+e.message)}}
@@ -535,6 +552,6 @@
   window.saveBreakthroughConfigV129=saveBreakCfg;window.exportConfigExcelV129=exportExcel;window.importConfigExcelV129=importExcel;
   window.V129_CONFIG_ADMIN={state,setDirty,renderEditor,refresh:loadConfigAdmin,mergeV135Config};
 
-  console.info('[V15.4 ADMIN BALANCE PHASE1 FIX2] installed',ITEM_EDITOR_BUILD);
+  console.info('[V15.4 ADMIN BALANCE PHASE1 FIX3] installed',ITEM_EDITOR_BUILD);
   injectCard();setTimeout(()=>{if(!document.getElementById('adminMain')?.classList.contains('hidden'))loadConfigAdmin()},800);
 })();
