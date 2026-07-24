@@ -222,6 +222,7 @@ async function load(options={}){
   try{
     const {data,error}=await client().rpc('get_breakthrough_battlefield_v154',{p_event_id:state.eventId});
     if(error)throw error;
+    state.loadErrors=0;
     const oldResult=state.data?.event?.breakthrough_result||state.lastResult;
     state.data=data;state.role=data?.my_role||state.role||'spectator';
     if(!root())createRoot();
@@ -233,11 +234,13 @@ async function load(options={}){
     return true;
   }catch(err){
     console.warn('[V15.4 battlefield load]',err);
+    state.loadErrors=Number(state.loadErrors||0)+1;
     const message=String(err?.message||err);
-    if(message.includes('BREAKTHROUGH_NOT_FOUND'))close();
-    else if(options.initial){
+    const fatal=message.includes('BREAKTHROUGH_NOT_FOUND')||message.includes('23514')||message.includes('owner_hp_check')||message.includes('400')||state.loadErrors>=3;
+    if(fatal||options.initial){
+      clearInterval(state.timer);state.timer=null;
       close();
-      window.toast?.('戰場資料讀取失敗，已安全返回遊戲');
+      window.toast?.('戰場資料異常，已停止輪詢並安全返回遊戲');
     }
     return false;
   }finally{state.busy=false}

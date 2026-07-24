@@ -298,6 +298,20 @@
     if(typeof syncPlayerPresence==='function')syncPlayerPresence(true);
   }
 
+  async function releaseBrokenOwnerBreakthrough(eventId,reason){
+    try{
+      if(eventId&&cloudState?.client&&cloudState?.user){
+        await cloudState.client.rpc('release_my_broken_breakthrough_event',{p_event_id:eventId});
+      }
+    }catch(releaseError){console.warn('release broken breakthrough failed',releaseError)}
+    const s=breakthroughState();
+    if(s){s.active=false;s.resultApplied=true}
+    g.breakthroughState=null;cloudState.playerAction='';cloudState.breakthroughOwnerPollErrors=0;
+    closeBreakthroughScene();saveGame(false);render();
+    toast(reason||'損壞的突破事件已解除，請重新開始突破');
+    if(typeof syncPlayerPresence==='function')syncPlayerPresence(true);
+  }
+
   async function pollOwnerBreakthrough(){
     const s=breakthroughState();if(!s?.active)return;
     if(!s.eventId){
@@ -306,12 +320,22 @@
     }
     try{
       const {data,error}=await cloudState.client.rpc('poll_breakthrough_event',{p_event_id:s.eventId});if(error)throw error;
+      cloudState.breakthroughOwnerPollErrors=0;
       const dmg=Number(data?.owner_pending_damage||0);if(dmg>0){g.hp=Math.max(0,g.hp-dmg);s.eventLine='襲擊者突破護法空隙，你受到 '+dmg+' 點傷害';log('突破期間遭受襲擊，體力 -'+dmg+'。','ld')}
       updateActiveScene(data);
       if(g.hp<=0||data?.status==='dead')return finishOwnerBreakthrough('dead',data?.result);
       if(data?.status==='success'||data?.status==='failure'||data?.status==='interrupted')return finishOwnerBreakthrough(data.status,data?.result);
       saveGame(false);
-    }catch(e){console.warn('breakthrough owner poll',e);updateActiveScene()}
+    }catch(e){
+      console.warn('breakthrough owner poll',e);
+      cloudState.breakthroughOwnerPollErrors=Number(cloudState.breakthroughOwnerPollErrors||0)+1;
+      const message=String(e?.message||e||'');
+      const integrityError=message.includes('23514')||message.includes('owner_hp_check')||message.includes('400');
+      if(integrityError||cloudState.breakthroughOwnerPollErrors>=3){
+        return releaseBrokenOwnerBreakthrough(s.eventId,'突破戰役資料異常，系統已自動解除舊戰役；請重新開始突破');
+      }
+      updateActiveScene();
+    }
   }
 
   async function restoreOwnerBreakthrough(){
