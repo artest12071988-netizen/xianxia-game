@@ -50,10 +50,16 @@ async function initV12Online(){
     if(data.session){cloudState.user=data.session.user;await afterCloudLogin()}
     else updateCloudBadge();
     cloudState.client.auth.onAuthStateChange(async(event,session)=>{
-      if(session?.user && (!cloudState.user || cloudState.user.id!==session.user.id)){
-        cloudState.user=session.user;await afterCloudLogin();
+      try{
+        if(session?.user && (!cloudState.user || cloudState.user.id!==session.user.id)){
+          cloudState.user=session.user;await afterCloudLogin();
+        }
+        if(event==='SIGNED_OUT'){cloudState.user=null;cloudState.remoteSave=null;cloudState.revision=0;teardownRealtime();updateCloudBadge();show('intro')}
+      }catch(error){
+        cloudState.lastError=String(error?.message||error||'AUTH_STATE_SYNC_FAILED');
+        updateCloudBadge();
+        console.error('[V15.4 AUTH STATE GUARD] synchronization failed',error);
       }
-      if(event==='SIGNED_OUT'){cloudState.user=null;cloudState.remoteSave=null;cloudState.revision=0;teardownRealtime();updateCloudBadge();show('intro')}
     });
   }else if(V12_PREVIEW){
     cloudState.preview=true;
@@ -502,7 +508,14 @@ loseFight = function(){
   sheet('<h3 style="color:var(--red)">身隕道消</h3><p>你被 '+esc(name)+' 所殺。死亡狀態已同步伺服器，不會因重新整理而回朔。</p><button class="btn gold" onclick="resetCharacter()">重新凝聚道體</button>');
 };
 
-setTimeout(initV12Online,0);
+setTimeout(()=>{
+  Promise.resolve(initV12Online()).catch(error=>{
+    const message=String(error?.message||error?.details||error||'ONLINE_INIT_FAILED');
+    cloudState.lastError=message;
+    updateCloudBadge();
+    console.error('[V15.4 ONLINE INIT GUARD] initialization failed',error);
+  });
+},0);
 
 /* ============================================================
    V12.1 PATCH — permanent death, account wallet, persistent world
@@ -577,7 +590,7 @@ function clearStaleDeathUiAndLock(reason='alive-cloud-save'){
   const layer=document.getElementById('graveLock');
   if(layer)layer.remove();
   if(g){g.dead=false}
-  console.warn('[V15.4 FALSE DEATH AUTHORITY FIX2] stale death state cleared',{reason,hp:Number(g?.hp||cloudState.remoteSave?.g?.hp||0)});
+  console.info('[V15.4 FALSE DEATH AUTHORITY FIX2] stale death state cleared',{reason,hp:Number(g?.hp||cloudState.remoteSave?.g?.hp||0)});
   return true;
 }
 async function purgeServerStaleGraveForLivingSave(){
@@ -1769,3 +1782,5 @@ setTimeout(async()=>{
   }catch(e){console.warn('[V15.4 PVP DEATH AUTHORITY FIX3] startup reconciliation deferred',e)}
 },800);
 console.log('[V15.4 PVP DEATH AUTHORITY FIX3] installed');
+
+console.log('[V15.4 CONSOLE FINAL CLEANUP FIX1] installed');
