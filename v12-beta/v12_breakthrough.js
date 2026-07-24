@@ -325,6 +325,16 @@
       updateActiveScene(data);
       if(g.hp<=0||data?.status==='dead')return finishOwnerBreakthrough('dead',data?.result);
       if(data?.status==='success'||data?.status==='failure'||data?.status==='interrupted')return finishOwnerBreakthrough(data.status,data?.result);
+
+      // V15.4 FIX4：伺服器舊 poll RPC 若未在 ends_at 後結算，突破者主動呼叫
+      // owner-only 權威結算 RPC。只處理已到期且仍 active 的本人事件。
+      if(data?.status==='active'&&Date.now()>=Number(s.endsAt||0)+1500){
+        const {data:resolved,error:resolveError}=await cloudState.client.rpc('resolve_my_overdue_breakthrough_v154',{p_event_id:s.eventId});
+        if(resolveError)throw resolveError;
+        if(resolved?.status==='success'||resolved?.status==='failure'||resolved?.status==='interrupted'){
+          return finishOwnerBreakthrough(resolved.status,resolved?.result||{});
+        }
+      }
       saveGame(false);
     }catch(e){
       console.warn('breakthrough owner poll',e);
@@ -349,7 +359,7 @@
       if(g.breakthroughHistory.includes(String(data.id)))return false;
       if(data.status==='active'&&!data.breakthrough_result){
         g.meditating=false;g.meditateSec=0;
-        g.breakthroughState={active:true,resultApplied:false,eventId:String(data.id),targetRealm:data.target_realm,sourceLevel:Number(data.source_level),rate:Number(data.success_rate),originCoord:data.origin_coord,startedAt:Date.parse(data.started_at)||Date.now(),endsAt:Date.parse(data.ends_at)||Date.now(),guardianCount:0,attackerCount:0,eventLine:'已從伺服器恢復未完成的突破事件'};
+        g.breakthroughState={active:true,resultApplied:false,eventId:String(data.id),targetRealm:data.target_realm,sourceLevel:Number(data.source_level),rate:Number(data.success_rate),originCoord:data.origin_coord,startedAt:Date.parse(data.started_at)||Date.now(),endsAt:Date.parse(data.ends_at)||Date.now(),guardianCount:0,attackerCount:0,eventLine:(Date.now()>=Date.parse(data.ends_at)?'伺服器正在結算逾時突破事件':'已從伺服器恢復未完成的突破事件')};
         cloudState.playerAction='境界突破';saveGame(false);renderActiveScene();ensureBreakthroughLoops();return true;
       }
       const source=Number(data.source_level||0);
