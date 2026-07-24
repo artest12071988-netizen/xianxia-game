@@ -222,12 +222,12 @@
         const {data,error}=await cloudState.client.rpc('start_breakthrough_event',{
           p_character_id:g.characterId||'unknown',p_owner_name:g.name,p_origin_coord:coord,
           p_source_level:g.lv,p_target_realm:info.bt.target,p_success_rate:info.rate,
-          p_owner_hp:Math.max(1,Math.round(g.hp)),p_owner_hp_max:Math.max(1,Math.round(g.hpMax))
+          p_owner_hp:(Number.isFinite(Number(g.hp))?Math.max(0,Math.round(Number(g.hp))):1),p_owner_hp_max:(Number.isFinite(Number(g.hpMax))?Math.max(1,Math.round(Number(g.hpMax))):Math.max(1,Math.round(Number(g.hp)||1)))
         });
         if(error)throw error;eventId=data?.event_id||null;endsAt=Date.parse(data?.ends_at)||endsAt;
       }
     }catch(e){
-      const msg=String(e?.message||e||'');
+      const msg=[e?.code,e?.message,e?.details,e?.hint].filter(Boolean).join(' | ')||String(e||'');console.error('[V15.4 FIX5 start breakthrough]',e);
       if(msg.includes('BREAKTHROUGH_ALREADY_ACTIVE')){
         // P1：伺服器仍有舊 active 事件時，先嘗試恢復該事件；
         // SQL FIX 已安裝後，逾時殘留事件會在 start RPC 內自動取消並不再卡鎖。
@@ -329,7 +329,7 @@
     }catch(e){
       console.warn('breakthrough owner poll',e);
       cloudState.breakthroughOwnerPollErrors=Number(cloudState.breakthroughOwnerPollErrors||0)+1;
-      const message=String(e?.message||e||'');
+      const message=[e?.code,e?.message,e?.details,e?.hint].filter(Boolean).join(' | ')||String(e||'');
       const integrityError=message.includes('23514')||message.includes('owner_hp_check')||message.includes('400');
       if(integrityError||cloudState.breakthroughOwnerPollErrors>=3){
         return releaseBrokenOwnerBreakthrough(s.eventId,'突破戰役資料異常，系統已自動解除舊戰役；請重新開始突破');
