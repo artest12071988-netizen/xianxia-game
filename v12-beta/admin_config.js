@@ -2,7 +2,7 @@
 
 /* V12.9 遊戲數值營運後台：草稿、發布、回復、Excel 匯入匯出。 */
 (() => {
-  const state={draft:null,draftId:null,draftVersion:0,published:null,versions:[],tab:'items',breakCfg:null,dirty:false,lockBaseline:null,selectedMonsterId:null,itemSearch:'',itemCategory:'all'};
+  const state={draft:null,draftId:null,draftVersion:0,published:null,versions:[],tab:'items',breakCfg:null,dirty:false,lockBaseline:null,selectedMonsterId:null,itemSearch:'',itemCategory:'all',itemCatalog:{},pendingItemIds:new Set(),pendingDeletedItemIds:new Set()};
   const baseLoadAllV129=loadAll;
   const COMBAT_KEYS=[
     ['normal_attack_mp_cost','普通攻擊精力消耗'],['base_crit_rate','基礎暴擊率'],['base_crit_min','暴擊倍率下限'],['base_crit_max','暴擊倍率上限'],
@@ -36,7 +36,7 @@
     metal:{label:'金性暴擊',type:'金',unit:'%',defaultValue:25},
     earth:{label:'土性減傷',type:'土',unit:'%',defaultValue:25}
   };
-  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-FIX3-PERSISTENCE-20260725';
+  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-FIX4-SERVER-ITEM-MASTER-20260725';
 
   function h(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
   function clone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
@@ -61,20 +61,6 @@
     const out=deepServerPriority(base,server),specs={realms:x=>x?.lv,monsters:x=>x?.id,zones:x=>x?.coord,shop:x=>x?.id,npcShop:x=>x?.id,paymentPackages:x=>x?.id,techniques:x=>x?.id,aiCultivators:x=>x?.id,heavenlyTreasures:x=>x?.itemId,craftingRecipes:x=>x?.id};
     for(const [field,keyOf] of Object.entries(specs))out[field]=mergeKeyed(base[field],server[field],keyOf);
     return out;
-  }
-  function selectUsableDraftMeta(versions,publishedVersion){
-    const published=Number(publishedVersion||0);
-    return (Array.isArray(versions)?versions:[])
-      .filter(v=>v?.status==='draft'&&Number(v?.version||0)>published)
-      .sort((a,b)=>Number(b.version||0)-Number(a.version||0))[0]||null;
-  }
-  function configItemIds(config){return Object.keys(config?.items||{}).map(String).sort()}
-  async function verifyStoredConfigItems(configId,expectedIds){
-    if(!configId)return;
-    const {data,error}=await sb.from('game_config_versions').select('config').eq('id',configId).single();
-    if(error)throw error;
-    const stored=data?.config?.items||{},missing=(expectedIds||[]).filter(id=>!Object.prototype.hasOwnProperty.call(stored,String(id)));
-    if(missing.length)throw new Error('伺服器未保存物品 ID：'+missing.slice(0,8).join('、')+(missing.length>8?'…':''));
   }
   let staticConfigPromise=null;
   function loadStaticV135(){
@@ -295,10 +281,15 @@
     for(let i=0;i<parts.length-1;i++){const key=/^\d+$/.test(parts[i])?Number(parts[i]):parts[i];cur=cur[key]}
     const last=/^\d+$/.test(parts.at(-1))?Number(parts.at(-1)):parts.at(-1);cur[last]=value;
   }
+  function markItemPendingFromPath(path){
+    const m=String(path||'').match(/^items\.([^.]*)\.val$/);
+    if(!m)return;
+    const id=String(m[1]);state.pendingDeletedItemIds.delete(id);state.pendingItemIds.add(id);
+  }
   function bindInputs(){
     document.querySelectorAll('[data-cfg-path]').forEach(el=>el.addEventListener('change',()=>{
       let v=el.value;if(el.type==='number')v=n(v);
-      pathSet(state.draft,el.dataset.cfgPath,v);setDirty(true);
+      pathSet(state.draft,el.dataset.cfgPath,v);markItemPendingFromPath(el.dataset.cfgPath);setDirty(true);
     }));
   }
 
@@ -320,18 +311,21 @@
   async function loadConfigAdmin(){
     injectCard();
     try{
-      const [base,{data:pub,error:pe},{data:vers,error:ve},{data:bc,error:be}]=await Promise.all([loadStaticV135(),sb.rpc('get_published_game_config'),sb.rpc('admin_list_game_config_versions'),sb.rpc('get_breakthrough_config')]);
-      if(pe||ve)throw pe||ve;
-      state.published=pub?{...pub,config:pub.config?mergeV135Config(base,pub.config):pub.config}:null;state.versions=vers||[];state.breakCfg=be?null:bc;
+      const [base,{data:pub,error:pe},{data:vers,error:ve},{data:bc,error:be},{data:itemCatalog,error:itemCatalogError}]=await Promise.all([loadStaticV135(),sb.rpc('get_published_game_config'),sb.rpc('admin_list_game_config_versions'),sb.rpc('get_breakthrough_config'),sb.rpc('get_game_item_catalog')]);
+      if(pe||ve||itemCatalogError)throw pe||ve||itemCatalogError;
+      state.itemCatalog=plainObject(itemCatalog)?clone(itemCatalog):{};
+      state.published=pub?{...pub,config:pub.config?mergeV135Config(base,pub.config):pub.config}:null;
+      if(state.published?.config)state.published.config.items=clone(state.itemCatalog);
+      state.versions=vers||[];state.breakCfg=be?null:bc;
       state.draft=null;state.draftId=null;state.draftVersion=0;
       let rawDraft=null,compatAdded=false;
-      const notesEl=document.getElementById('configNotes');if(notesEl)notesEl.value='';
-      // 僅接續比正式版更新的草稿，避免舊草稿覆蓋已發布的新物品。
-      const draftMeta=selectUsableDraftMeta(state.versions,pub?.version);
-      if(draftMeta){const {data,error}=await sb.from('game_config_versions').select('id,version,config,notes').eq('id',draftMeta.id).single();if(!error&&data){rawDraft=clone(data.config);state.draft=mergeV135Config(base,data.config);state.draftId=data.id;state.draftVersion=data.version;if(notesEl)notesEl.value=data.notes||''}}
+      const draftMeta=state.versions.find(v=>v.status==='draft');
+      if(draftMeta){const {data,error}=await sb.from('game_config_versions').select('id,version,config,notes').eq('id',draftMeta.id).single();if(!error&&data){rawDraft=clone(data.config);state.draft=mergeV135Config(base,data.config);state.draftId=data.id;state.draftVersion=data.version;document.getElementById('configNotes').value=data.notes||''}}
       if(!state.draft&&pub?.config){rawDraft=clone(pub.config);state.draft=mergeV135Config(base,pub.config);state.draftId=null;state.draftVersion=0}
       if(!state.draft){state.draft=clone(base);if(!state.draft){const r=await fetch('xianxia_config_V12.json?v=20260719-fix2-1',{cache:'no-store'});state.draft=await r.json()}}
-      state.lockBaseline=clone(state.published?.config||base||state.draft);
+      state.draft.items=clone(state.itemCatalog);
+      state.pendingItemIds.clear();state.pendingDeletedItemIds.clear();
+      state.lockBaseline=clone(state.published?.config||base||state.draft);if(state.lockBaseline)state.lockBaseline.items=clone(state.itemCatalog);
       normalizeMonsterSelection();
       if(rawDraft&&state.draft)compatAdded=JSON.stringify(rawDraft)!==JSON.stringify(state.draft);
       state.dirty=compatAdded;renderStatus();renderEditor();renderBreakCfg();renderVersions();
@@ -377,6 +371,27 @@
     return true;
   }
 
+  async function fetchItemCatalog(){
+    const {data,error}=await sb.rpc('get_game_item_catalog');if(error)throw error;
+    return plainObject(data)?data:{};
+  }
+  async function syncItemMasterChanges(){
+    const deleted=[...state.pendingDeletedItemIds];
+    const changed=[...state.pendingItemIds].filter(id=>state.draft?.items?.[id]);
+    if(!deleted.length&&!changed.length)return {changed:0,deleted:0,version:Number(state.published?.version||0)};
+    const upserts={};for(const id of changed)upserts[id]=clone(state.draft.items[id]);
+    const {data,error}=await sb.rpc('admin_sync_game_item_master',{p_upserts:upserts,p_delete_ids:deleted});if(error)throw error;
+    const catalog=plainObject(data?.catalog)?data.catalog:await fetchItemCatalog();
+    for(const id of changed)if(!catalog[id])throw new Error('伺服器驗證失敗：物品 '+id+' 未寫入正式物品主檔');
+    for(const id of deleted)if(catalog[id])throw new Error('伺服器驗證失敗：物品 '+id+' 尚未刪除');
+    state.itemCatalog=clone(catalog);state.draft.items=clone(catalog);
+    if(state.published?.config)state.published.config.items=clone(catalog);
+    if(data?.version)state.published={...(state.published||{}),version:Number(data.version),published_at:data.published_at||new Date().toISOString(),config:{...(state.published?.config||state.draft),items:clone(catalog)}};
+    state.pendingItemIds.clear();state.pendingDeletedItemIds.clear();
+    window.dispatchEvent(new CustomEvent('xianxia:item-catalog-updated',{detail:{ids:changed,deleted,version:data?.version||0}}));
+    return {changed:changed.length,deleted:deleted.length,version:Number(data?.version||0)};
+  }
+
   async function validateDraft(){
     if(!state.draft)throw new Error('尚無草稿');
     validatePhase1Scope();
@@ -386,6 +401,7 @@
     return true;
   }
   async function chooseReplaceSlot(){
+    const fresh=await sb.rpc('admin_list_game_config_versions');if(fresh.error)throw fresh.error;state.versions=fresh.data||[];
     const all=state.versions||[];
     if(all.length<5)return null;
     const eligible=all.filter(v=>v.status==='archived');
@@ -397,17 +413,22 @@
   async function createDraft(){
     try{
       if(!state.draft){const r=await fetch('xianxia_config_V12.json',{cache:'no-store'});state.draft=await r.json()}
-      await validateDraft();const expectedItemIds=configItemIds(state.draft);const replaceId=await chooseReplaceSlot();const rpc=replaceId?'admin_replace_game_config_slot':'admin_create_game_config_draft';const args=replaceId?{p_replace_id:replaceId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim(),p_publish:false}:{p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()};const {data,error}=await sb.rpc(rpc,args);if(error)throw error;
-      await verifyStoredConfigItems(data.id,expectedItemIds);
-      state.draftId=data.id;state.draftVersion=data.version;state.dirty=false;toast('已建立 Config '+data.version+' 草稿，伺服器保存確認完成');addLog('建立 Config '+data.version+' 草稿');await loadConfigAdmin();
+      await validateDraft();const itemSync=await syncItemMasterChanges();const replaceId=await chooseReplaceSlot();const rpc=replaceId?'admin_replace_game_config_slot':'admin_create_game_config_draft';const args=replaceId?{p_replace_id:replaceId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim(),p_publish:false}:{p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()};const {data,error}=await sb.rpc(rpc,args);if(error)throw error;
+      state.draftId=data.id;state.draftVersion=data.version;state.dirty=false;toast('已建立 Config '+data.version+' 草稿');addLog('建立 Config '+data.version+' 草稿');await loadConfigAdmin();
     }catch(e){toast('建立草稿失敗：'+e.message)}
   }
   async function saveDraft(){
-    try{if(!state.draftId){await createDraft();return !!state.draftId}await validateDraft();const expectedItemIds=configItemIds(state.draft);const {error}=await sb.rpc('admin_update_game_config_draft',{p_id:state.draftId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()});if(error)throw error;await verifyStoredConfigItems(state.draftId,expectedItemIds);state.dirty=false;setDirty(false);toast('草稿已儲存，伺服器保存確認完成');addLog('儲存 Config '+state.draftVersion+' 草稿');return true}
-    catch(e){toast('儲存失敗：'+e.message);return false}
+    try{
+      if(!state.draftId){await createDraft();return !!state.draftId}
+      await validateDraft();const itemSync=await syncItemMasterChanges();
+      const {error}=await sb.rpc('admin_update_game_config_draft',{p_id:state.draftId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()});if(error)throw error;
+      state.dirty=false;setDirty(false);
+      toast(itemSync.changed||itemSync.deleted?'物品主檔與草稿均已儲存，可在玩家補發與商店立即選取':'草稿已儲存');
+      addLog('儲存 Config '+state.draftVersion+' 草稿');return true;
+    }catch(e){toast('儲存失敗：'+e.message);return false}
   }
   async function publishDraft(){
-    try{if(!state.draftId)throw new Error('請先建立並儲存草稿');if(!await saveDraft())return;const publishingId=state.draftId,expectedItemIds=configItemIds(state.draft);const {data,error}=await sb.rpc('admin_publish_game_config',{p_id:publishingId});if(error)throw error;await verifyStoredConfigItems(publishingId,expectedItemIds);const {data:publishedCheck,error:publishedError}=await sb.rpc('get_published_game_config');if(publishedError)throw publishedError;const publishedItems=publishedCheck?.config?.items||{},missing=expectedItemIds.filter(id=>!Object.prototype.hasOwnProperty.call(publishedItems,id));if(missing.length)throw new Error('正式版缺少物品 ID：'+missing.slice(0,8).join('、'));toast('Config '+data.version+' 已發布，重新登入持久化驗證完成');addLog('發布 Config '+data.version);state.draftId=null;await loadConfigAdmin()}
+    try{if(!state.draftId)throw new Error('請先建立並儲存草稿');if(!await saveDraft())return;const {data,error}=await sb.rpc('admin_publish_game_config',{p_id:state.draftId});if(error)throw error;toast('Config '+data.version+' 已發布');addLog('發布 Config '+data.version);state.draftId=null;await loadConfigAdmin()}
     catch(e){toast('發布失敗：'+e.message)}
   }
   async function rollback(version){if(!confirm('確定回復至 Config '+version+'？系統會建立一個新的正式版本，不會刪除歷史。'))return;try{const {data,error}=await sb.rpc('admin_rollback_game_config',{p_version:version,p_notes:'後台回復自 Config '+version});if(error)throw error;toast('已回復並發布 Config '+data.version);addLog('回復自 Config '+version);await loadConfigAdmin()}catch(e){toast('回復失敗：'+e.message)}}
@@ -475,7 +496,7 @@
     }else if(kind==='enchant'){
       const spec=ENCHANT_EFFECTS[effect]||ENCHANT_EFFECTS.fire;item={...item,cat:'附魔材料',type:spec.type,eff:'五行附魔',val:value};
     }else return toast('不支援的物品分類');
-    state.draft.items[id]=item;setDirty(true);renderEditor();toast('已建立 '+name+'（'+id+'），請儲存並發布');
+    state.draft.items[id]=item;state.pendingDeletedItemIds.delete(id);state.pendingItemIds.add(id);setDirty(true);renderEditor();toast('已建立 '+name+'（'+id+'），按「儲存草稿」後會寫入正式物品主檔並同步所有後台選單');
   }
 
   function addItem(){
@@ -490,7 +511,9 @@
       ? `物品 ${id}「${item.name||''}」已存在於正式版。確認目前商店、掉落、地圖、配方與天地靈物皆未引用後刪除？`
       : `刪除新建物品 ${id}「${item.name||''}」？`;
     if(!confirm(message))return;
-    delete state.draft.items[id];setDirty(true);renderEditor();toast('已刪除 '+(item.name||id)+'，請儲存並發布');
+    delete state.draft.items[id];
+    if(state.itemCatalog?.[id]){state.pendingItemIds.delete(id);state.pendingDeletedItemIds.add(id)}else{state.pendingItemIds.delete(id);state.pendingDeletedItemIds.delete(id)}
+    setDirty(true);renderEditor();toast('已標記刪除 '+(item.name||id)+'，按「儲存草稿」後會同步所有後台選單');
   }
 
   function addArrayRow(cat){if(cat==='monsters')return toast('第一階段禁止新增怪物');const defaults={npcShop:{id:'',name:'新商品',price:0,daily:9999},monsters:{id:9999,name:'新妖獸',cat:'普通妖獸',lv:1,hp:100,mp:0,atk:10,def:5,exp:10,drops:[],spawn:'荒野'},techniques:{id:'new_technique',name:'新功法',category:'靈修',price:0,desc:'',details:''}};state.draft[cat]=state.draft[cat]||[];state.draft[cat].push(defaults[cat]);setDirty(true);renderEditor()}
@@ -550,8 +573,9 @@
   window.refreshFixedItemBuilderV154=refreshFixedItemBuilder;window.assignNextFixedItemIdV154=assignNextFixedItemId;window.createFixedConfigItemV154=createFixedItem;
   window.filterItemValuesV154=filterItemValues;window.filterItemCategoryV154=filterItemCategory;window.selectMonsterV154=selectMonster;window.filterMonsterSelectV154=filterMonsterSelect;window.filterMonsterDropItemsV154=filterMonsterDropItems;window.addMonsterDropV154=addMonsterDrop;window.removeMonsterDropV154=removeMonsterDrop;window.setMonsterDropRateV154=setMonsterDropRate;
   window.saveBreakthroughConfigV129=saveBreakCfg;window.exportConfigExcelV129=exportExcel;window.importConfigExcelV129=importExcel;
-  window.V129_CONFIG_ADMIN={state,setDirty,renderEditor,refresh:loadConfigAdmin,mergeV135Config};
+  window.reloadGameItemCatalogV154=async()=>{const catalog=await fetchItemCatalog();state.itemCatalog=clone(catalog);state.draft.items=clone(catalog);renderEditor();window.dispatchEvent(new CustomEvent('xianxia:item-catalog-updated'))};
+  window.V129_CONFIG_ADMIN={state,setDirty,renderEditor,refresh:loadConfigAdmin,mergeV135Config,syncItemMasterChanges};
 
-  console.info('[V15.4 ADMIN BALANCE PHASE1 FIX3] installed',ITEM_EDITOR_BUILD);
+  console.info('[V15.4 ADMIN BALANCE PHASE1 FIX4 ITEM MASTER] installed',ITEM_EDITOR_BUILD);
   injectCard();setTimeout(()=>{if(!document.getElementById('adminMain')?.classList.contains('hidden'))loadConfigAdmin()},800);
 })();

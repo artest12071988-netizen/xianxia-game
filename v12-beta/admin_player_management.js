@@ -35,9 +35,14 @@ async function loadFormalItems(){
   try{
     const client=window.sb||window.xianxiaAdminSupabase;
     if(!client)throw new Error('Supabase 尚未連線');
-    const {data,error}=await client.rpc('get_published_game_config');
-    if(error)throw error;
-    const items=data?.config?.items||data?.items||{};
+    let items={};
+    const primary=await client.rpc('get_game_item_catalog');
+    if(!primary.error&&primary.data&&typeof primary.data==='object'&&!Array.isArray(primary.data))items=primary.data;
+    else{
+      const fallback=await client.rpc('get_published_game_config');
+      if(fallback.error)throw fallback.error;
+      items=fallback.data?.config?.items||fallback.data?.items||{};
+    }
     const supplementalItems={
       '8301':{name:'庚精',cat:'強化石'},
       '8501':{name:'赤陽器紋砂',cat:'器紋材料'},
@@ -73,5 +78,7 @@ function fill(){const r=S.selected;if(!r)return;$('paName').textContent=r.player
 async function act(fn,args,ok){if(!S.selected)return msg('請先選擇玩家');const {error}=await window.sb.rpc(fn,args);if(error)return msg('操作失敗：'+error.message);msg(ok);await search();const idx=S.rows.findIndex(x=>x.user_id===S.selected.user_id);if(idx>=0)select(idx)}
 async function resetPassword(){if(!S.selected)return msg('請先選擇玩家');if(!confirm('寄送密碼重設信給 '+S.selected.email+'？'))return;const {error}=await window.sb.auth.resetPasswordForEmail(S.selected.email,{redirectTo:location.origin+location.pathname.replace(/admin\.html.*$/,'')});if(error)return msg('寄送失敗：'+error.message);msg('密碼重設信已寄出')}
 async function loadLogs(){const {data,error}=await window.sb.rpc('admin_player_logs',{p_user_id:S.selected.user_id,p_limit:30});if(error){$('paLogs').textContent='讀取失敗：'+error.message;return}$('paLogs').innerHTML=(data||[]).map(x=>`<div class="player-log-row"><b>${esc(x.action)}</b><br>${new Date(x.created_at).toLocaleString('zh-TW')}｜${esc(x.reason||'')}</div>`).join('')||'尚無紀錄'}
+window.addEventListener('xianxia:item-catalog-updated',()=>{if($('paItemId'))loadFormalItems()});
+window.reloadPlayerItemCatalogV154=loadFormalItems;
 const mo=new MutationObserver(()=>inject());if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{inject();mo.observe(document.body,{childList:true,subtree:true})});else{inject();mo.observe(document.body,{childList:true,subtree:true})}
 })();
