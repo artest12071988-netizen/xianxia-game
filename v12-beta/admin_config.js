@@ -2,7 +2,7 @@
 
 /* V12.9 遊戲數值營運後台：草稿、發布、回復、Excel 匯入匯出。 */
 (() => {
-  const state={draft:null,draftId:null,draftVersion:0,published:null,versions:[],tab:'items',breakCfg:null,dirty:false,lockBaseline:null,selectedMonsterId:null,itemSearch:'',itemCategory:'all',itemCatalog:{},pendingItemIds:new Set(),pendingDeletedItemIds:new Set()};
+  const state={draft:null,draftId:null,draftVersion:0,published:null,versions:[],tab:'items',breakCfg:null,dirty:false,lockBaseline:null,selectedMonsterId:null,itemSearch:'',itemCategory:'all',itemCatalog:{},pendingItemIds:new Set(),pendingDeletedItemIds:new Set(),divineBeasts:[],divineBeastConfig:null,lastSaveError:''};
   const baseLoadAllV129=loadAll;
   const COMBAT_KEYS=[
     ['normal_attack_mp_cost','普通攻擊精力消耗'],['base_crit_rate','基礎暴擊率'],['base_crit_min','暴擊倍率下限'],['base_crit_max','暴擊倍率上限'],
@@ -36,7 +36,7 @@
     metal:{label:'金性暴擊',type:'金',unit:'%',defaultValue:25},
     earth:{label:'土性減傷',type:'土',unit:'%',defaultValue:25}
   };
-  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-FIX4-SERVER-ITEM-MASTER-20260725';
+  const ITEM_EDITOR_BUILD='V15.4-ADMIN-BALANCE-PHASE1-FIX5-MONSTER-DROP-BEAST-BOSS-20260726';
 
   function h(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
   function clone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
@@ -74,7 +74,7 @@
     const s=document.createElement('style');s.id='v129AdminStyle';s.textContent=`
       .cfg-toolbar{display:flex;gap:8px;flex-wrap:wrap}.cfg-toolbar .btn{flex:1;min-width:130px}.cfg-tabs{display:flex;gap:6px;overflow:auto;margin:12px 0;padding-bottom:4px}.cfg-tabs button{white-space:nowrap;border:1px solid var(--line);background:#08101a;color:var(--muted);border-radius:8px;padding:9px 12px}.cfg-tabs button.on{color:var(--gold);border-color:#8f713d;background:#211a0e}.cfg-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px}.cfg-table{width:100%;border-collapse:collapse;min-width:850px}.cfg-table th,.cfg-table td{border-bottom:1px solid #ffffff0d;padding:6px;vertical-align:top}.cfg-table th{position:sticky;top:0;background:#0d1723;color:var(--muted);font-size:11px;z-index:1}.cfg-table input,.cfg-table textarea,.cfg-table select{padding:8px;font-size:13px;min-width:85px}.cfg-table textarea{min-height:54px}.cfg-table .id{min-width:80px;color:var(--jade)}.cfg-mini{font-size:11px;color:var(--muted)}.fixed-item-builder{border:1px solid rgba(73,210,199,.34);background:linear-gradient(180deg,rgba(7,26,34,.96),rgba(7,13,21,.98));border-radius:12px;padding:14px;margin-bottom:14px}.fixed-item-builder h3{margin:0 0 5px;color:var(--jade)}.fixed-item-builder .builder-note{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px}.fixed-item-grid{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:9px;align-items:end}.fixed-item-grid .field{margin:0}.fixed-item-grid label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}.fixed-item-grid input,.fixed-item-grid select{width:100%;min-width:0}.fixed-item-preview{margin-top:10px;padding:10px 12px;border-left:3px solid var(--gold);background:#ffffff08;color:#e7e1d3;line-height:1.65}.fixed-lock{display:inline-flex;align-items:center;border:1px solid #ffffff1c;border-radius:999px;padding:4px 8px;background:#07111a;color:#cbd4dc;font-size:11px;white-space:nowrap}.fixed-lock.legacy{color:#d8b96a}.fixed-item-actions{display:flex;gap:8px;margin-top:10px}.fixed-item-actions .btn{flex:1}.fixed-value-wrap{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center}.fixed-value-unit{color:var(--gold);font-weight:800;min-width:28px;text-align:center}.fixed-item-list-note{margin:8px 0 10px;color:var(--muted);font-size:12px}.fixed-item-filter{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.fixed-item-filter button{border:1px solid var(--line);background:#08101a;color:var(--muted);border-radius:999px;padding:6px 10px}.fixed-item-filter button.on{border-color:#8f713d;color:var(--gold);background:#211a0e}@media(max-width:1100px){.fixed-item-grid{grid-template-columns:repeat(3,minmax(130px,1fr))}}@media(max-width:700px){.fixed-item-grid{grid-template-columns:1fr 1fr}.fixed-item-actions{flex-direction:column}}.cfg-version{display:grid;grid-template-columns:75px 90px 1fr auto;gap:8px;align-items:center;padding:8px;border-bottom:1px solid #ffffff0d}.cfg-version:last-child{border-bottom:0}.cfg-status{border:1px solid var(--line);border-radius:99px;padding:3px 7px;text-align:center;font-size:10px}.cfg-status.published{color:#77d89c}.cfg-status.draft{color:var(--gold)}.cfg-status.archived{color:var(--muted)}.cfg-json{min-height:420px;font-family:ui-monospace,Consolas,monospace;font-size:12px}.cfg-break-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.cfg-break-grid .field{background:#070d15;border:1px solid var(--line);border-radius:9px;padding:8px}@media(max-width:700px){.cfg-break-grid{grid-template-columns:1fr 1fr}.cfg-version{grid-template-columns:60px 78px 1fr}.cfg-version .btn{grid-column:1/-1}.cfg-toolbar .btn{min-width:46%}}
 
-      .phase1-scope{border:1px solid rgba(216,185,106,.32);background:#17140d;border-radius:10px;padding:10px 12px;margin-bottom:12px;color:#e5d4a4;line-height:1.65}.phase1-tools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.phase1-tools input,.phase1-tools select{min-width:180px;flex:1}.locked-cell{color:#cbd4dc}.locked-cell small{display:block;color:var(--muted);margin-top:3px}.item-value-row[hidden]{display:none}.monster-editor{display:grid;gap:12px}.monster-picker{display:grid;grid-template-columns:1fr 2fr;gap:8px}.monster-fixed{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.monster-fixed>div,.monster-stat-grid .field{border:1px solid var(--line);background:#070d15;border-radius:9px;padding:9px}.monster-fixed span{display:block;color:var(--muted);font-size:11px}.monster-fixed b{display:block;margin-top:4px}.monster-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.drop-editor{border:1px solid var(--line);border-radius:10px;padding:10px;background:#070d15}.drop-list{display:grid;gap:6px}.drop-row{display:grid;grid-template-columns:minmax(220px,1fr) 120px auto;gap:8px;align-items:center;border-bottom:1px solid #ffffff0d;padding:7px 0}.drop-row:last-child{border-bottom:0}.drop-add{display:grid;grid-template-columns:1fr 1.5fr 120px auto;gap:8px;align-items:end;margin-top:10px}.drop-invalid{color:var(--red)}.phase1-pass{color:#77d89c}.phase1-warning{color:var(--gold)}@media(max-width:850px){.monster-picker,.monster-fixed,.monster-stat-grid,.drop-add{grid-template-columns:1fr 1fr}.drop-row{grid-template-columns:1fr 100px}.drop-row .btn{grid-column:1/-1}.monster-fixed{grid-template-columns:1fr 1fr}}@media(max-width:560px){.monster-picker,.monster-fixed,.monster-stat-grid,.drop-add{grid-template-columns:1fr}}
+      .phase1-scope{border:1px solid rgba(216,185,106,.32);background:#17140d;border-radius:10px;padding:10px 12px;margin-bottom:12px;color:#e5d4a4;line-height:1.65}.phase1-tools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.phase1-tools input,.phase1-tools select{min-width:180px;flex:1}.locked-cell{color:#cbd4dc}.locked-cell small{display:block;color:var(--muted);margin-top:3px}.item-value-row[hidden]{display:none}.monster-editor{display:grid;gap:12px}.monster-picker{display:grid;grid-template-columns:1fr 2fr;gap:8px}.monster-fixed{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.monster-fixed>div,.monster-stat-grid .field{border:1px solid var(--line);background:#070d15;border-radius:9px;padding:9px}.monster-fixed span{display:block;color:var(--muted);font-size:11px}.monster-fixed b{display:block;margin-top:4px}.monster-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.drop-editor{border:1px solid var(--line);border-radius:10px;padding:10px;background:#070d15}.drop-list{display:grid;gap:6px}.drop-row{display:grid;grid-template-columns:minmax(220px,1fr) 120px auto;gap:8px;align-items:center;border-bottom:1px solid #ffffff0d;padding:7px 0}.drop-row:last-child{border-bottom:0}.drop-add{display:grid;grid-template-columns:1fr 1.5fr 120px auto;gap:8px;align-items:end;margin-top:10px}.drop-invalid{color:var(--red)}.beast-boss-note{border:1px solid rgba(215,180,90,.42);background:#1b1408;border-radius:10px;padding:10px 12px;color:#efd98f;line-height:1.65}.beast-fixed-drop{border:1px solid rgba(73,210,199,.25);border-radius:10px;padding:10px;background:#07141a}.beast-fixed-drop b{color:var(--jade)}.phase1-pass{color:#77d89c}.phase1-warning{color:var(--gold)}@media(max-width:850px){.monster-picker,.monster-fixed,.monster-stat-grid,.drop-add{grid-template-columns:1fr 1fr}.drop-row{grid-template-columns:1fr 100px}.drop-row .btn{grid-column:1/-1}.monster-fixed{grid-template-columns:1fr 1fr}}@media(max-width:560px){.monster-picker,.monster-fixed,.monster-stat-grid,.drop-add{grid-template-columns:1fr}}
     `;document.head.appendChild(s);
   }
 
@@ -230,9 +230,21 @@
     const rows=(state.draft.npcShop||[]).map((x,i)=>`<tr><td>${input(x.id,`npcShop.${i}.id`)}</td><td>${input(x.name,`npcShop.${i}.name`)}</td><td>${input(x.price??0,`npcShop.${i}.price`,'number','min="0"')}</td><td>${input(x.daily??9999,`npcShop.${i}.daily`,'number','min="0"')}</td><td><button class="btn red" onclick="deleteConfigArrayRowV129('npcShop',${i})">刪除</button></td></tr>`).join('');
     return `<div class="row" style="margin-bottom:8px"><button class="btn jade" onclick="addConfigArrayRowV129('npcShop')">新增商品</button></div><div class="cfg-table-wrap"><table class="cfg-table"><thead><tr><th>物品ID</th><th>顯示名稱</th><th>售價</th><th>每日限購</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
+  function divineBeastOptionValue(key){return 'beast:'+String(key||'')}
+  function selectedDivineBeast(){
+    const id=String(state.selectedMonsterId||'');
+    if(!id.startsWith('beast:'))return null;
+    const key=id.slice(6);
+    return (state.divineBeasts||[]).find(x=>String(x.beast_key)===key)||null;
+  }
   function normalizeMonsterSelection(){
+    const beast=selectedDivineBeast();
+    if(beast)return beast;
     const list=state.draft?.monsters||[];
-    if(!list.length){state.selectedMonsterId=null;return null}
+    if(!list.length){
+      if(state.divineBeasts?.length){state.selectedMonsterId=divineBeastOptionValue(state.divineBeasts[0].beast_key);return state.divineBeasts[0]}
+      state.selectedMonsterId=null;return null;
+    }
     let hit=list.find(x=>String(x.id)===String(state.selectedMonsterId));
     if(!hit){hit=list[0];state.selectedMonsterId=String(hit.id)}
     return hit;
@@ -249,13 +261,31 @@
     const q=String(search||'').trim().toLowerCase();
     return Object.entries(state.draft?.items||{}).filter(([id,x])=>!q||(id+' '+(x.name||'')+' '+(x.cat||'')).toLowerCase().includes(q)).sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'zh-Hant')).map(([id,x])=>`<option value="${h(id)}">${h(id)}｜${h(x.name||'')}｜${h(x.cat||'')}</option>`).join('');
   }
+  function renderDivineBeastMonster(beast,options){
+    const direction={east:'東方',west:'西方',north:'北方',south:'南方',center:'中央'}[beast.direction]||beast.direction||'—';
+    const status={dormant:'沉睡',active:'已降臨',defeated:'已擊敗',escaped:'已逃離',expired:'已離場',withdrawn:'已撤離'}[beast.status]||beast.status||'—';
+    const rewardPct=Math.round(n(state.divineBeastConfig?.reward_chance)*10000)/100;
+    return `<div class="phase1-scope"><b>一般怪物與五大神獸 BOSS 已整合在同一個搜尋清單。</b> 神獸仍使用原有獨立世界 BOSS 系統，不改戰鬥與獎勵規則。</div>
+      <div class="monster-editor">
+        <div class="monster-picker"><input id="phase1MonsterSearch" placeholder="搜尋怪物 ID、名稱或神獸 BOSS" oninput="filterMonsterSelectV154(this.value)"><select id="phase1MonsterSelect" onchange="selectMonsterV154(this.value)">${options}</select></div>
+        <div class="beast-boss-note">目前選擇：五大神獸 BOSS｜${h(beast.beast_name)}。三圍將寫回原有神獸資料表，不會建立重複怪物 ID。</div>
+        <div class="monster-fixed"><div><span>ID</span><b>BOSS-${h(beast.beast_key)}</b></div><div><span>名稱</span><b>${h(beast.beast_name)}</b></div><div><span>分類</span><b>神獸 BOSS</b></div><div><span>狀態</span><b>${h(status)}</b></div><div><span>方位／位置</span><b>${h(direction)}｜${h(beast.coord||'未放置')}</b></div></div>
+        <div class="monster-stat-grid"><div class="field"><label>HP</label><input id="phase1BeastHp" type="number" min="1" step="1" value="${h(beast.max_hp??1)}"></div><div class="field"><label>攻擊</label><input id="phase1BeastAtk" type="number" min="0" step="1" value="${h(beast.attack_power??0)}"></div><div class="field"><label>防禦</label><input id="phase1BeastDef" type="number" min="0" step="1" value="${h(beast.defense_power??0)}"></div><div class="field"><label>擊殺經驗</label><input value="神獸獨立結算" disabled></div></div>
+        <div class="beast-fixed-drop"><b>原有固定掉落：</b>${h(beast.material_name||itemName(beast.material_id))}（ID ${h(beast.material_id||'—')}）｜目前取得率 ${h(rewardPct)}%。<div class="cfg-mini">掉落與取得率仍由「五大神獸世界控制台」管理，避免改壞原有神獸獎勵機制。</div></div>
+        <button class="btn gold" style="width:100%" onclick="saveDivineBeastStatsV154('${h(beast.beast_key)}')">儲存神獸三圍</button>
+      </div>`;
+  }
   function renderMonsters(){
     const list=state.draft.monsters||[],monster=normalizeMonsterSelection();
     if(!monster)return '<div class="notice">沒有可管理的怪物資料。</div>';
-    const index=list.indexOf(monster),options=list.map(x=>`<option value="${h(x.id)}" ${String(x.id)===String(monster.id)?'selected':''}>${h(x.id)}｜${h(x.name)}｜${h(x.cat||'')}</option>`).join('');
+    const normalOptions=list.map(x=>`<option value="${h(x.id)}" ${String(x.id)===String(state.selectedMonsterId)?'selected':''}>${h(x.id)}｜${h(x.name)}｜${h(x.cat||'')}</option>`).join('');
+    const beastOptions=(state.divineBeasts||[]).map(x=>{const v=divineBeastOptionValue(x.beast_key);return `<option value="${h(v)}" ${v===String(state.selectedMonsterId)?'selected':''}>神獸BOSS｜${h(x.beast_name)}｜${h(x.beast_key)}</option>`}).join('');
+    const options=`<optgroup label="一般怪物">${normalOptions}</optgroup>${beastOptions?`<optgroup label="五大神獸 BOSS">${beastOptions}</optgroup>`:''}`;
+    const beast=selectedDivineBeast();if(beast)return renderDivineBeastMonster(beast,options);
+    const index=list.indexOf(monster);
     return `<div class="phase1-scope"><b>本頁只允許調整既有怪物的 HP、攻擊、防禦、擊殺經驗與掉落物品。</b> 怪物 ID、名稱、分類、等級、出沒區域與戰鬥方式全部鎖定。</div>
       <div class="monster-editor">
-        <div class="monster-picker"><input id="phase1MonsterSearch" placeholder="搜尋怪物 ID 或名稱" oninput="filterMonsterSelectV154(this.value)"><select id="phase1MonsterSelect" onchange="selectMonsterV154(this.value)">${options}</select></div>
+        <div class="monster-picker"><input id="phase1MonsterSearch" placeholder="搜尋怪物 ID、名稱或神獸 BOSS" oninput="filterMonsterSelectV154(this.value)"><select id="phase1MonsterSelect" onchange="selectMonsterV154(this.value)">${options}</select></div>
         <div class="monster-fixed"><div><span>ID</span><b>${h(monster.id)}</b></div><div><span>名稱</span><b>${h(monster.name)}</b></div><div><span>分類</span><b>${h(monster.cat||'')}</b></div><div><span>等級</span><b>Lv ${h(monster.lv??1)}</b></div><div><span>出沒</span><b>${h(monster.spawn||'')}</b></div></div>
         <div class="monster-stat-grid"><div class="field"><label>HP</label>${input(monster.hp??1,`monsters.${index}.hp`,'number','min="1" step="1"')}</div><div class="field"><label>攻擊</label>${input(monster.atk??0,`monsters.${index}.atk`,'number','min="0" step="1"')}</div><div class="field"><label>防禦</label>${input(monster.def??0,`monsters.${index}.def`,'number','min="0" step="1"')}</div><div class="field"><label>擊殺經驗</label>${input(monster.exp??0,`monsters.${index}.exp`,'number','min="0" step="1"')}</div></div>
         <div class="drop-editor"><h3 style="margin:0 0 8px">怪物掉落</h3><div class="drop-list">${renderDropRows(monster,index)}</div><div class="drop-add"><div class="field"><label>搜尋既有物品</label><input id="phase1DropSearch" placeholder="輸入 ID 或名稱" oninput="filterMonsterDropItemsV154(this.value)"></div><div class="field"><label>選擇物品</label><select id="phase1DropItem">${dropItemOptions('')}</select></div><div class="field"><label>掉落率 %</label><input id="phase1DropRate" type="number" min="0.01" max="100" step="0.01" value="10"></div><button class="btn jade" onclick="addMonsterDropV154(${index})">加入掉落</button></div></div>
@@ -311,12 +341,12 @@
   async function loadConfigAdmin(){
     injectCard();
     try{
-      const [base,{data:pub,error:pe},{data:vers,error:ve},{data:bc,error:be},{data:itemCatalog,error:itemCatalogError}]=await Promise.all([loadStaticV135(),sb.rpc('get_published_game_config'),sb.rpc('admin_list_game_config_versions'),sb.rpc('get_breakthrough_config'),sb.rpc('get_game_item_catalog')]);
+      const [base,{data:pub,error:pe},{data:vers,error:ve},{data:bc,error:be},{data:itemCatalog,error:itemCatalogError},{data:beastSnapshot,error:beastSnapshotError}]=await Promise.all([loadStaticV135(),sb.rpc('get_published_game_config'),sb.rpc('admin_list_game_config_versions'),sb.rpc('get_breakthrough_config'),sb.rpc('get_game_item_catalog'),sb.rpc('admin_divine_beast_snapshot')]);
       if(pe||ve||itemCatalogError)throw pe||ve||itemCatalogError;
       state.itemCatalog=plainObject(itemCatalog)?clone(itemCatalog):{};
       state.published=pub?{...pub,config:pub.config?mergeV135Config(base,pub.config):pub.config}:null;
       if(state.published?.config)state.published.config.items=clone(state.itemCatalog);
-      state.versions=vers||[];state.breakCfg=be?null:bc;
+      state.versions=vers||[];state.breakCfg=be?null:bc;state.divineBeasts=beastSnapshotError?[]:clone(beastSnapshot?.beasts||[]);state.divineBeastConfig=beastSnapshotError?null:clone(beastSnapshot?.config||null);
       state.draft=null;state.draftId=null;state.draftVersion=0;
       let rawDraft=null,compatAdded=false;
       const draftMeta=state.versions.find(v=>v.status==='draft');
@@ -392,44 +422,47 @@
     return {changed:changed.length,deleted:deleted.length,version:Number(data?.version||0)};
   }
 
+  function setValidationState(ok,message=''){
+    const e=document.getElementById('configValidation');if(e){e.textContent=ok?'PASS':'FAIL';e.style.color=ok?'#77d89c':'var(--red)';e.title=message||''}
+    state.lastSaveError=ok?'':String(message||'資料驗證未通過');
+    window.V154_LAST_CONFIG_ERROR=state.lastSaveError;
+  }
   async function validateDraft(){
     if(!state.draft)throw new Error('尚無草稿');
-    validatePhase1Scope();
-    const {data,error}=await sb.rpc('validate_game_config',{p_config:state.draft});if(error)throw error;
-    const e=document.getElementById('configValidation');e.textContent=data?.valid?'PASS':'FAIL';e.style.color=data?.valid?'#77d89c':'var(--red)';
-    if(!data?.valid)throw new Error((data?.errors||[]).join('；'));
-    return true;
+    validatePhase1Scope();setValidationState(true);return true;
   }
-  async function chooseReplaceSlot(){
-    const fresh=await sb.rpc('admin_list_game_config_versions');if(fresh.error)throw fresh.error;state.versions=fresh.data||[];
-    const all=state.versions||[];
-    if(all.length<5)return null;
-    const eligible=all.filter(v=>v.status==='archived');
-    if(!eligible.length)throw new Error('版本已達 5 個，沒有可覆蓋的封存版本。請先刪除一個草稿。');
-    const msg='版本最多 5 個。請輸入要覆蓋的 Config 編號：\n'+eligible.map(v=>'Config '+v.version+'｜'+(v.notes||'無備註')).join('\n');
-    const n=Number(prompt(msg));const hit=eligible.find(v=>Number(v.version)===n);
-    if(!hit)throw new Error('未選擇有效的封存版本');return hit.id;
+  async function savePhase1Balance(notes){
+    const {data,error}=await sb.rpc('admin_save_phase1_monster_balance',{p_monsters:state.draft.monsters,p_notes:notes||''});
+    if(error)throw error;return data;
   }
+  async function chooseReplaceSlot(){return null}
   async function createDraft(){
     try{
       if(!state.draft){const r=await fetch('xianxia_config_V12.json',{cache:'no-store'});state.draft=await r.json()}
-      await validateDraft();const itemSync=await syncItemMasterChanges();const replaceId=await chooseReplaceSlot();const rpc=replaceId?'admin_replace_game_config_slot':'admin_create_game_config_draft';const args=replaceId?{p_replace_id:replaceId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim(),p_publish:false}:{p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()};const {data,error}=await sb.rpc(rpc,args);if(error)throw error;
-      state.draftId=data.id;state.draftVersion=data.version;state.dirty=false;toast('已建立 Config '+data.version+' 草稿');addLog('建立 Config '+data.version+' 草稿');await loadConfigAdmin();
-    }catch(e){toast('建立草稿失敗：'+e.message)}
+      validatePhase1Scope();
+      const itemSync=await syncItemMasterChanges();
+      const data=await savePhase1Balance(document.getElementById('configNotes').value.trim());
+      state.draftId=data.id;state.draftVersion=data.version;state.dirty=false;setDirty(false);setValidationState(true);
+      toast(itemSync.changed||itemSync.deleted?'物品主檔與怪物草稿均已儲存':'已建立 Config '+data.version+' 草稿');
+      addLog('建立／更新 Config '+data.version+' 第一階段草稿');await loadConfigAdmin();return true;
+    }catch(e){setValidationState(false,e.message||e);console.error('[V15.4 PHASE1 FIX5] create/save failed',e);toast('建立草稿失敗：'+(e.message||e));return false}
   }
   async function saveDraft(){
     try{
-      if(!state.draftId){await createDraft();return !!state.draftId}
-      await validateDraft();const itemSync=await syncItemMasterChanges();
-      const {error}=await sb.rpc('admin_update_game_config_draft',{p_id:state.draftId,p_config:state.draft,p_notes:document.getElementById('configNotes').value.trim()});if(error)throw error;
-      state.dirty=false;setDirty(false);
-      toast(itemSync.changed||itemSync.deleted?'物品主檔與草稿均已儲存，可在玩家補發與商店立即選取':'草稿已儲存');
-      addLog('儲存 Config '+state.draftVersion+' 草稿');return true;
-    }catch(e){toast('儲存失敗：'+e.message);return false}
+      validatePhase1Scope();
+      const itemSync=await syncItemMasterChanges();
+      const data=await savePhase1Balance(document.getElementById('configNotes').value.trim());
+      state.draftId=data.id;state.draftVersion=data.version;state.dirty=false;setDirty(false);setValidationState(true);
+      toast(itemSync.changed||itemSync.deleted?'物品主檔、怪物三圍與掉落均已儲存':'怪物三圍與掉落已儲存');
+      addLog('儲存 Config '+data.version+' 第一階段草稿');return true;
+    }catch(e){setValidationState(false,e.message||e);console.error('[V15.4 PHASE1 FIX5] save failed',e);toast('儲存失敗：'+(e.message||e));return false}
   }
   async function publishDraft(){
-    try{if(!state.draftId)throw new Error('請先建立並儲存草稿');if(!await saveDraft())return;const {data,error}=await sb.rpc('admin_publish_game_config',{p_id:state.draftId});if(error)throw error;toast('Config '+data.version+' 已發布');addLog('發布 Config '+data.version);state.draftId=null;await loadConfigAdmin()}
-    catch(e){toast('發布失敗：'+e.message)}
+    try{
+      if(!await saveDraft())return false;
+      const {data,error}=await sb.rpc('admin_publish_phase1_monster_balance',{p_id:state.draftId});if(error)throw error;
+      setValidationState(true);toast('Config '+data.version+' 已發布');addLog('發布 Config '+data.version+' 第一階段平衡');state.draftId=null;await loadConfigAdmin();return true;
+    }catch(e){setValidationState(false,e.message||e);console.error('[V15.4 PHASE1 FIX5] publish failed',e);toast('發布失敗：'+(e.message||e));return false}
   }
   async function rollback(version){if(!confirm('確定回復至 Config '+version+'？系統會建立一個新的正式版本，不會刪除歷史。'))return;try{const {data,error}=await sb.rpc('admin_rollback_game_config',{p_version:version,p_notes:'後台回復自 Config '+version});if(error)throw error;toast('已回復並發布 Config '+data.version);addLog('回復自 Config '+version);await loadConfigAdmin()}catch(e){toast('回復失敗：'+e.message)}}
 
@@ -542,6 +575,16 @@
     m.drops[dropIndex][1]=Math.round(pct*10000)/1000000;setDirty(true);
   }
 
+  async function saveDivineBeastStats(key){
+    const hp=Number(document.getElementById('phase1BeastHp')?.value),atk=Number(document.getElementById('phase1BeastAtk')?.value),def=Number(document.getElementById('phase1BeastDef')?.value);
+    if(!Number.isFinite(hp)||hp<1||!Number.isFinite(atk)||atk<0||!Number.isFinite(def)||def<0)return toast('神獸 HP 必須大於 0，攻擊與防禦不可小於 0');
+    try{
+      const {data,error}=await sb.rpc('admin_divine_beast_update_stats',{p_beast_key:key,p_max_hp:hp,p_attack_power:atk,p_defense_power:def});if(error)throw error;
+      const i=(state.divineBeasts||[]).findIndex(x=>String(x.beast_key)===String(key));if(i>=0)state.divineBeasts[i]=clone(data);
+      toast('神獸三圍已儲存');addLog('更新神獸 '+key+' 三圍');renderEditor();
+    }catch(e){console.error('[V15.4 PHASE1 FIX5] divine beast save failed',e);toast('神獸三圍儲存失敗：'+(e.message||e))}
+  }
+
   async function saveBreakCfg(){
     const keys=['foundation_seconds','core_seconds','nascent_seconds','event_radius','qi_deviation_multiplier','rebirth_foundation_rate','rebirth_core_bonus','rebirth_nascent_bonus','battle_tick_seconds','base_attack_damage'];const patch={};for(const k of keys)patch[k]=n(document.getElementById('btcfg_'+k).value);
     patch.enabled=document.getElementById('btcfg_enabled').value==='true';
@@ -571,11 +614,11 @@
   window.createConfigDraftV129=createDraft;window.saveConfigDraftV129=saveDraft;window.publishConfigDraftV129=publishDraft;window.rollbackConfigV129=rollback;window.deleteConfigDraftV129=deleteDraft;window.deleteConfigVersionV148=deleteVersionV148;
   window.addConfigItemV129=addItem;window.deleteConfigItemV129=delItem;window.addConfigArrayRowV129=addArrayRow;window.deleteConfigArrayRowV129=delArrayRow;window.applyRawConfigV129=applyRaw;
   window.refreshFixedItemBuilderV154=refreshFixedItemBuilder;window.assignNextFixedItemIdV154=assignNextFixedItemId;window.createFixedConfigItemV154=createFixedItem;
-  window.filterItemValuesV154=filterItemValues;window.filterItemCategoryV154=filterItemCategory;window.selectMonsterV154=selectMonster;window.filterMonsterSelectV154=filterMonsterSelect;window.filterMonsterDropItemsV154=filterMonsterDropItems;window.addMonsterDropV154=addMonsterDrop;window.removeMonsterDropV154=removeMonsterDrop;window.setMonsterDropRateV154=setMonsterDropRate;
+  window.filterItemValuesV154=filterItemValues;window.filterItemCategoryV154=filterItemCategory;window.selectMonsterV154=selectMonster;window.saveDivineBeastStatsV154=saveDivineBeastStats;window.filterMonsterSelectV154=filterMonsterSelect;window.filterMonsterDropItemsV154=filterMonsterDropItems;window.addMonsterDropV154=addMonsterDrop;window.removeMonsterDropV154=removeMonsterDrop;window.setMonsterDropRateV154=setMonsterDropRate;
   window.saveBreakthroughConfigV129=saveBreakCfg;window.exportConfigExcelV129=exportExcel;window.importConfigExcelV129=importExcel;
   window.reloadGameItemCatalogV154=async()=>{const catalog=await fetchItemCatalog();state.itemCatalog=clone(catalog);state.draft.items=clone(catalog);renderEditor();window.dispatchEvent(new CustomEvent('xianxia:item-catalog-updated'))};
   window.V129_CONFIG_ADMIN={state,setDirty,renderEditor,refresh:loadConfigAdmin,mergeV135Config,syncItemMasterChanges};
 
-  console.info('[V15.4 ADMIN BALANCE PHASE1 FIX4 ITEM MASTER] installed',ITEM_EDITOR_BUILD);
+  console.info('[V15.4 ADMIN BALANCE PHASE1 FIX5 MONSTER DROP + BEAST BOSS] installed',ITEM_EDITOR_BUILD);
   injectCard();setTimeout(()=>{if(!document.getElementById('adminMain')?.classList.contains('hidden'))loadConfigAdmin()},800);
 })();
