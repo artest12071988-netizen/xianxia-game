@@ -8,7 +8,8 @@ const V12_BUILD = V12_ONLINE.build || 'V12-CBT';
 const cloudState = {
   client:null,user:null,enabled:false,preview:false,revision:0,remoteSave:null,
   saveTimer:null,saving:false,pending:false,lastSyncedAt:null,lastError:'',
-  channel:null,presence:{},chatMessages:[],chatOpen:false,aiChatAt:0,chatRefreshTimer:null,chatPinnedToBottom:true
+  channel:null,presence:{},chatMessages:[],chatOpen:false,aiChatAt:0,chatRefreshTimer:null,chatPinnedToBottom:true,
+  accountSession:{id:null,active:false,kicked:false,heartbeatTimer:null,heartbeatBusy:false,failures:0,deviceLabel:''}
 };
 
 const v11Render = render;
@@ -26,12 +27,143 @@ function updateCloudBadge(){
   if(cloudState.preview)return setCloudBadge('離線預覽｜不可封測','warn');
   if(!cloudState.enabled)return setCloudBadge('伺服器未設定','bad');
   if(!cloudState.user)return setCloudBadge('尚未登入','warn');
+  if(cloudState.accountSession?.kicked)return setCloudBadge('帳號已於其他裝置登入','bad');
   if(!navigator.onLine)return setCloudBadge('離線暫存｜等待同步','warn');
   if(cloudState.saving)return setCloudBadge('雲端存檔中…','busy');
   if(cloudState.lastError)return setCloudBadge('同步異常','bad');
   if(cloudState.lastSyncedAt)return setCloudBadge('雲端已同步 '+new Date(cloudState.lastSyncedAt).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}),'ok');
   setCloudBadge('安全連線中','busy');
 }
+
+const V154_ACCOUNT_SESSION_STORAGE_KEY='xianxia_v154_account_session_id';
+const V154_ACCOUNT_SESSION_RUNTIME='V15.4-SINGLE-ACCOUNT-SESSION-FIX1-20260726';
+
+function makeAccountSessionId(){
+  if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+    const r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16);
+  });
+}
+function getAccountSessionId(){
+  let id='';
+  try{id=sessionStorage.getItem(V154_ACCOUNT_SESSION_STORAGE_KEY)||''}catch(_){ }
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)){
+    id=makeAccountSessionId();
+    try{sessionStorage.setItem(V154_ACCOUNT_SESSION_STORAGE_KEY,id)}catch(_){ }
+  }
+  return id;
+}
+function getAccountDeviceLabel(){
+  const platform=navigator.userAgentData?.platform||navigator.platform||'Unknown';
+  const mobile=navigator.userAgentData?.mobile||/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+  return (mobile?'Mobile':'Desktop')+' · '+String(platform).slice(0,80);
+}
+function accountSessionCanPlay(){
+  return !cloudState.enabled||!cloudState.user||!!(cloudState.accountSession?.active&&!cloudState.accountSession?.kicked);
+}
+function stopAccountSessionGuard(){
+  clearInterval(cloudState.accountSession?.heartbeatTimer);
+  if(cloudState.accountSession){
+    cloudState.accountSession.heartbeatTimer=null;
+    cloudState.accountSession.heartbeatBusy=false;
+  }
+}
+async function claimAccountSessionV154(){
+  if(!cloudState.enabled||!cloudState.user||!cloudState.client)return true;
+  const id=getAccountSessionId();
+  const label=getAccountDeviceLabel();
+  const {data,error}=await cloudState.client.rpc('claim_game_account_session',{
+    p_session_id:id,p_device_label:label,p_client_build:V12_BUILD
+  });
+  if(error)throw new Error('單一登入鎖啟動失敗：'+(error.message||error));
+  const row=Array.isArray(data)?data[0]:data;
+  if(row?.accepted===false)throw new Error('單一登入鎖拒絕此裝置');
+  cloudState.accountSession.id=id;
+  cloudState.accountSession.deviceLabel=label;
+  cloudState.accountSession.active=true;
+  cloudState.accountSession.kicked=false;
+  cloudState.accountSession.failures=0;
+  console.info('[V15.4 SINGLE ACCOUNT SESSION FIX1] session claimed',{sessionId:id,replacedPrevious:!!row?.replaced_previous});
+  return true;
+}
+function removeSingleSessionKickLayer(){
+  document.getElementById('v154SingleSessionKickLayer')?.remove();
+}
+function showSingleSessionKickLayer(){
+  let layer=document.getElementById('v154SingleSessionKickLayer');
+  if(layer)return;
+  layer=document.createElement('div');
+  layer.id='v154SingleSessionKickLayer';
+  layer.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(2,8,14,.96);display:flex;align-items:center;justify-content:center;padding:24px;font-family:inherit';
+  layer.innerHTML='<div style="width:min(520px,100%);border:1px solid rgba(238,197,96,.55);border-radius:18px;background:#08131f;padding:28px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.65)"><div style="font-size:42px;color:#eec560;margin-bottom:12px">帳號已下線</div><p style="font-size:18px;line-height:1.8;color:#e8edf2">此帳號已在另一台裝置登入。為避免存檔回朔，本裝置已停止遊戲與雲端寫入。</p><button style="width:100%;padding:14px 18px;border-radius:12px;border:1px solid #55d9cf;background:#0c2430;color:#72efe4;font-size:18px;font-weight:700;cursor:pointer" onclick="reclaimAccountSessionV154()">在本裝置重新登入</button></div>';
+  document.body.appendChild(layer);
+}
+async function handleAccountSessionReplacedV154(reason='OTHER_DEVICE_LOGIN'){
+  if(cloudState.accountSession?.kicked)return;
+  cloudState.accountSession.active=false;
+  cloudState.accountSession.kicked=true;
+  cloudState.accountSession.failures=0;
+  stopAccountSessionGuard();
+  clearTimeout(cloudState.saveTimer);
+  cloudState.pending=false;
+  try{clearInterval(tickTimer);clearInterval(aiTimer)}catch(_){ }
+  clearInterval(cloudState.playerTimer);clearInterval(cloudState.safeZoneTimer);clearInterval(cloudState.pvpTimer);clearInterval(cloudState.worldMaintenanceTimer);
+  try{teardownRealtime()}catch(_){ }
+  try{if(g)g.meditating=false}catch(_){ }
+  try{localStorage.removeItem(V12_LOCAL_CACHE);localStorage.removeItem(V12_RECOVERY_CONFLICT)}catch(_){ }
+  cloudState.lastError='帳號已於其他裝置登入';
+  updateCloudBadge();
+  showSingleSessionKickLayer();
+  console.warn('[V15.4 SINGLE ACCOUNT SESSION FIX1] device kicked',{reason});
+}
+async function heartbeatAccountSessionV154(){
+  if(!cloudState.enabled||!cloudState.user||!cloudState.client||!cloudState.accountSession?.id||cloudState.accountSession.kicked||cloudState.accountSession.heartbeatBusy)return;
+  cloudState.accountSession.heartbeatBusy=true;
+  try{
+    const {data,error}=await cloudState.client.rpc('heartbeat_game_account_session',{p_session_id:cloudState.accountSession.id});
+    if(error)throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    if(row?.active===false){await handleAccountSessionReplacedV154('HEARTBEAT_REJECTED');return}
+    cloudState.accountSession.active=true;
+    cloudState.accountSession.failures=0;
+  }catch(error){
+    const msg=String(error?.message||error||'');
+    if(/ACCOUNT_SESSION_REPLACED|SESSION_REPLACED/i.test(msg)){await handleAccountSessionReplacedV154(msg);return}
+    cloudState.accountSession.failures=Number(cloudState.accountSession.failures||0)+1;
+    if(cloudState.accountSession.failures>=4)console.warn('[V15.4 SINGLE ACCOUNT SESSION FIX1] heartbeat temporarily unavailable',error);
+  }finally{cloudState.accountSession.heartbeatBusy=false}
+}
+function startAccountSessionGuardV154(){
+  stopAccountSessionGuard();
+  if(!cloudState.accountSession?.active||cloudState.accountSession.kicked)return;
+  cloudState.accountSession.heartbeatTimer=setInterval(heartbeatAccountSessionV154,2500);
+  heartbeatAccountSessionV154();
+}
+async function releaseAccountSessionV154(){
+  stopAccountSessionGuard();
+  if(!cloudState.enabled||!cloudState.user||!cloudState.client||!cloudState.accountSession?.id)return;
+  try{await cloudState.client.rpc('release_game_account_session',{p_session_id:cloudState.accountSession.id})}catch(_){ }
+  cloudState.accountSession.active=false;
+}
+async function reclaimAccountSessionV154(){
+  const btn=document.querySelector('#v154SingleSessionKickLayer button');if(btn){btn.disabled=true;btn.textContent='重新接管中…'}
+  try{
+    await claimAccountSessionV154();
+    removeSingleSessionKickLayer();
+    cloudState.lastError='';
+    await loadCloudSave();
+    if(cloudState.remoteSave?.g)applySavePayload(cloudState.remoteSave);
+    startAccountSessionGuardV154();
+    show(cloudState.remoteSave?'game':'create');
+    if(cloudState.remoteSave){startLoops();render()}
+    updateCloudBadge();
+  }catch(error){
+    cloudState.lastError=String(error?.message||error);updateCloudBadge();
+    if(btn){btn.disabled=false;btn.textContent='重新嘗試'}
+  }
+}
+window.reclaimAccountSessionV154=reclaimAccountSessionV154;
+window.handleAccountSessionReplacedV154=handleAccountSessionReplacedV154;
 
 async function initV12Online(){
   window.addEventListener('online',()=>{cloudState.lastError='';updateCloudBadge();flushCloudSave(true)});
@@ -54,7 +186,7 @@ async function initV12Online(){
         if(session?.user && (!cloudState.user || cloudState.user.id!==session.user.id)){
           cloudState.user=session.user;await afterCloudLogin();
         }
-        if(event==='SIGNED_OUT'){cloudState.user=null;cloudState.remoteSave=null;cloudState.revision=0;teardownRealtime();updateCloudBadge();show('intro')}
+        if(event==='SIGNED_OUT'){stopAccountSessionGuard();cloudState.accountSession.active=false;cloudState.accountSession.kicked=false;removeSingleSessionKickLayer();cloudState.user=null;cloudState.remoteSave=null;cloudState.revision=0;teardownRealtime();updateCloudBadge();show('intro')}
       }catch(error){
         cloudState.lastError=String(error?.message||error||'AUTH_STATE_SYNC_FAILED');
         updateCloudBadge();
@@ -73,9 +205,11 @@ async function initV12Online(){
 
 async function afterCloudLogin(){
   cloudState.lastError='';
+  await claimAccountSessionV154();
   await loadCloudSave();
   await recoverEmergencyCache();
   await initRealtime();
+  startAccountSessionGuardV154();
   $('continueBtn').style.display=cloudState.remoteSave?'block':'none';
   updateCloudBadge();
 }
@@ -92,6 +226,11 @@ function readEmergencyCache(){
 async function recoverEmergencyCache(){
   if(!cloudState.enabled||!cloudState.user)return;
   const local=readEmergencyCache();if(!local)return;
+  if(local.accountSessionId!==cloudState.accountSession?.id){
+    try{localStorage.setItem(V12_RECOVERY_CONFLICT,JSON.stringify(local));localStorage.removeItem(V12_LOCAL_CACHE)}catch(_){ }
+    console.info('[V15.4 SINGLE ACCOUNT SESSION FIX1] foreign-device emergency cache ignored');
+    return;
+  }
   const localSavedAt=Number(local.savedAt||local.g?.lastSavedAt||0);
   const remoteSavedAt=Number(cloudState.remoteSave?.savedAt||cloudState.remoteSave?.g?.lastSavedAt||0);
   if(localSavedAt<=remoteSavedAt)return;
@@ -113,6 +252,7 @@ async function recoverEmergencyCache(){
 
 function enterBeta(){
   if(cloudState.enabled){
+    if(cloudState.accountSession?.kicked){showSingleSessionKickLayer();return}
     if(cloudState.user)show(cloudState.remoteSave?'intro':'create');
     else show('auth');
     return;
@@ -142,7 +282,8 @@ async function doBetaAuth(mode){
 }
 
 async function logoutBeta(){
-  await flushCloudSave(true);
+  if(accountSessionCanPlay())await flushCloudSave(true);
+  await releaseAccountSessionV154();
   if(cloudState.client)await cloudState.client.auth.signOut({scope:'local'});
   localStorage.removeItem(V12_LOCAL_CACHE);
 }
@@ -166,6 +307,7 @@ function applySavePayload(data){
 continueGame = async function(){
   try{
     if(cloudState.enabled){
+      if(cloudState.accountSession?.kicked){showSingleSessionKickLayer();return}
       if(!cloudState.user){show('auth');return}
       await loadCloudSave();
       if(!cloudState.remoteSave){toast('雲端尚無角色');show('create');return}
@@ -181,6 +323,7 @@ continueGame = async function(){
 startGame = function(){
   if(!C)return;
   if(V12_ONLINE.requireCloudForBeta && !cloudState.enabled && !cloudState.preview){openServerSetup();return}
+  if(cloudState.enabled&&cloudState.accountSession?.kicked){showSingleSessionKickLayer();return}
   if(cloudState.enabled&&!cloudState.user){show('auth');return}
   const nm=$('nm').value.trim()||'無名散修';
   g=freshGame(nm);g.build=V12_BUILD;ai=initAi();show('game');startLoops();
@@ -190,8 +333,8 @@ startGame = function(){
 };
 
 saveGame = function(showToast=false){
-  if(!g)return;
-  const payload={savedAt:Date.now(),build:V12_BUILD,userId:cloudState.user?.id||null,clientRevision:cloudState.revision,g,ai};
+  if(!g||!accountSessionCanPlay())return;
+  const payload={savedAt:Date.now(),build:V12_BUILD,userId:cloudState.user?.id||null,accountSessionId:cloudState.accountSession?.id||null,clientRevision:cloudState.revision,g,ai};
   g.lastSavedAt=payload.savedAt;
   localStorage.setItem(V12_LOCAL_CACHE,JSON.stringify(payload));
   if(cloudState.enabled&&cloudState.user)scheduleCloudSave();
@@ -199,16 +342,17 @@ saveGame = function(showToast=false){
 };
 
 function scheduleCloudSave(force=false){
+  if(!accountSessionCanPlay())return;
   clearTimeout(cloudState.saveTimer);
   cloudState.saveTimer=setTimeout(()=>flushCloudSave(force),force?0:(P?.autosave_debounce_ms||450));
 }
 
 async function flushCloudSave(force=false){
-  if(!g||!cloudState.enabled||!cloudState.user)return;
+  if(!g||!cloudState.enabled||!cloudState.user||!accountSessionCanPlay())return;
   if(!navigator.onLine){updateCloudBadge();return}
   if(cloudState.saving){cloudState.pending=true;return}
   cloudState.saving=true;cloudState.pending=false;updateCloudBadge();
-  const payload={savedAt:Date.now(),build:V12_BUILD,userId:cloudState.user.id,clientRevision:cloudState.revision,g,ai};
+  const payload={savedAt:Date.now(),build:V12_BUILD,userId:cloudState.user.id,accountSessionId:cloudState.accountSession?.id||null,clientRevision:cloudState.revision,g,ai};
   try{
     const {data,error}=await cloudState.client.rpc('save_game_state',{p_save:payload,p_client_revision:cloudState.revision});
     if(error)throw error;
@@ -226,8 +370,13 @@ async function flushCloudSave(force=false){
       render();toast('偵測到另一裝置的新進度，已同步伺服器最新存檔');
     }
   }catch(e){
-    cloudState.lastError=e.message||String(e);
-    console.error('cloud save failed',e);
+    const msg=String(e?.message||e||'');
+    if(/ACCOUNT_SESSION_REPLACED|ACCOUNT_SESSION_REQUIRED|ACCOUNT_SESSION_INVALID/i.test(msg)){
+      await handleAccountSessionReplacedV154(msg);
+    }else{
+      cloudState.lastError=msg;
+      console.error('cloud save failed',e);
+    }
   }finally{
     cloudState.saving=false;updateCloudBadge();
     if(cloudState.pending)scheduleCloudSave(true);
@@ -235,7 +384,7 @@ async function flushCloudSave(force=false){
 }
 
 function flushOnUnload(){
-  if(!g||!cloudState.enabled||!cloudState.user||!navigator.onLine)return;
+  if(!g||!cloudState.enabled||!cloudState.user||!navigator.onLine||!accountSessionCanPlay())return;
   const sessionToken=cloudState.client?.auth?.getSession?null:null;
   // 一般情況已由每次行動與 10 秒心跳存檔；離頁時再排一次 keepalive RPC。
   cloudState.client.auth.getSession().then(({data})=>{
@@ -243,7 +392,7 @@ function flushOnUnload(){
     fetch(V12_ONLINE.supabaseUrl+'/rest/v1/rpc/save_game_state',{
       method:'POST',keepalive:true,
       headers:{'Content-Type':'application/json','apikey':V12_ONLINE.supabasePublishableKey,'Authorization':'Bearer '+token},
-      body:JSON.stringify({p_save:{savedAt:Date.now(),build:V12_BUILD,userId:cloudState.user.id,clientRevision:cloudState.revision,g,ai},p_client_revision:cloudState.revision})
+      body:JSON.stringify({p_save:{savedAt:Date.now(),build:V12_BUILD,userId:cloudState.user.id,accountSessionId:cloudState.accountSession?.id||null,clientRevision:cloudState.revision,g,ai},p_client_revision:cloudState.revision})
     }).catch(()=>{});
   }).catch(()=>{});
 }
@@ -1106,7 +1255,7 @@ function playerStatePayload(){
   };
 }
 async function syncPlayerPresence(force=false){
-  if(!cloudState.enabled||!cloudState.user||!g||g.dead)return;
+  if(!cloudState.enabled||!cloudState.user||!g||g.dead||!accountSessionCanPlay())return;
   if(!force&&Date.now()-cloudState.lastPresenceSync<5000)return;
   cloudState.lastPresenceSync=Date.now();
   try{
@@ -1794,7 +1943,7 @@ console.log('[V15.4 CONSOLE FINAL CLEANUP FIX1] installed');
   let timer=null;
 
   async function claimAdminDeliveries(){
-    if(busy||!window.cloudState?.enabled||!window.cloudState?.user||!window.cloudState?.client||!window.g)return;
+    if(busy||!window.cloudState?.enabled||!window.cloudState?.user||!window.cloudState?.client||!window.g||window.cloudState?.accountSession?.kicked)return;
     busy=true;
     try{
       const response=await window.cloudState.client.rpc('claim_player_admin_deliveries',{});
@@ -1855,4 +2004,18 @@ console.log('[V15.4 CONSOLE FINAL CLEANUP FIX1] installed');
   setTimeout(start,1200);
   window.claimAdminDeliveriesV154=claimAdminDeliveries;
   console.info('[V15.4 ADMIN DELIVERY FIX1] installed');
+})();
+
+
+/* V15.4 SINGLE ACCOUNT SESSION FIX1: one account, one active device */
+(function(){
+  const baseStartLoops=startLoops;
+  startLoops=function(){
+    if(!accountSessionCanPlay()){showSingleSessionKickLayer();return}
+    return baseStartLoops();
+  };
+  window.addEventListener('focus',()=>{if(cloudState.accountSession?.active)heartbeatAccountSessionV154()});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cloudState.accountSession?.active)heartbeatAccountSessionV154()});
+  window.cloudState=cloudState;
+  console.info('[V15.4 SINGLE ACCOUNT SESSION FIX1] installed',V154_ACCOUNT_SESSION_RUNTIME);
 })();
