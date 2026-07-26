@@ -1,0 +1,140 @@
+/* 修仙大逃殺 V15.4 MOBILE CELESTIAL UI PHASE A FIX1
+   純介面層：保留原地域圖片、原功能函式與原資料；移除錯誤的人物去背疊圖。
+   本版重點：精緻滿版 HUD、圖示＋文字底部導覽、個人資訊分類、情境功能入口。 */
+:root{
+  --v154ui-gold:#e2bf69;
+  --v154ui-gold-bright:#f4dc91;
+  --v154ui-jade:#55d9cf;
+  --v154ui-line:rgba(226,191,105,.34);
+  --v154ui-safe-top:env(safe-area-inset-top,0px);
+  --v154ui-safe-bottom:env(safe-area-inset-bottom,0px)
+}
+.v154ui-mobile-hud,.v154ui-profile,.v154ui-more,.v154ui-scene-actions{display:none}
+#v154uiWorldAvatar,#v154uiSceneStandard{display:none!important}
+
+@media(max-width:780px){
+  html,body{width:100%;height:100%;min-height:0;overflow:hidden;overscroll-behavior:none;background:#020508}
+  body{position:fixed;inset:0}
+  body:before{display:none}
+  #app{width:100%;height:100dvh;min-height:0;max-width:none;margin:0;overflow:hidden;background:#020508;box-shadow:none}
+  #game.scr.on{display:block!important;position:relative;width:100%;height:100dvh;min-height:0;padding:0!important;overflow:hidden;background:#020508}
+
+  #game>.world-header,#game>.status-ribbon,.character-panel,.intel-panel,.comm-grid{display:none!important}
+  #game .dashboard{display:block!important;width:100%;height:100%;margin:0;padding:0}
+  #game .world-panel{position:absolute;inset:0;width:100%;height:100%}
+  #game .world-panel>.card.panel{position:absolute;inset:0;width:100%;height:100%;margin:0!important;padding:0!important;border:0;border-radius:0;background:#020508;overflow:hidden}
+  #game .world-panel>.card.panel>.panel-head,#game .world-panel>.card.panel>.action-grid{display:none!important}
+
+  #game .world-scene{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;border:0!important;border-radius:0!important;background-position:center!important;background-size:cover!important;box-shadow:none!important;overflow:hidden}
+  #game .world-scene:before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(1,5,10,.50) 0%,rgba(1,5,10,.08) 24%,rgba(1,5,10,.02) 58%,rgba(1,5,10,.45) 78%,#020508 100%);pointer-events:none}
+  #game .world-scene:after{content:"";position:absolute;inset:0;z-index:1;box-shadow:inset 0 0 96px rgba(0,0,0,.33);pointer-events:none}
+  #game .world-scene>.stars,#game .world-scene>.moon,#game .world-scene>.mountain{opacity:.2}
+  #game .world-scene.v14f-scene>.stars,#game .world-scene.v14f-scene>.moon,#game .world-scene.v14f-scene>.mountain{display:none}
+
+  #game .scene-content{position:absolute!important;z-index:12!important;inset:auto 14px calc(90px + var(--v154ui-safe-bottom)) 14px!important;top:auto!important;width:auto!important;height:auto!important;min-height:112px!important;display:block!important;padding:15px 108px 14px 17px!important;border:1px solid var(--v154ui-line);border-radius:23px;background:linear-gradient(145deg,rgba(5,11,19,.90),rgba(1,5,10,.80));box-shadow:0 16px 42px rgba(0,0,0,.46),inset 0 1px rgba(255,255,255,.05);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);text-align:left}
+  #game .scene-zone{font:700 clamp(25px,7.2vw,34px)/1.05 "Songti TC","Noto Serif TC",serif;color:#f0d78b;letter-spacing:.08em;text-shadow:0 3px 17px #000}
+  #game .scene-coord{font-size:10px;color:#aec9c7;margin-top:6px;letter-spacing:.1em}
+  #game .scene-copy{font-size:11px;line-height:1.55;color:#c9d0cf;margin-top:7px;max-height:36px;overflow:hidden}
+  #game .v14f-terrain-badge{z-index:13!important;top:calc(116px + var(--v154ui-safe-top))!important;right:14px!important;border-color:rgba(226,191,105,.42)!important;background:rgba(2,8,14,.78)!important;color:#ead28e!important;backdrop-filter:blur(8px)}
+  #game .meditation-boost-banner{position:absolute;z-index:14;left:14px;right:14px;bottom:calc(205px + var(--v154ui-safe-bottom));margin:0!important;padding:8px 11px!important;border-radius:12px;font-size:10px;max-height:48px;overflow:hidden}
+
+  .v154ui-mobile-hud{position:absolute;z-index:30;left:0;right:0;top:0;display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:10px;align-items:center;padding:calc(10px + var(--v154ui-safe-top)) 12px 13px;background:linear-gradient(180deg,rgba(2,7,13,.95),rgba(2,7,13,.68) 72%,transparent);pointer-events:none}
+  .v154ui-avatar-button{pointer-events:auto;appearance:none;width:60px;height:60px;padding:0;border:1px solid rgba(226,191,105,.68);border-radius:50%;overflow:hidden;background:#07101a;box-shadow:0 0 0 3px rgba(4,10,18,.76),0 7px 22px rgba(0,0,0,.55)}
+  .v154ui-avatar-button img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 24%;transform:scale(1.16)}
+  .v154ui-hud-core{min-width:0;text-shadow:0 2px 9px #000}
+  .v154ui-name-line{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+  .v154ui-name{font:700 16px/1.1 "Songti TC",serif;color:#f3e5bc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .v154ui-level{padding:3px 8px;border:1px solid rgba(226,191,105,.42);border-radius:999px;color:#e6c879;background:rgba(4,9,15,.66);font-size:9px}
+  .v154ui-realm{font-size:9px;color:#aebdbf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+  .v154ui-bar-row{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:5px;margin-top:3px;font-size:8px;color:#f1e7d2}
+  .v154ui-bar-row>span:first-child{font-weight:800}
+  .v154ui-bar-track{height:8px;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(4,8,13,.80);overflow:hidden}
+  .v154ui-bar-fill{display:block;height:100%;border-radius:inherit;transition:width .25s}
+  .v154ui-bar-fill.hp{background:linear-gradient(90deg,#97302d,#f16b61);box-shadow:0 0 12px rgba(241,107,97,.3)}
+  .v154ui-bar-fill.mp{background:linear-gradient(90deg,#245f88,#58ace9);box-shadow:0 0 12px rgba(88,172,233,.25)}
+  .v154ui-bar-value{min-width:60px;text-align:right;font-variant-numeric:tabular-nums;font-size:8px;color:#dce5e8}
+  .v154ui-hud-currency{display:grid;gap:6px;pointer-events:auto}
+  .v154ui-currency-pill{display:flex;justify-content:flex-end;gap:5px;min-width:72px;padding:5px 8px;border:1px solid rgba(226,191,105,.30);border-radius:999px;background:rgba(3,9,15,.72);font-size:9px;color:#e5cf8a;backdrop-filter:blur(9px)}
+  .v154ui-currency-pill b{color:#f4e5b6;max-width:58px;overflow:hidden;text-overflow:ellipsis}
+
+  .v154ui-scene-actions{position:absolute;z-index:18;right:14px;bottom:calc(192px + var(--v154ui-safe-bottom));display:grid;gap:10px;pointer-events:auto}
+  .v154ui-scene-actions button{appearance:none;width:82px;min-height:68px;padding:8px 5px;border:1px solid rgba(226,191,105,.48);border-radius:19px;background:radial-gradient(circle at 50% 18%,rgba(226,191,105,.18),transparent 56%),rgba(4,9,15,.88);color:#ead58e;box-shadow:0 13px 32px rgba(0,0,0,.44),inset 0 1px rgba(255,255,255,.06);backdrop-filter:blur(12px)}
+  .v154ui-scene-actions button span{display:grid;place-items:center;width:31px;height:31px;margin:0 auto 4px;border:1px solid rgba(226,191,105,.42);border-radius:50%;font:700 18px "Songti TC",serif}
+  .v154ui-scene-actions button b{display:block;font-size:10px}
+  .v154ui-scene-actions button small{display:block;margin-top:3px;color:#8cd9c6;font-size:7px}
+  .v154ui-scene-actions button:active{transform:scale(.95)}
+  .v154ui-scene-actions button[hidden]{display:none!important}
+  #game .v145b-master-npc,#v143Launch{display:none!important}
+
+  #game .mobile-nav{position:absolute!important;z-index:40!important;left:0!important;right:0!important;bottom:0!important;display:grid!important;grid-template-columns:repeat(5,1fr)!important;padding:8px 6px calc(8px + var(--v154ui-safe-bottom))!important;border-top:1px solid rgba(226,191,105,.25)!important;background:linear-gradient(180deg,rgba(5,11,18,.90),rgba(2,6,11,.985))!important;box-shadow:0 -15px 42px rgba(0,0,0,.42)!important;backdrop-filter:blur(19px);-webkit-backdrop-filter:blur(19px)}
+  #game .mobile-nav button{appearance:none;position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:58px;padding:5px 2px 4px!important;border:0!important;border-radius:15px;background:transparent!important;color:#919ca5!important;font-size:11px!important;line-height:1!important;transition:transform .16s,color .16s,background .16s}
+  #game .mobile-nav button:active{transform:scale(.94)}
+  #game .mobile-nav .v154ui-nav-icon{display:grid;place-items:center;width:34px;height:32px;border-radius:12px;color:#aeb7bd;transition:color .18s,filter .18s,background .18s,transform .18s}
+  #game .mobile-nav .v154ui-nav-icon svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  #game .mobile-nav .v154ui-nav-label{font-size:11px;letter-spacing:.08em}
+  #game .mobile-nav button>i{position:absolute;left:50%;bottom:-2px;width:5px;height:5px;border-radius:50%;background:transparent;transform:translateX(-50%);box-shadow:none}
+  #game .mobile-nav button.v154ui-active{color:var(--v154ui-gold-bright)!important;background:radial-gradient(circle at 50% 38%,rgba(226,191,105,.16),transparent 66%)!important}
+  #game .mobile-nav button.v154ui-active .v154ui-nav-icon{color:#f4dc91;background:radial-gradient(circle,rgba(226,191,105,.20),rgba(226,191,105,.03) 62%,transparent 68%);filter:drop-shadow(0 0 8px rgba(235,201,104,.58));transform:translateY(-1px)}
+  #game .mobile-nav button.v154ui-active>i{background:#f0d37d;box-shadow:0 0 7px rgba(240,211,125,.9)}
+
+  .v154ui-profile,.v154ui-more{position:fixed;z-index:1450;inset:0;display:none;background:radial-gradient(circle at 50% 12%,rgba(40,73,92,.3),transparent 35%),linear-gradient(180deg,#07101a,#02060b);color:#eee8da}
+  .v154ui-profile.on,.v154ui-more.on{display:block}
+  .v154ui-page{height:100dvh;overflow:hidden;padding:calc(10px + var(--v154ui-safe-top)) 12px calc(12px + var(--v154ui-safe-bottom));display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px}
+  .v154ui-page-head{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;min-height:44px}
+  .v154ui-back{appearance:none;width:40px;height:40px;border:1px solid rgba(226,191,105,.28);border-radius:12px;background:rgba(8,16,26,.78);color:#e9ce7e;font-size:22px}
+  .v154ui-page-title{text-align:center;font:700 20px "Songti TC",serif;color:#ead28a;letter-spacing:.14em}
+  .v154ui-profile-body{min-height:0;display:grid;grid-template-rows:minmax(205px,40vh) auto minmax(0,1fr);gap:8px}
+  .v154ui-hero-card{position:relative;overflow:hidden;border:1px solid var(--v154ui-line);border-radius:18px;background:linear-gradient(145deg,rgba(10,19,30,.92),rgba(3,8,14,.96))}
+  .v154ui-hero-img{position:absolute;left:0;top:0;width:55%;height:100%;object-fit:cover;object-position:center 28%;mask-image:linear-gradient(90deg,#000 0 72%,transparent 100%);-webkit-mask-image:linear-gradient(90deg,#000 0 72%,transparent 100%)}
+  .v154ui-hero-info{position:absolute;z-index:2;right:14px;top:18px;bottom:16px;width:48%;display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+  .v154ui-profile-name{font:700 clamp(22px,6vw,30px)/1.15 "Songti TC",serif;color:#f2e4ba}
+  .v154ui-profile-realm{margin-top:6px;padding:5px 10px;border:1px solid rgba(226,191,105,.35);border-radius:999px;color:#ebcf7c;background:rgba(6,12,20,.7);font-size:11px}
+  .v154ui-profile-level{margin-top:6px;color:#9fb5bc;font-size:10px}
+  .v154ui-profile-stats{margin-top:auto;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .v154ui-profile-stat{padding:6px 7px;border:1px solid rgba(143,174,198,.14);border-radius:9px;background:rgba(3,8,14,.62)}
+  .v154ui-profile-stat span{display:block;color:#7f929f;font-size:8px}
+  .v154ui-profile-stat b{display:block;margin-top:2px;color:#e9e0ca;font-size:12px}
+  .v154ui-equip-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .v154ui-equip-slot{padding:10px 11px;border:1px solid rgba(226,191,105,.24);border-radius:14px;background:linear-gradient(145deg,rgba(15,25,38,.9),rgba(5,11,19,.92))}
+  .v154ui-equip-slot small{display:block;color:#82919d;font-size:9px;margin-bottom:5px}
+  .v154ui-equip-slot strong{display:block;color:#f0dfae;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .v154ui-equip-slot span{display:block;margin-top:4px;color:#a9b4b9;font-size:9px}
+  .v154ui-tech-card{min-height:0;padding:10px;border:1px solid rgba(226,191,105,.2);border-radius:15px;background:rgba(4,10,17,.8);overflow:hidden}
+  .v154ui-section-label{font:700 13px "Songti TC",serif;color:#dcc47d;margin-bottom:7px}
+  .v154ui-tech-list{height:calc(100% - 24px);display:grid;grid-auto-rows:1fr;gap:6px}
+  .v154ui-tech-item{display:flex;align-items:center;gap:9px;padding:7px 9px;border:1px solid rgba(107,151,183,.17);border-radius:10px;background:linear-gradient(90deg,rgba(25,47,65,.55),rgba(7,14,22,.65))}
+  .v154ui-tech-icon{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border-radius:9px;border:1px solid rgba(226,191,105,.28);color:#e6cc7b;background:rgba(226,191,105,.08);font:700 17px "Songti TC",serif}
+  .v154ui-tech-copy{min-width:0}
+  .v154ui-tech-copy strong,.v154ui-tech-copy span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .v154ui-tech-copy strong{color:#e7dfca;font-size:12px}
+  .v154ui-tech-copy span{color:#7f919c;font-size:9px;margin-top:2px}
+
+  .v154ui-more-body{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px;padding-top:8px}
+  .v154ui-more-summary{padding:12px;border:1px solid rgba(226,191,105,.22);border-radius:15px;background:rgba(7,15,24,.78)}
+  .v154ui-more-summary strong{display:block;color:#ead18a;font:700 17px "Songti TC",serif}
+  .v154ui-more-summary span{display:block;color:#879aa4;font-size:10px;margin-top:4px}
+  .v154ui-more-grid{min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:8px}
+  .v154ui-more-button{appearance:none;min-width:0;padding:9px 4px;border:1px solid rgba(147,173,196,.18);border-radius:15px;background:linear-gradient(145deg,rgba(17,29,43,.94),rgba(5,11,18,.96));color:#dfe5e2}
+  .v154ui-more-button b{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 6px;border:1px solid rgba(226,191,105,.26);border-radius:12px;color:#e4c873;background:rgba(226,191,105,.07);font:700 20px "Songti TC",serif}
+  .v154ui-more-button span{display:block;font-size:11px}
+  .v154ui-more-button small{display:block;margin-top:3px;color:#71828e;font-size:8px}
+  .v154ui-more-button:disabled{opacity:.38}
+  .v154ui-more-note{font-size:9px;color:#71828e;text-align:center}
+  .ov{z-index:1600!important}.toast{z-index:1800!important}
+}
+
+@media(max-width:390px),(max-height:720px){
+  @media(max-width:780px){
+    .v154ui-mobile-hud{grid-template-columns:51px minmax(0,1fr) auto;padding-top:calc(7px + var(--v154ui-safe-top));gap:8px}
+    .v154ui-avatar-button{width:51px;height:51px}
+    .v154ui-scene-actions{right:10px;bottom:calc(178px + var(--v154ui-safe-bottom))}
+    .v154ui-scene-actions button{width:70px;min-height:58px}
+    .v154ui-scene-actions button span{width:25px;height:25px;font-size:14px}
+    #game .scene-content{bottom:calc(82px + var(--v154ui-safe-bottom));padding:11px 88px 11px 13px!important;min-height:96px!important}
+    #game .scene-copy{display:none!important}
+    #game .mobile-nav button{min-height:52px}
+    #game .mobile-nav .v154ui-nav-icon{width:30px;height:29px}
+    #game .mobile-nav .v154ui-nav-icon svg{width:25px;height:25px}
+    .v154ui-profile-body{grid-template-rows:minmax(170px,36vh) auto minmax(0,1fr)}
+  }
+}
