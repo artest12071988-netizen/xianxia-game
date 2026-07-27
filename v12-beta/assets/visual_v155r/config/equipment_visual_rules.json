@@ -1,0 +1,43 @@
+{
+  "genderSource": [
+    "g.visualProfile.gender",
+    "g.gender",
+    "g.sex"
+  ],
+  "armorRules": [
+    {
+      "match": "北辰玄冰甲|玄冰",
+      "visual": "icearmor"
+    },
+    {
+      "match": "重甲|鎧|甲",
+      "visual": "heavy"
+    },
+    {
+      "match": "法袍|道袍|袍",
+      "visual": "robe"
+    },
+    {
+      "fallback": "robe for unknown equipped armor; plain when empty"
+    }
+  ],
+  "weaponRules": [
+    {
+      "match": "雙儀斬仙劍|斬仙",
+      "visual": "signature"
+    },
+    {
+      "match": "劍|刀|槍|戟|飛劍|法器",
+      "visual": "sword"
+    },
+    {
+      "fallback": "sword for unknown equipped weapon; none when empty"
+    }
+  ],
+  "enhancement": {
+    "+0..+7": "none",
+    "+8..+11": "blue weapon-only aura",
+    "+12+": "violet-blue weapon-only aura"
+  },
+  "dataSafety": "No item ID, equipment name, enhancement value, player stat or save structure is changed."
+}

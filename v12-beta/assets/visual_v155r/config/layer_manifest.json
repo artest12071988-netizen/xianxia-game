@@ -1,0 +1,26 @@
+{
+  "canvas": {
+    "width": 1024,
+    "height": 1536
+  },
+  "poses": [
+    "ground",
+    "flight"
+  ],
+  "genders": [
+    "male",
+    "female"
+  ],
+  "armor": [
+    "plain",
+    "robe",
+    "heavy",
+    "icearmor"
+  ],
+  "weapons": [
+    "none",
+    "sword",
+    "signature"
+  ],
+  "notes": "Base, armor, weapon and effects are independent transparent layers. No precomposed actor combination is used at runtime."
+}

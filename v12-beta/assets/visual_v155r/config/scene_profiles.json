@@ -1,0 +1,140 @@
+{
+  "version": "V15.5R",
+  "canvas": {
+    "width": 1024,
+    "height": 1536
+  },
+  "terrains": {
+    "icefire": {
+      "pose": "flight",
+      "left": "39%",
+      "bottom": "27%",
+      "width": "min(53vw,340px)",
+      "brightness": 0.88,
+      "saturate": 1.05,
+      "temperature": "warm",
+      "foreground": "embers"
+    },
+    "village": {
+      "pose": "ground",
+      "left": "40%",
+      "bottom": "26%",
+      "width": "min(49vw,315px)",
+      "brightness": 0.76,
+      "saturate": 0.88,
+      "temperature": "green",
+      "foreground": "mist"
+    },
+    "sea": {
+      "pose": "flight",
+      "left": "39%",
+      "bottom": "27%",
+      "width": "min(51vw,330px)",
+      "brightness": 0.94,
+      "saturate": 0.91,
+      "temperature": "cool",
+      "foreground": "sea-mist"
+    },
+    "yinyang": {
+      "pose": "flight",
+      "left": "39%",
+      "bottom": "27%",
+      "width": "min(51vw,330px)",
+      "brightness": 0.93,
+      "saturate": 0.95,
+      "temperature": "cool",
+      "foreground": "sea-mist"
+    },
+    "ice": {
+      "pose": "flight",
+      "left": "38%",
+      "bottom": "27%",
+      "width": "min(50vw,322px)",
+      "brightness": 1.02,
+      "saturate": 0.78,
+      "temperature": "ice",
+      "foreground": "snow"
+    },
+    "northpalace": {
+      "pose": "flight",
+      "left": "38%",
+      "bottom": "27%",
+      "width": "min(50vw,322px)",
+      "brightness": 0.95,
+      "saturate": 0.82,
+      "temperature": "ice",
+      "foreground": "snow"
+    },
+    "forest": {
+      "pose": "ground",
+      "left": "40%",
+      "bottom": "26%",
+      "width": "min(48vw,306px)",
+      "brightness": 0.8,
+      "saturate": 0.82,
+      "temperature": "green",
+      "foreground": "leaves"
+    },
+    "desert": {
+      "pose": "ground",
+      "left": "40%",
+      "bottom": "26%",
+      "width": "min(49vw,312px)",
+      "brightness": 0.91,
+      "saturate": 0.84,
+      "temperature": "warm",
+      "foreground": "sand"
+    },
+    "mountain": {
+      "pose": "ground",
+      "left": "39%",
+      "bottom": "26%",
+      "width": "min(49vw,312px)",
+      "brightness": 0.93,
+      "saturate": 0.86,
+      "temperature": "cool",
+      "foreground": "mist"
+    },
+    "battle": {
+      "pose": "ground",
+      "left": "40%",
+      "bottom": "26%",
+      "width": "min(50vw,320px)",
+      "brightness": 0.82,
+      "saturate": 0.78,
+      "temperature": "violet",
+      "foreground": "ash"
+    },
+    "ruin": {
+      "pose": "ground",
+      "left": "40%",
+      "bottom": "26%",
+      "width": "min(50vw,320px)",
+      "brightness": 0.84,
+      "saturate": 0.8,
+      "temperature": "violet",
+      "foreground": "ash"
+    },
+    "abyss": {
+      "pose": "ground",
+      "left": "40%",
+      "bottom": "26%",
+      "width": "min(50vw,320px)",
+      "brightness": 0.76,
+      "saturate": 0.72,
+      "temperature": "violet",
+      "foreground": "ash"
+    },
+    "land": {
+      "pose": "ground",
+      "left": "40%",
+      "bottom": "26%",
+      "width": "min(49vw,312px)",
+      "brightness": 0.91,
+      "saturate": 0.9,
+      "temperature": "neutral",
+      "foreground": "mist"
+    }
+  },
+  "runtimeRule": "Background is a backboard. Base, armor, weapon and enhancement effects remain independent layers."
+}

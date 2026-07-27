@@ -1,0 +1,5 @@
+{
+  "renderer": "CSS/DOM independent foreground layer",
+  "presets": ["mist", "embers", "sea-mist", "snow", "leaves", "sand", "ash"],
+  "rule": "Foreground remains above actor and below HUD with pointer-events disabled."
+}

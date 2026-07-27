@@ -1,0 +1,10 @@
+{
+  "renderer": "CSS/DOM independent layer",
+  "weaponEnhancement": {
+    "0-7": "none",
+    "8-11": "blue weapon-only aura",
+    "12+": "violet-blue weapon-only aura",
+    "signature": "blue-violet dual-color weapon aura"
+  },
+  "rule": "Effects never alter equipment data and never merge into base/armor/weapon source images."
+}
