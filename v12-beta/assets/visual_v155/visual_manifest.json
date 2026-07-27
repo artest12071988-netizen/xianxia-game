@@ -1,0 +1,48 @@
+{
+  "version": "V15.5-LIVE-CHARACTER-SCENE-ENGINE-FORMAL-20260727",
+  "backgrounds": [
+    "abyss",
+    "battle",
+    "desert",
+    "forest",
+    "ice",
+    "icefire",
+    "land",
+    "mountain",
+    "northpalace",
+    "ruin",
+    "sea",
+    "village",
+    "yinyang"
+  ],
+  "genders": [
+    "male",
+    "female"
+  ],
+  "poses": [
+    "ground",
+    "flight"
+  ],
+  "weapons": [
+    "unarmed",
+    "sword"
+  ],
+  "armors": [
+    "plain",
+    "robe",
+    "heavy",
+    "icearmor"
+  ],
+  "supportedVisualCombinations": 208,
+  "architecture": [
+    "background",
+    "ambientBeast",
+    "actor",
+    "equipmentAppearance",
+    "weaponGlow",
+    "foreground",
+    "hud"
+  ],
+  "originalV154PrecomposedMatrixCompatibility": 192,
+  "note": "原 V15.4 的 192 張人物烙死場景，改為背景背板＋即時角色裝備層；深淵另有後備背景。"
+}
