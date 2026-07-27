@@ -1,0 +1,1362 @@
+{
+  "sea_male_unarmed_plain.webp": {
+    "terrain": "sea",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "sea_male_unarmed_robe.webp": {
+    "terrain": "sea",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "sea_male_unarmed_heavy.webp": {
+    "terrain": "sea",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "sea_male_unarmed_icearmor.webp": {
+    "terrain": "sea",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "sea_male_sword_plain.webp": {
+    "terrain": "sea",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "sea_male_sword_robe.webp": {
+    "terrain": "sea",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "sea_male_sword_heavy.webp": {
+    "terrain": "sea",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "sea_male_sword_icearmor.webp": {
+    "terrain": "sea",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "sea_female_unarmed_plain.webp": {
+    "terrain": "sea",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "sea_female_unarmed_robe.webp": {
+    "terrain": "sea",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "sea_female_unarmed_heavy.webp": {
+    "terrain": "sea",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "sea_female_unarmed_icearmor.webp": {
+    "terrain": "sea",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "sea_female_sword_plain.webp": {
+    "terrain": "sea",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "sea_female_sword_robe.webp": {
+    "terrain": "sea",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "sea_female_sword_heavy.webp": {
+    "terrain": "sea",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "sea_female_sword_icearmor.webp": {
+    "terrain": "sea",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "yinyang_male_unarmed_plain.webp": {
+    "terrain": "yinyang",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "yinyang_male_unarmed_robe.webp": {
+    "terrain": "yinyang",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "yinyang_male_unarmed_heavy.webp": {
+    "terrain": "yinyang",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "yinyang_male_unarmed_icearmor.webp": {
+    "terrain": "yinyang",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "yinyang_male_sword_plain.webp": {
+    "terrain": "yinyang",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "yinyang_male_sword_robe.webp": {
+    "terrain": "yinyang",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "yinyang_male_sword_heavy.webp": {
+    "terrain": "yinyang",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "yinyang_male_sword_icearmor.webp": {
+    "terrain": "yinyang",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "yinyang_female_unarmed_plain.webp": {
+    "terrain": "yinyang",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "yinyang_female_unarmed_robe.webp": {
+    "terrain": "yinyang",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "yinyang_female_unarmed_heavy.webp": {
+    "terrain": "yinyang",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "yinyang_female_unarmed_icearmor.webp": {
+    "terrain": "yinyang",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "yinyang_female_sword_plain.webp": {
+    "terrain": "yinyang",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "yinyang_female_sword_robe.webp": {
+    "terrain": "yinyang",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "yinyang_female_sword_heavy.webp": {
+    "terrain": "yinyang",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "yinyang_female_sword_icearmor.webp": {
+    "terrain": "yinyang",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "ice_male_unarmed_plain.webp": {
+    "terrain": "ice",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "ice_male_unarmed_robe.webp": {
+    "terrain": "ice",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "ice_male_unarmed_heavy.webp": {
+    "terrain": "ice",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "ice_male_unarmed_icearmor.webp": {
+    "terrain": "ice",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "ice_male_sword_plain.webp": {
+    "terrain": "ice",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "ice_male_sword_robe.webp": {
+    "terrain": "ice",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "ice_male_sword_heavy.webp": {
+    "terrain": "ice",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "ice_male_sword_icearmor.webp": {
+    "terrain": "ice",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "ice_female_unarmed_plain.webp": {
+    "terrain": "ice",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "ice_female_unarmed_robe.webp": {
+    "terrain": "ice",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "ice_female_unarmed_heavy.webp": {
+    "terrain": "ice",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "ice_female_unarmed_icearmor.webp": {
+    "terrain": "ice",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "ice_female_sword_plain.webp": {
+    "terrain": "ice",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "ice_female_sword_robe.webp": {
+    "terrain": "ice",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "ice_female_sword_heavy.webp": {
+    "terrain": "ice",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "ice_female_sword_icearmor.webp": {
+    "terrain": "ice",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "forest_male_unarmed_plain.webp": {
+    "terrain": "forest",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "forest_male_unarmed_robe.webp": {
+    "terrain": "forest",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "forest_male_unarmed_heavy.webp": {
+    "terrain": "forest",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "forest_male_unarmed_icearmor.webp": {
+    "terrain": "forest",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "forest_male_sword_plain.webp": {
+    "terrain": "forest",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "forest_male_sword_robe.webp": {
+    "terrain": "forest",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "forest_male_sword_heavy.webp": {
+    "terrain": "forest",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "forest_male_sword_icearmor.webp": {
+    "terrain": "forest",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "forest_female_unarmed_plain.webp": {
+    "terrain": "forest",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "forest_female_unarmed_robe.webp": {
+    "terrain": "forest",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "forest_female_unarmed_heavy.webp": {
+    "terrain": "forest",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "forest_female_unarmed_icearmor.webp": {
+    "terrain": "forest",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "forest_female_sword_plain.webp": {
+    "terrain": "forest",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "forest_female_sword_robe.webp": {
+    "terrain": "forest",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "forest_female_sword_heavy.webp": {
+    "terrain": "forest",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "forest_female_sword_icearmor.webp": {
+    "terrain": "forest",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "desert_male_unarmed_plain.webp": {
+    "terrain": "desert",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "desert_male_unarmed_robe.webp": {
+    "terrain": "desert",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "desert_male_unarmed_heavy.webp": {
+    "terrain": "desert",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "desert_male_unarmed_icearmor.webp": {
+    "terrain": "desert",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "desert_male_sword_plain.webp": {
+    "terrain": "desert",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "desert_male_sword_robe.webp": {
+    "terrain": "desert",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "desert_male_sword_heavy.webp": {
+    "terrain": "desert",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "desert_male_sword_icearmor.webp": {
+    "terrain": "desert",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "desert_female_unarmed_plain.webp": {
+    "terrain": "desert",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "desert_female_unarmed_robe.webp": {
+    "terrain": "desert",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "desert_female_unarmed_heavy.webp": {
+    "terrain": "desert",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "desert_female_unarmed_icearmor.webp": {
+    "terrain": "desert",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "desert_female_sword_plain.webp": {
+    "terrain": "desert",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "desert_female_sword_robe.webp": {
+    "terrain": "desert",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "desert_female_sword_heavy.webp": {
+    "terrain": "desert",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "desert_female_sword_icearmor.webp": {
+    "terrain": "desert",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "mountain_male_unarmed_plain.webp": {
+    "terrain": "mountain",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "mountain_male_unarmed_robe.webp": {
+    "terrain": "mountain",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "mountain_male_unarmed_heavy.webp": {
+    "terrain": "mountain",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "mountain_male_unarmed_icearmor.webp": {
+    "terrain": "mountain",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "mountain_male_sword_plain.webp": {
+    "terrain": "mountain",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "mountain_male_sword_robe.webp": {
+    "terrain": "mountain",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "mountain_male_sword_heavy.webp": {
+    "terrain": "mountain",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "mountain_male_sword_icearmor.webp": {
+    "terrain": "mountain",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "mountain_female_unarmed_plain.webp": {
+    "terrain": "mountain",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "mountain_female_unarmed_robe.webp": {
+    "terrain": "mountain",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "mountain_female_unarmed_heavy.webp": {
+    "terrain": "mountain",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "mountain_female_unarmed_icearmor.webp": {
+    "terrain": "mountain",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "mountain_female_sword_plain.webp": {
+    "terrain": "mountain",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "mountain_female_sword_robe.webp": {
+    "terrain": "mountain",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "mountain_female_sword_heavy.webp": {
+    "terrain": "mountain",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "mountain_female_sword_icearmor.webp": {
+    "terrain": "mountain",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "northpalace_male_unarmed_plain.webp": {
+    "terrain": "northpalace",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "northpalace_male_unarmed_robe.webp": {
+    "terrain": "northpalace",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "northpalace_male_unarmed_heavy.webp": {
+    "terrain": "northpalace",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "northpalace_male_unarmed_icearmor.webp": {
+    "terrain": "northpalace",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "northpalace_male_sword_plain.webp": {
+    "terrain": "northpalace",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "northpalace_male_sword_robe.webp": {
+    "terrain": "northpalace",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "northpalace_male_sword_heavy.webp": {
+    "terrain": "northpalace",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "northpalace_male_sword_icearmor.webp": {
+    "terrain": "northpalace",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "northpalace_female_unarmed_plain.webp": {
+    "terrain": "northpalace",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "northpalace_female_unarmed_robe.webp": {
+    "terrain": "northpalace",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "northpalace_female_unarmed_heavy.webp": {
+    "terrain": "northpalace",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "northpalace_female_unarmed_icearmor.webp": {
+    "terrain": "northpalace",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "northpalace_female_sword_plain.webp": {
+    "terrain": "northpalace",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "flight"
+  },
+  "northpalace_female_sword_robe.webp": {
+    "terrain": "northpalace",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "flight"
+  },
+  "northpalace_female_sword_heavy.webp": {
+    "terrain": "northpalace",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "flight"
+  },
+  "northpalace_female_sword_icearmor.webp": {
+    "terrain": "northpalace",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "flight"
+  },
+  "icefire_male_unarmed_plain.webp": {
+    "terrain": "icefire",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "repaired": true,
+    "character_width": 410
+  },
+  "icefire_male_unarmed_robe.webp": {
+    "terrain": "icefire",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "repaired": true,
+    "character_width": 410
+  },
+  "icefire_male_unarmed_heavy.webp": {
+    "terrain": "icefire",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "repaired": true,
+    "character_width": 410
+  },
+  "icefire_male_unarmed_icearmor.webp": {
+    "terrain": "icefire",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "repaired": true,
+    "character_width": 410
+  },
+  "icefire_male_sword_plain.webp": {
+    "terrain": "icefire",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "repaired": true,
+    "character_width": 410
+  },
+  "icefire_male_sword_robe.webp": {
+    "terrain": "icefire",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "repaired": true,
+    "character_width": 410
+  },
+  "icefire_male_sword_heavy.webp": {
+    "terrain": "icefire",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "repaired": true,
+    "character_width": 410
+  },
+  "icefire_male_sword_icearmor.webp": {
+    "terrain": "icefire",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "repaired": true,
+    "character_width": 410
+  },
+  "icefire_female_unarmed_plain.webp": {
+    "terrain": "icefire",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "repaired": true,
+    "character_width": 420
+  },
+  "icefire_female_unarmed_robe.webp": {
+    "terrain": "icefire",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "repaired": true,
+    "character_width": 420
+  },
+  "icefire_female_unarmed_heavy.webp": {
+    "terrain": "icefire",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "repaired": true,
+    "character_width": 420
+  },
+  "icefire_female_unarmed_icearmor.webp": {
+    "terrain": "icefire",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "repaired": true,
+    "character_width": 420
+  },
+  "icefire_female_sword_plain.webp": {
+    "terrain": "icefire",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "repaired": true,
+    "character_width": 420
+  },
+  "icefire_female_sword_robe.webp": {
+    "terrain": "icefire",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "repaired": true,
+    "character_width": 420
+  },
+  "icefire_female_sword_heavy.webp": {
+    "terrain": "icefire",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "repaired": true,
+    "character_width": 420
+  },
+  "icefire_female_sword_icearmor.webp": {
+    "terrain": "icefire",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "repaired": true,
+    "character_width": 420
+  },
+  "battle_male_unarmed_plain.webp": {
+    "terrain": "battle",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "battle_male_unarmed_robe.webp": {
+    "terrain": "battle",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "battle_male_unarmed_heavy.webp": {
+    "terrain": "battle",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "battle_male_unarmed_icearmor.webp": {
+    "terrain": "battle",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "battle_male_sword_plain.webp": {
+    "terrain": "battle",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "battle_male_sword_robe.webp": {
+    "terrain": "battle",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "battle_male_sword_heavy.webp": {
+    "terrain": "battle",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "battle_male_sword_icearmor.webp": {
+    "terrain": "battle",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "battle_female_unarmed_plain.webp": {
+    "terrain": "battle",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "battle_female_unarmed_robe.webp": {
+    "terrain": "battle",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "battle_female_unarmed_heavy.webp": {
+    "terrain": "battle",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "battle_female_unarmed_icearmor.webp": {
+    "terrain": "battle",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "battle_female_sword_plain.webp": {
+    "terrain": "battle",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "battle_female_sword_robe.webp": {
+    "terrain": "battle",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "battle_female_sword_heavy.webp": {
+    "terrain": "battle",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "battle_female_sword_icearmor.webp": {
+    "terrain": "battle",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "ruin_male_unarmed_plain.webp": {
+    "terrain": "ruin",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "ruin_male_unarmed_robe.webp": {
+    "terrain": "ruin",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "ruin_male_unarmed_heavy.webp": {
+    "terrain": "ruin",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "ruin_male_unarmed_icearmor.webp": {
+    "terrain": "ruin",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "ruin_male_sword_plain.webp": {
+    "terrain": "ruin",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "ruin_male_sword_robe.webp": {
+    "terrain": "ruin",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "ruin_male_sword_heavy.webp": {
+    "terrain": "ruin",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "ruin_male_sword_icearmor.webp": {
+    "terrain": "ruin",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "ruin_female_unarmed_plain.webp": {
+    "terrain": "ruin",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "ruin_female_unarmed_robe.webp": {
+    "terrain": "ruin",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "ruin_female_unarmed_heavy.webp": {
+    "terrain": "ruin",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "ruin_female_unarmed_icearmor.webp": {
+    "terrain": "ruin",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "ruin_female_sword_plain.webp": {
+    "terrain": "ruin",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "ruin_female_sword_robe.webp": {
+    "terrain": "ruin",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "ruin_female_sword_heavy.webp": {
+    "terrain": "ruin",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "ruin_female_sword_icearmor.webp": {
+    "terrain": "ruin",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "village_male_unarmed_plain.webp": {
+    "terrain": "village",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "village_male_unarmed_robe.webp": {
+    "terrain": "village",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "village_male_unarmed_heavy.webp": {
+    "terrain": "village",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "village_male_unarmed_icearmor.webp": {
+    "terrain": "village",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "village_male_sword_plain.webp": {
+    "terrain": "village",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "village_male_sword_robe.webp": {
+    "terrain": "village",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "village_male_sword_heavy.webp": {
+    "terrain": "village",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "village_male_sword_icearmor.webp": {
+    "terrain": "village",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "village_female_unarmed_plain.webp": {
+    "terrain": "village",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "village_female_unarmed_robe.webp": {
+    "terrain": "village",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "village_female_unarmed_heavy.webp": {
+    "terrain": "village",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "village_female_unarmed_icearmor.webp": {
+    "terrain": "village",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "village_female_sword_plain.webp": {
+    "terrain": "village",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "village_female_sword_robe.webp": {
+    "terrain": "village",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "village_female_sword_heavy.webp": {
+    "terrain": "village",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "village_female_sword_icearmor.webp": {
+    "terrain": "village",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "land_male_unarmed_plain.webp": {
+    "terrain": "land",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "land_male_unarmed_robe.webp": {
+    "terrain": "land",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "land_male_unarmed_heavy.webp": {
+    "terrain": "land",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "land_male_unarmed_icearmor.webp": {
+    "terrain": "land",
+    "gender": "male",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "land_male_sword_plain.webp": {
+    "terrain": "land",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "land_male_sword_robe.webp": {
+    "terrain": "land",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "land_male_sword_heavy.webp": {
+    "terrain": "land",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "land_male_sword_icearmor.webp": {
+    "terrain": "land",
+    "gender": "male",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "land_female_unarmed_plain.webp": {
+    "terrain": "land",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "land_female_unarmed_robe.webp": {
+    "terrain": "land",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "land_female_unarmed_heavy.webp": {
+    "terrain": "land",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "land_female_unarmed_icearmor.webp": {
+    "terrain": "land",
+    "gender": "female",
+    "weapon": "unarmed",
+    "armor": "icearmor",
+    "pose": "ground"
+  },
+  "land_female_sword_plain.webp": {
+    "terrain": "land",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "plain",
+    "pose": "ground"
+  },
+  "land_female_sword_robe.webp": {
+    "terrain": "land",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "robe",
+    "pose": "ground"
+  },
+  "land_female_sword_heavy.webp": {
+    "terrain": "land",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "heavy",
+    "pose": "ground"
+  },
+  "land_female_sword_icearmor.webp": {
+    "terrain": "land",
+    "gender": "female",
+    "weapon": "sword",
+    "armor": "icearmor",
+    "pose": "ground"
+  }
+}
