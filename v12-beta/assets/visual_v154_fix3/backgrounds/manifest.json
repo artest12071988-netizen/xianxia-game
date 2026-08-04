@@ -1,0 +1,46 @@
+{
+  "version": "V15.4-VISUAL-SCENE-ART-FIX3-20260804",
+  "note": "Pure backgrounds; UI remains live HTML/CSS.",
+  "terrains": {
+    "ice": {
+      "mobile": "assets/visual_v154_fix3/backgrounds/mobile/ice.webp",
+      "desktop": "assets/visual_v154_fix3/backgrounds/desktop/ice.webp"
+    },
+    "battle": {
+      "mobile": "assets/visual_v154_fix3/backgrounds/mobile/battle.webp",
+      "desktop": "assets/visual_v154_fix3/backgrounds/desktop/battle.webp"
+    },
+    "ruin": {
+      "mobile": "assets/visual_v154_fix3/backgrounds/mobile/ruin.webp",
+      "desktop": "assets/visual_v154_fix3/backgrounds/desktop/ruin.webp"
+    },
+    "desert": {
+      "mobile": "assets/visual_v154_fix3/backgrounds/mobile/desert.webp",
+      "desktop": "assets/visual_v154_fix3/backgrounds/desktop/desert.webp"
+    },
+    "forest": {
+      "mobile": "assets/visual_v154_fix3/backgrounds/mobile/forest.webp",
+      "desktop": "assets/visual_v154_fix3/backgrounds/desktop/forest.webp"
+    },
+    "yinyang": {
+      "mobile": "assets/visual_v154_fix3/backgrounds/mobile/yinyang.webp",
+      "desktop": "assets/visual_v154_fix3/backgrounds/desktop/yinyang.webp"
+    },
+    "northpalace": {
+      "mobile": "assets/visual_v154_fix3/backgrounds/mobile/northpalace.webp",
+      "desktop": "assets/visual_v154_fix3/backgrounds/desktop/northpalace.webp"
+    },
+    "sea": {
+      "mobile": "assets/visual_v154_fix3/backgrounds/mobile/sea.webp",
+      "desktop": "assets/visual_v154_fix3/backgrounds/desktop/sea.webp"
+    },
+    "mountain": {
+      "mobile": "assets/visual_v154_fix3/backgrounds/mobile/mountain.webp",
+      "desktop": "assets/visual_v154_fix3/backgrounds/desktop/mountain.webp"
+    },
+    "icefire": {
+      "mobile": "assets/visual_v154_fix3/backgrounds/mobile/icefire.webp",
+      "desktop": "assets/visual_v154_fix3/backgrounds/desktop/icefire.webp"
+    }
+  }
+}
