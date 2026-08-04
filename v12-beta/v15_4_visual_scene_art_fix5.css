@@ -1,0 +1,84 @@
+/* 修仙大逃殺 V15.4｜探索場景視覺 FIX5
+   只修正桌面資訊層比例與手機角色尺寸；不改玩法、按鈕事件或資料。 */
+
+/* 手機：角色縮小為 FIX4 約 50%，利用遠景比例降低去背邊緣的突兀感。 */
+@media (max-width:780px){
+  .v154vs-scene.v154fix4-active .v154fix4-character{
+    left:34%!important;
+    bottom:27.5%!important;
+    width:min(34.5vw,182px)!important;
+  }
+  .v154vs-scene.v154fix4-active[data-fix4-pose="ground"] .v154fix4-character{
+    left:34%!important;
+    bottom:27%!important;
+    width:min(32.5vw,172px)!important;
+  }
+}
+@media (max-width:430px){
+  .v154vs-scene.v154fix4-active .v154fix4-character{
+    left:32%!important;
+    bottom:25.5%!important;
+    width:min(34.5vw,155px)!important;
+  }
+  .v154vs-scene.v154fix4-active[data-fix4-pose="ground"] .v154fix4-character{
+    left:33%!important;
+    bottom:25%!important;
+    width:min(32vw,145px)!important;
+  }
+}
+@media (max-height:760px) and (max-width:780px){
+  .v154vs-scene.v154fix4-active .v154fix4-character{
+    bottom:24%!important;
+    width:min(30vw,140px)!important;
+  }
+}
+
+/* 網頁：左上角角色姓名卡完全移除，避免遮蔽主視覺。 */
+@media (min-width:781px){
+  .v154fix4-desktop-hud{display:none!important}
+
+  /* 下方地域資訊板縮小，保留文字與兩個既有功能入口。 */
+  #game.v154-art-fix4 .world-scene.v154fix4-world-active .scene-content{
+    inset:auto 22px 16px 22px!important;
+    min-height:108px!important;
+    max-height:108px!important;
+    padding:13px 174px 11px 20px!important;
+    border-radius:17px!important;
+  }
+  #game.v154-art-fix4 .world-scene.v154fix4-world-active .scene-zone{
+    font-size:clamp(26px,2.25vw,34px)!important;
+    line-height:1!important;
+  }
+  #game.v154-art-fix4 .world-scene.v154fix4-world-active .scene-coord{
+    margin-top:5px!important;
+    font-size:10px!important;
+  }
+  #game.v154-art-fix4 .world-scene.v154fix4-world-active .scene-copy{
+    margin-top:6px!important;
+    max-width:720px!important;
+    font-size:11px!important;
+    line-height:1.4!important;
+    max-height:32px!important;
+    overflow:hidden!important;
+  }
+  #game.v154-art-fix4 .world-scene.v154fix4-world-active .v154ui-scene-actions{
+    right:15px!important;
+    gap:8px!important;
+  }
+  #game.v154-art-fix4 .world-scene.v154fix4-world-active .v154ui-scene-actions button{
+    width:62px!important;
+    height:72px!important;
+    min-height:72px!important;
+  }
+  #game.v154-art-fix4 .world-scene.v154fix4-world-active .v154ui-scene-actions button span{
+    width:28px!important;
+    height:27px!important;
+    margin-bottom:2px!important;
+  }
+  #game.v154-art-fix4 .world-scene.v154fix4-world-active .v154ui-scene-actions button b{
+    font-size:8px!important;
+  }
+  #game.v154-art-fix4 .world-scene.v154fix4-world-active .v154ui-scene-actions button small{
+    font-size:6px!important;
+  }
+}
