@@ -1,0 +1,223 @@
+/* 修仙大逃殺 V15.4｜探索介面黑金還原 FIX2
+   純視覺覆寫：不修改玩法、存檔、RPC、數值、探索、戰鬥或既有功能事件。 */
+:root{
+  --v154m-gold:#dfbd70;
+  --v154m-gold-bright:#f4dda0;
+  --v154m-gold-dark:#7f5a23;
+  --v154m-ink:#03070c;
+  --v154m-panel:rgba(5,8,12,.91);
+  --v154m-line:rgba(222,188,105,.55);
+}
+
+@media(max-width:780px){
+  #game.v154ui-match-fix2 .world-scene:before{
+    z-index:8;
+    background:
+      linear-gradient(180deg,rgba(0,3,7,.69) 0%,rgba(0,3,7,.34) 13%,rgba(0,3,7,.03) 30%,rgba(0,3,7,0) 56%,rgba(0,3,7,.15) 68%,rgba(0,3,7,.74) 86%,#020509 100%);
+  }
+  #game.v154ui-match-fix2 .world-scene:after{
+    z-index:9;
+    box-shadow:inset 0 0 54px rgba(0,0,0,.30),inset 0 -48px 70px rgba(0,0,0,.46);
+  }
+
+  /* Top HUD — reference 537×948 proportions, fluid below 780px. */
+  #game.v154ui-match-fix2 .v154ui-mobile-hud{
+    z-index:34;
+    grid-template-columns:76px minmax(0,1fr) clamp(126px,28vw,150px);
+    gap:10px;
+    align-items:start;
+    min-height:132px;
+    padding:calc(17px + var(--v154ui-safe-top)) 11px 21px;
+    background:linear-gradient(180deg,rgba(1,5,10,.88),rgba(1,5,10,.54) 56%,transparent 100%);
+  }
+  #game.v154ui-match-fix2 .v154ui-avatar-button{
+    width:74px;height:74px;
+    margin-top:1px;
+    border:1px solid rgba(237,207,128,.88);
+    box-shadow:0 0 0 3px rgba(2,6,11,.94),0 0 0 4px rgba(202,163,77,.47),0 8px 20px rgba(0,0,0,.64);
+  }
+  #game.v154ui-match-fix2 .v154ui-avatar-button:before{
+    content:"";position:absolute;inset:5px;border:1px solid rgba(245,218,150,.48);border-radius:50%;pointer-events:none;z-index:2;
+  }
+  #game.v154ui-match-fix2 .v154ui-avatar-button{position:relative}
+  #game.v154ui-match-fix2 .v154ui-avatar-button img{transform:scale(1.08);object-position:50% 20%}
+  #game.v154ui-match-fix2 .v154ui-hud-core{padding-top:4px;min-width:0}
+  #game.v154ui-match-fix2 .v154ui-name-line{gap:9px;margin-bottom:4px;min-height:25px}
+  #game.v154ui-match-fix2 .v154ui-name{
+    font:700 clamp(18px,4.5vw,23px)/1.05 "Noto Serif TC","Songti TC","PMingLiU",serif;
+    color:#f2e3ba;letter-spacing:.055em;
+  }
+  #game.v154ui-match-fix2 .v154ui-level{
+    padding:4px 9px 3px;border-color:rgba(218,182,96,.55);background:rgba(4,8,13,.73);font-size:10px;color:#ecd18a;
+  }
+  #game.v154ui-match-fix2 .v154ui-realm{margin:2px 0 7px;font-size:11px;color:#d3d0c7;letter-spacing:.055em}
+  #game.v154ui-match-fix2 .v154ui-bar-row{
+    grid-template-columns:23px minmax(72px,1fr) 69px;gap:5px;margin-top:4px;font-size:10px;color:#e7e4de;
+  }
+  #game.v154ui-match-fix2 .v154ui-bar-track{height:8px;border:0;background:rgba(4,9,14,.88);box-shadow:inset 0 1px 2px rgba(0,0,0,.8)}
+  #game.v154ui-match-fix2 .v154ui-bar-fill.hp{background:linear-gradient(90deg,#a72f31,#f35e61)}
+  #game.v154ui-match-fix2 .v154ui-bar-fill.mp{background:linear-gradient(90deg,#1e6191,#56caed)}
+  #game.v154ui-match-fix2 .v154ui-bar-value{min-width:69px;font-size:10px;color:#e1e3e3}
+  #game.v154ui-match-fix2 .v154ui-hud-currency{gap:8px;padding-top:0}
+  #game.v154ui-match-fix2 .v154ui-currency-pill{
+    display:grid;grid-template-columns:25px auto minmax(38px,1fr) 21px;align-items:center;justify-content:stretch;gap:6px;
+    min-width:126px;height:36px;padding:4px 7px 4px 8px;
+    border:1px solid rgba(220,184,95,.60);border-radius:19px;
+    background:linear-gradient(180deg,rgba(5,10,16,.92),rgba(3,7,12,.84));
+    box-shadow:inset 0 1px rgba(255,255,255,.04),0 7px 16px rgba(0,0,0,.28);
+    color:#ead293;font-size:11px;white-space:nowrap;
+  }
+  #game.v154ui-match-fix2 .v154ui-currency-icon{display:block;width:25px;height:25px;object-fit:contain;filter:drop-shadow(0 0 5px rgba(76,187,255,.32))}
+  #game.v154ui-match-fix2 .v154ui-currency-pill[data-kind="yuanbao"] .v154ui-currency-icon{filter:drop-shadow(0 0 5px rgba(237,185,70,.32))}
+  #game.v154ui-match-fix2 .v154ui-currency-label{font:600 12px "Noto Serif TC","Songti TC",serif;color:#e7cf8e}
+  #game.v154ui-match-fix2 .v154ui-currency-pill b{max-width:none;text-align:left;font-size:12px;color:#f0ddad;font-variant-numeric:tabular-nums}
+  #game.v154ui-match-fix2 .v154ui-currency-plus{display:grid;place-items:center;width:20px;height:20px;color:#ddb969;font-size:22px;font-weight:300;line-height:1}
+
+  /* Upper-right zone plaque. */
+  #game.v154ui-match-fix2 .v14f-terrain-badge,
+  #game.v154ui-match-fix2 .v154ui-zone-tag{
+    position:absolute!important;z-index:35!important;top:calc(132px + var(--v154ui-safe-top))!important;right:17px!important;
+    min-width:105px;padding:9px 18px 8px!important;border:1px solid rgba(218,183,99,.63)!important;border-radius:3px!important;
+    background:linear-gradient(145deg,rgba(20,18,15,.88),rgba(4,8,13,.90))!important;
+    box-shadow:0 0 0 3px rgba(3,7,12,.62),inset 0 0 18px rgba(205,158,55,.08),0 8px 18px rgba(0,0,0,.26)!important;
+    color:#e6cb87!important;text-align:center;font:700 19px/1.2 "Noto Serif TC","Songti TC",serif!important;letter-spacing:.14em!important;
+    backdrop-filter:blur(7px);
+  }
+  #game.v154ui-match-fix2 .v14f-terrain-badge:before,
+  #game.v154ui-match-fix2 .v14f-terrain-badge:after,
+  #game.v154ui-match-fix2 .v154ui-zone-tag:before,
+  #game.v154ui-match-fix2 .v154ui-zone-tag:after{
+    content:"";position:absolute;top:50%;width:8px;height:8px;border:1px solid rgba(222,188,105,.6);background:#080b0f;transform:translateY(-50%) rotate(45deg);
+  }
+  #game.v154ui-match-fix2 .v14f-terrain-badge:before,#game.v154ui-match-fix2 .v154ui-zone-tag:before{left:-5px}
+  #game.v154ui-match-fix2 .v14f-terrain-badge:after,#game.v154ui-match-fix2 .v154ui-zone-tag:after{right:-5px}
+
+  /* Full-scene placement. */
+  #game.v154ui-match-fix2 .v154vs-scene-image{
+    object-position:center 46%!important;
+    filter:saturate(1.08) contrast(1.055) brightness(.985)!important;
+  }
+  #game.v154ui-match-fix2 .v154vs-scene[data-terrain="icefire"] .v154vs-scene-image{object-position:center 44%!important}
+  #game.v154ui-match-fix2 .v154vs-foreground{background:linear-gradient(180deg,transparent 50%,rgba(2,5,8,.03) 65%,rgba(1,4,7,.50) 100%)}
+
+  /* Bottom information plaque. */
+  #game.v154ui-match-fix2 .scene-content{
+    z-index:24!important;
+    left:17px!important;right:17px!important;bottom:calc(108px + var(--v154ui-safe-bottom))!important;
+    min-height:180px!important;max-height:180px!important;
+    padding:19px 186px 17px 31px!important;
+    border:1px solid rgba(217,181,94,.60)!important;border-radius:24px!important;
+    background:
+      radial-gradient(circle at 86% 51%,rgba(181,125,30,.08),transparent 32%),
+      linear-gradient(145deg,rgba(9,12,16,.94),rgba(3,6,10,.91))!important;
+    box-shadow:0 0 0 3px rgba(1,4,7,.66),0 18px 40px rgba(0,0,0,.58),inset 0 1px rgba(255,239,188,.06)!important;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    overflow:visible!important;
+  }
+  #game.v154ui-match-fix2 .scene-content:before{
+    content:"";position:absolute;left:22px;right:22px;top:-7px;height:13px;border-top:1px solid rgba(223,188,105,.38);border-radius:50%;pointer-events:none;
+  }
+  #game.v154ui-match-fix2 .scene-content:after{
+    content:"";position:absolute;left:50%;top:-7px;width:12px;height:12px;border:1px solid rgba(226,190,103,.6);background:#090c10;transform:translateX(-50%) rotate(45deg);box-shadow:0 0 0 3px rgba(2,5,8,.8);pointer-events:none;
+  }
+  #game.v154ui-match-fix2 .scene-zone{
+    font:700 clamp(31px,8vw,42px)/1.06 "Noto Serif TC","Songti TC","PMingLiU",serif!important;
+    color:#e9cd88!important;letter-spacing:.105em!important;text-shadow:0 3px 15px #000!important;
+  }
+  #game.v154ui-match-fix2 .scene-coord{margin-top:9px!important;font-size:14px!important;color:#aba9a3!important;letter-spacing:.08em!important}
+  #game.v154ui-match-fix2 .scene-copy{display:block!important;margin-top:17px!important;max-width:270px!important;max-height:50px!important;font-size:15px!important;line-height:1.65!important;color:#eceae4!important;letter-spacing:.03em}
+
+  /* Real existing scene actions. No fake buttons and no handler replacement. */
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions{
+    right:17px!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;
+    display:grid!important;grid-template-columns:96px 64px!important;gap:8px!important;align-items:center!important;
+  }
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions button{
+    position:relative;width:76px!important;height:76px!important;min-height:76px!important;padding:8px 4px!important;
+    border:1px solid rgba(230,196,110,.66)!important;border-radius:50%!important;
+    background:radial-gradient(circle at 43% 32%,rgba(255,235,165,.22),rgba(120,76,17,.34) 48%,rgba(6,9,13,.96) 72%)!important;
+    box-shadow:0 0 0 4px rgba(4,7,11,.78),0 0 0 5px rgba(176,125,37,.34),0 7px 20px rgba(0,0,0,.48),inset 0 0 18px rgba(238,188,69,.14)!important;
+    color:#e9cd86!important;
+  }
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions button:before{content:"";position:absolute;inset:6px;border:1px solid rgba(236,203,117,.26);border-radius:50%;pointer-events:none}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions #v154uiArtifactAction{width:96px!important;height:96px!important;min-height:96px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions #v154uiCraftsmanAction{width:64px!important;height:64px!important;min-height:64px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions button span{
+    width:43px!important;height:35px!important;margin:0 auto 0!important;border:0!important;border-radius:0!important;font-size:0!important;
+    background-position:center;background-repeat:no-repeat;background-size:contain;
+  }
+  #game.v154ui-match-fix2 #v154uiArtifactAction span{background-image:url("assets/visual_v154_fix2/icons/artifact.svg")}
+  #game.v154ui-match-fix2 #v154uiCraftsmanAction span{background-image:url("assets/visual_v154_fix2/icons/craftsman.svg")}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions button b{font:700 10px/1.1 "Noto Serif TC","Songti TC",serif!important;letter-spacing:.02em}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions button small{display:none!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions:has(#v154uiCraftsmanAction[hidden]){grid-template-columns:102px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions:has(#v154uiCraftsmanAction[hidden]) #v154uiArtifactAction{
+    width:102px!important;height:102px!important;min-height:102px!important;
+  }
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions:has(#v154uiCraftsmanAction[hidden]) #v154uiArtifactAction span{width:58px!important;height:51px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions:has(#v154uiCraftsmanAction[hidden]) #v154uiArtifactAction b{font-size:14px!important}
+
+  /* Bottom navigation. */
+  #game.v154ui-match-fix2 .mobile-nav{
+    z-index:42!important;height:calc(110px + var(--v154ui-safe-bottom))!important;
+    padding:6px 4px calc(8px + var(--v154ui-safe-bottom))!important;
+    border-top:1px solid rgba(215,180,93,.40)!important;
+    background:radial-gradient(circle at 32% -20%,rgba(225,181,65,.13),transparent 36%),linear-gradient(180deg,rgba(6,10,15,.91),rgba(1,4,8,.99) 83%)!important;
+    box-shadow:0 -15px 34px rgba(0,0,0,.58),inset 0 1px rgba(255,233,167,.06)!important;
+  }
+  #game.v154ui-match-fix2 .mobile-nav:before{left:0;right:0;top:-7px;border-top-color:rgba(222,187,101,.38)}
+  #game.v154ui-match-fix2 .mobile-nav button{min-height:79px!important;gap:2px!important}
+  #game.v154ui-match-fix2 .mobile-nav .v154ui-nav-medallion{
+    width:51px;height:51px;border-color:rgba(224,193,120,.23);background:radial-gradient(circle at 43% 35%,rgba(255,239,187,.09),rgba(6,10,15,.91) 66%);
+  }
+  #game.v154ui-match-fix2 .mobile-nav .v154ui-nav-medallion img{width:32px;height:32px;opacity:.78;filter:grayscale(.15) sepia(.16) brightness(.94)}
+  #game.v154ui-match-fix2 .mobile-nav .v154ui-nav-label{font:600 15px/1.05 "Noto Serif TC","Songti TC",serif;letter-spacing:.08em;color:#b8b3aa}
+  #game.v154ui-match-fix2 .mobile-nav button.v154ui-active .v154ui-nav-medallion{
+    width:78px;height:78px;transform:translateY(-20px);border-color:rgba(247,214,126,.88);
+    background:radial-gradient(circle at 45% 37%,rgba(255,246,195,.37),rgba(139,91,19,.48) 47%,rgba(3,7,12,.98) 72%);
+    box-shadow:0 0 13px rgba(247,208,103,.70),0 0 34px rgba(204,143,30,.37),inset 0 0 0 5px rgba(5,9,14,.73);
+  }
+  #game.v154ui-match-fix2 .mobile-nav button.v154ui-active .v154ui-nav-medallion img{width:46px;height:46px;filter:drop-shadow(0 0 7px rgba(255,220,126,.78)) sepia(.2)}
+  #game.v154ui-match-fix2 .mobile-nav button.v154ui-active .v154ui-nav-label{transform:translateY(-18px);font-size:17px;color:#f0d389}
+  #game.v154ui-match-fix2 .mobile-nav button>i{display:none!important}
+
+  #game.v154ui-match-fix2 .meditation-boost-banner{bottom:calc(278px + var(--v154ui-safe-bottom));z-index:26}
+}
+
+@media(max-width:430px){
+  #game.v154ui-match-fix2 .v154ui-mobile-hud{grid-template-columns:62px minmax(0,1fr) 116px;gap:7px;padding-left:8px;padding-right:8px;min-height:120px}
+  #game.v154ui-match-fix2 .v154ui-avatar-button{width:60px;height:60px}
+  #game.v154ui-match-fix2 .v154ui-name{font-size:18px}
+  #game.v154ui-match-fix2 .v154ui-level{font-size:9px;padding:3px 7px}
+  #game.v154ui-match-fix2 .v154ui-realm{font-size:9px;margin-bottom:5px}
+  #game.v154ui-match-fix2 .v154ui-bar-row{grid-template-columns:20px minmax(54px,1fr) 57px;font-size:8px;gap:4px}
+  #game.v154ui-match-fix2 .v154ui-bar-value{min-width:57px;font-size:8px}
+  #game.v154ui-match-fix2 .v154ui-currency-pill{grid-template-columns:21px auto minmax(28px,1fr) 17px;gap:4px;min-width:112px;height:32px;padding:3px 5px}
+  #game.v154ui-match-fix2 .v154ui-currency-icon{width:21px;height:21px}
+  #game.v154ui-match-fix2 .v154ui-currency-label,#game.v154ui-match-fix2 .v154ui-currency-pill b{font-size:10px}
+  #game.v154ui-match-fix2 .v14f-terrain-badge,#game.v154ui-match-fix2 .v154ui-zone-tag{top:calc(118px + var(--v154ui-safe-top))!important;right:12px!important;min-width:94px;padding:7px 14px 6px!important;font-size:16px!important}
+  #game.v154ui-match-fix2 .scene-content{left:13px!important;right:13px!important;bottom:calc(84px + var(--v154ui-safe-bottom))!important;min-height:155px!important;max-height:155px!important;padding:16px 153px 14px 22px!important}
+  #game.v154ui-match-fix2 .scene-zone{font-size:31px!important}
+  #game.v154ui-match-fix2 .scene-coord{font-size:11px!important;margin-top:7px!important}
+  #game.v154ui-match-fix2 .scene-copy{font-size:12px!important;line-height:1.55!important;margin-top:12px!important;max-width:220px!important;max-height:40px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions{right:12px!important;grid-template-columns:repeat(2,64px)!important;gap:6px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions button{width:64px!important;height:64px!important;min-height:64px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions #v154uiArtifactAction,#game.v154ui-match-fix2 .scene-content .v154ui-scene-actions #v154uiCraftsmanAction{width:64px!important;height:64px!important;min-height:64px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions button span{width:36px!important;height:30px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions button b{font-size:8px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions:has(#v154uiCraftsmanAction[hidden]){grid-template-columns:88px!important}
+  #game.v154ui-match-fix2 .scene-content .v154ui-scene-actions:has(#v154uiCraftsmanAction[hidden]) #v154uiArtifactAction{width:88px!important;height:88px!important;min-height:88px!important}
+  #game.v154ui-match-fix2 .mobile-nav{height:calc(86px + var(--v154ui-safe-bottom))!important}
+  #game.v154ui-match-fix2 .mobile-nav .v154ui-nav-medallion{width:43px;height:43px}
+  #game.v154ui-match-fix2 .mobile-nav .v154ui-nav-medallion img{width:28px;height:28px}
+  #game.v154ui-match-fix2 .mobile-nav .v154ui-nav-label{font-size:12px}
+  #game.v154ui-match-fix2 .mobile-nav button.v154ui-active .v154ui-nav-medallion{width:66px;height:66px;transform:translateY(-16px)}
+  #game.v154ui-match-fix2 .mobile-nav button.v154ui-active .v154ui-nav-medallion img{width:39px;height:39px}
+  #game.v154ui-match-fix2 .mobile-nav button.v154ui-active .v154ui-nav-label{transform:translateY(-13px);font-size:14px}
+}
+
+@media(max-height:760px) and (max-width:780px){
+  #game.v154ui-match-fix2 .scene-content{min-height:132px!important;max-height:132px!important;padding-top:13px!important;padding-bottom:10px!important}
+  #game.v154ui-match-fix2 .scene-copy{margin-top:8px!important;max-height:36px!important}
+  #game.v154ui-match-fix2 .scene-zone{font-size:28px!important}
+}

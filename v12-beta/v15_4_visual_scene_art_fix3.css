@@ -1,0 +1,86 @@
+/* 修仙大逃殺 V15.4｜場景美術實裝 FIX3
+   十地域純背景＋既有乾淨角色資產；手機與網頁版共用。 */
+.v154fix3-background,.v154fix3-character{display:none;position:absolute;pointer-events:none;-webkit-user-select:none;user-select:none}
+.v154vs-scene.v154fix3-active{position:absolute;inset:0;z-index:4;display:block!important;pointer-events:none;overflow:hidden}
+.v154vs-scene.v154fix3-active .v154fix3-background,
+.v154vs-scene.v154fix3-active .v154fix3-character{display:block}
+.v154vs-scene.v154fix3-active .v154vs-scene-image,
+.v154vs-scene.v154fix3-active .v154vs-effects-stage{display:none!important}
+.v154vs-scene.v154fix3-active .v154fix3-background{z-index:1;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;filter:saturate(1.04) contrast(1.035) brightness(.98)}
+.v154vs-scene.v154fix3-active .v154fix3-character{z-index:5;height:auto;object-fit:contain;object-position:center bottom;transform-origin:50% 100%;filter:drop-shadow(0 20px 22px rgba(0,0,0,.72));will-change:transform}
+.v154vs-scene.v154fix3-loading .v154fix3-background,.v154vs-scene.v154fix3-loading .v154fix3-character{opacity:.7}
+
+/* Keep equipment state readable without pretending these are independent outfit layers. */
+.v154vs-scene.v154fix3-active[data-armor="robe"] .v154fix3-character{filter:drop-shadow(0 20px 22px rgba(0,0,0,.72)) saturate(.98) brightness(.98)}
+.v154vs-scene.v154fix3-active[data-armor="heavy"] .v154fix3-character{filter:drop-shadow(0 22px 24px rgba(0,0,0,.78)) saturate(.84) contrast(1.12) brightness(.88)}
+.v154vs-scene.v154fix3-active[data-armor="icearmor"] .v154fix3-character{filter:drop-shadow(0 0 11px rgba(105,211,255,.42)) drop-shadow(0 22px 25px rgba(0,0,0,.78)) saturate(.88) hue-rotate(8deg) brightness(1.04)}
+.v154vs-scene.v154fix3-active.v154vs-enhance8 .v154fix3-character{filter:drop-shadow(0 0 8px rgba(90,197,255,.36)) drop-shadow(0 22px 24px rgba(0,0,0,.76))}
+.v154vs-scene.v154fix3-active.v154vs-enhance12 .v154fix3-character{filter:drop-shadow(0 0 12px rgba(244,205,102,.46)) drop-shadow(0 22px 24px rgba(0,0,0,.76))}
+
+@media(max-width:780px){
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active{background:#02050a!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active:before{z-index:7!important;background:linear-gradient(180deg,rgba(1,4,8,.68) 0%,rgba(1,4,8,.30) 14%,rgba(1,4,8,.02) 34%,rgba(1,4,8,0) 58%,rgba(1,4,8,.18) 72%,rgba(1,4,8,.78) 88%,#020509 100%)!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active:after{z-index:8!important;box-shadow:inset 0 0 54px rgba(0,0,0,.28),inset 0 -50px 75px rgba(0,0,0,.48)!important}
+  .v154vs-scene.v154fix3-active .v154fix3-background{object-position:center center}
+  .v154vs-scene.v154fix3-active .v154fix3-character{left:39%;bottom:27%;width:min(84vw,420px);transform:translateX(-50%)}
+  .v154vs-scene.v154fix3-active[data-fix3-pose="flight"] .v154fix3-character{left:39%;bottom:28%;width:min(88vw,440px);animation:v154fix3-float 4.6s ease-in-out infinite}
+  .v154vs-scene.v154fix3-active[data-fix3-pose="ground"] .v154fix3-character{animation:v154fix3-breathe 5.2s ease-in-out infinite}
+  .v154vs-scene.v154fix3-active[data-gender="female"] .v154fix3-character{width:min(91vw,455px)}
+
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="icefire"] .v154fix3-background{object-position:62% center;filter:saturate(1.11) contrast(1.06) brightness(.94)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="icefire"] .v154fix3-character{left:40%;bottom:28%;width:min(90vw,450px)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="ice"] .v154fix3-character{left:40%;bottom:28%;width:min(86vw,430px)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="battle"] .v154fix3-background{object-position:58% center;filter:saturate(.90) contrast(1.08) brightness(.88)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="battle"] .v154fix3-character{left:40%;bottom:27%;width:min(82vw,410px)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="ruin"] .v154fix3-background{object-position:58% center}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="ruin"] .v154fix3-character{left:39%;bottom:27%;width:min(82vw,410px)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="desert"] .v154fix3-background{object-position:52% center;filter:saturate(.96) contrast(1.03) brightness(1.01)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="desert"] .v154fix3-character{left:40%;bottom:27%;width:min(82vw,410px)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="forest"] .v154fix3-background{object-position:49% center;filter:saturate(1.05) contrast(1.04) brightness(.91)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="forest"] .v154fix3-character{left:40%;bottom:27%;width:min(82vw,410px)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="yinyang"] .v154fix3-background{object-position:50% center;filter:saturate(1.09) contrast(1.04) brightness(.95)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="yinyang"] .v154fix3-character{left:38%;bottom:28%;width:min(88vw,440px)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="northpalace"] .v154fix3-background{object-position:57% center}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="northpalace"] .v154fix3-character{left:38%;bottom:27%;width:min(85vw,425px)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="sea"] .v154fix3-background{object-position:50% center;filter:saturate(1.04) contrast(1.02) brightness(1.02)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="sea"] .v154fix3-character{left:40%;bottom:28%;width:min(87vw,435px)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="mountain"] .v154fix3-background{object-position:57% center}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="mountain"] .v154fix3-character{left:39%;bottom:27%;width:min(82vw,410px)}
+
+  @media(max-width:390px),(max-height:720px){
+    .v154vs-scene.v154fix3-active .v154fix3-character{bottom:25%;width:min(76vw,350px)}
+    .v154vs-scene.v154fix3-active[data-fix3-pose="flight"] .v154fix3-character{bottom:26%;width:min(80vw,370px)}
+  }
+}
+
+/* Desktop/web: keep the dashboard and every existing control, upgrade only the live world viewport. */
+@media(min-width:781px){
+  #game.v154-art-fix3 .world-panel>.card.panel{background:linear-gradient(160deg,rgba(6,11,18,.98),rgba(2,6,11,.96));border-color:rgba(222,188,105,.29);box-shadow:0 20px 55px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.035)}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active>.stars,#game.v154-art-fix3 .world-scene.v154fix3-world-active>.moon,#game.v154-art-fix3 .world-scene.v154fix3-world-active>.mountain{display:none!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active{height:clamp(420px,56vh,650px)!important;min-height:420px!important;border-radius:18px!important;border:1px solid rgba(226,190,104,.42)!important;background:#02050a!important;box-shadow:inset 0 0 0 1px rgba(255,236,175,.04),0 18px 44px rgba(0,0,0,.45)!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active:before{content:"";position:absolute;inset:0;z-index:7;pointer-events:none;background:linear-gradient(180deg,rgba(2,5,9,.28),transparent 35%,rgba(1,4,8,.08) 58%,rgba(1,4,8,.82) 100%)}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active:after{content:"";position:absolute;inset:0;z-index:8;pointer-events:none;box-shadow:inset 0 0 74px rgba(0,0,0,.32)}
+  .v154vs-scene.v154fix3-active .v154fix3-background{object-position:center center}
+  .v154vs-scene.v154fix3-active .v154fix3-character{left:29%;bottom:18%;width:min(46%,520px);transform:translateX(-50%);animation:v154fix3-float-desktop 5.4s ease-in-out infinite}
+  .v154vs-scene.v154fix3-active[data-fix3-pose="ground"] .v154fix3-character{bottom:16%;width:min(42%,470px)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="battle"] .v154fix3-background{object-position:58% center;filter:saturate(.90) contrast(1.08) brightness(.88)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="icefire"] .v154fix3-background{object-position:64% center;filter:saturate(1.10) contrast(1.06) brightness(.95)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="yinyang"] .v154fix3-background{object-position:center center;filter:saturate(1.08) contrast(1.04) brightness(.96)}
+  .v154vs-scene.v154fix3-active[data-fix3-terrain="forest"] .v154fix3-background{filter:saturate(1.04) contrast(1.04) brightness(.92)}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .scene-content{z-index:12!important;left:24px!important;right:24px!important;bottom:22px!important;top:auto!important;inset:auto 24px 22px 24px!important;min-height:132px!important;padding:20px 190px 18px 23px!important;border:1px solid rgba(223,188,101,.50)!important;border-radius:20px!important;background:linear-gradient(145deg,rgba(7,11,17,.91),rgba(2,5,9,.84))!important;box-shadow:0 18px 48px rgba(0,0,0,.55),inset 0 1px rgba(255,255,255,.04)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);text-shadow:none!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .scene-zone{font:700 clamp(30px,3vw,43px)/1.05 "Noto Serif TC","Songti TC",serif!important;color:#efd58e!important;letter-spacing:.08em}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .scene-coord{margin-top:8px!important;color:#c8b37a!important;font-size:12px!important;letter-spacing:.16em!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .scene-copy{margin-top:10px!important;max-width:640px!important;color:#d3d6d5!important;font-size:13px!important;line-height:1.65!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .v154ui-scene-actions{position:absolute!important;right:18px!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;display:flex!important;gap:10px!important;z-index:15!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .v154ui-scene-actions button{width:76px!important;min-height:92px!important;border-radius:50%!important;border:1px solid rgba(239,205,117,.65)!important;background:radial-gradient(circle at 46% 35%,rgba(255,232,151,.20),transparent 47%),linear-gradient(155deg,rgba(31,24,12,.97),rgba(3,7,12,.96))!important;box-shadow:0 0 0 4px rgba(3,7,12,.65),0 10px 28px rgba(0,0,0,.48),inset 0 0 22px rgba(225,181,72,.10)!important;color:#efd68c!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .v154ui-scene-actions button span{display:grid!important;place-items:center!important;width:34px!important;height:34px!important;margin:0 auto 4px!important;border-radius:50%!important;font:700 19px "Songti TC",serif!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .v154ui-scene-actions button b{font-size:10px!important;line-height:1.15!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .v154ui-scene-actions button small{font-size:7px!important}
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .v14f-terrain-badge,
+  #game.v154-art-fix3 .world-scene.v154fix3-world-active .v154ui-zone-tag{position:absolute!important;z-index:14!important;top:22px!important;right:24px!important;padding:9px 20px!important;border:1px solid rgba(224,190,105,.57)!important;border-radius:4px!important;background:rgba(4,8,13,.82)!important;color:#e9cf8a!important;font:700 18px "Noto Serif TC","Songti TC",serif!important;letter-spacing:.13em!important;box-shadow:0 7px 20px rgba(0,0,0,.32)!important}
+}
+
+@keyframes v154fix3-float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-7px)}}
+@keyframes v154fix3-breathe{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.012)}}
+@keyframes v154fix3-float-desktop{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
+@media(prefers-reduced-motion:reduce){.v154fix3-character{animation:none!important}}
