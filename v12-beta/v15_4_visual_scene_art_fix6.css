@@ -1,0 +1,73 @@
+/* 修仙大逃殺 V15.4｜探索場景視覺 FIX6
+   核心策略：不再疊獨立修士圖層，僅保留單張場景圖與 UI。 */
+.v154fix6-background{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none;-webkit-user-select:none;user-select:none}
+.v154vs-scene.v154fix6-active{position:absolute;inset:0;z-index:4;display:block!important;overflow:hidden;pointer-events:none}
+.v154vs-scene.v154fix6-active .v154fix6-background{display:block}
+/* 關閉舊的角色/特效/背景層，避免突兀合成 */
+.v154vs-scene.v154fix6-active .v154vs-scene-image,
+.v154vs-scene.v154fix6-active .v154vs-effects-stage,
+.v154vs-scene.v154fix6-active .v154fix3-background,
+.v154vs-scene.v154fix6-active .v154fix3-character,
+.v154vs-scene.v154fix6-active .v154fix4-background,
+.v154vs-scene.v154fix6-active .v154fix4-character,
+#v154fix4Character,
+#v154fix4Background{display:none!important}
+.v154vs-scene.v154fix6-loading .v154fix6-background{opacity:.75}
+#game.v154-art-fix6 .v145b-master-npc,
+#game.v154-art-fix6 #v143Launch,
+#game.v154-art-fix6 .v154fix4-desktop-hud{display:none!important}
+
+/* 拍賣入口縮小、固定，避免壓到場景資訊 */
+body:has(#game.v154-art-fix6) #auctionLaunch{position:fixed!important;z-index:44!important;width:46px!important;height:46px!important;padding:0!important;border-radius:50%!important;font-size:0!important;display:grid!important;place-items:center!important;background:radial-gradient(circle at 40% 35%,rgba(255,231,151,.20),rgba(35,25,10,.94) 52%,rgba(3,7,12,.97) 76%)!important;border:1px solid rgba(230,196,110,.62)!important;color:#efd58e!important;box-shadow:0 8px 22px rgba(0,0,0,.48),inset 0 0 16px rgba(225,181,72,.10)!important}
+body:has(#game.v154-art-fix6) #auctionLaunch:after{content:"拍";font:700 20px/1 "Noto Serif TC","Songti TC",serif;color:#efd58e}
+@media(max-width:780px){body:has(#game.v154-art-fix6) #auctionLaunch{top:calc(176px + var(--v154ui-safe-top))!important;right:12px!important}}
+@media(min-width:781px){body:has(#game.v154-art-fix6) #auctionLaunch{right:18px!important;bottom:18px!important;top:auto!important}}
+
+@media(max-width:780px){
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active{height:calc(100vh - 118px)!important;min-height:520px!important;border-radius:18px!important;border:1px solid rgba(223,188,101,.34)!important;background:#02050a!important;overflow:hidden!important;box-shadow:0 16px 42px rgba(0,0,0,.45)!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active>.stars,
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active>.moon,
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active>.mountain{display:none!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active:before{content:"";position:absolute;inset:0;z-index:7;pointer-events:none;background:linear-gradient(180deg,rgba(2,5,9,.18),transparent 32%,rgba(1,4,8,.04) 60%,rgba(1,4,8,.86) 100%)!important}
+  #game.v154-art-fix6 .scene-content{z-index:12!important;left:12px!important;right:12px!important;bottom:calc(84px + var(--v154ui-safe-bottom))!important;min-height:136px!important;max-height:136px!important;padding:14px 108px 11px 18px!important;border:1px solid rgba(225,190,104,.52)!important;border-radius:19px!important;background:linear-gradient(145deg,rgba(6,10,15,.94),rgba(3,5,9,.90))!important;box-shadow:0 18px 46px rgba(0,0,0,.54),inset 0 1px rgba(255,255,255,.04)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  #game.v154-art-fix6 .scene-zone{font:700 26px/1.04 "Noto Serif TC","Songti TC",serif!important;color:#efd58e!important;letter-spacing:.08em!important}
+  #game.v154-art-fix6 .scene-coord{margin-top:5px!important;color:#c8b37a!important;font-size:10px!important;letter-spacing:.12em!important}
+  #game.v154-art-fix6 .scene-copy{margin-top:7px!important;color:#d6d8d7!important;font-size:11px!important;line-height:1.5!important;max-height:34px!important;overflow:hidden!important;max-width:220px!important}
+  #game.v154-art-fix6 .scene-content .v154ui-scene-actions{position:absolute!important;right:10px!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;display:grid!important;grid-template-columns:repeat(2,59px)!important;gap:5px!important;z-index:15!important}
+  #game.v154-art-fix6 .scene-content .v154ui-scene-actions button,
+  #game.v154-art-fix6 .scene-content .v154ui-scene-actions #v154uiArtifactAction,
+  #game.v154-art-fix6 .scene-content .v154ui-scene-actions #v154uiCraftsmanAction{width:59px!important;height:68px!important;min-height:68px!important;border-radius:50%!important;border:1px solid rgba(239,205,117,.68)!important;background:radial-gradient(circle at 46% 35%,rgba(255,232,151,.18),transparent 47%),linear-gradient(155deg,rgba(30,23,12,.97),rgba(3,7,12,.96))!important;box-shadow:0 0 0 3px rgba(3,7,12,.66),0 10px 24px rgba(0,0,0,.42),inset 0 0 16px rgba(225,181,72,.09)!important;color:#efd68c!important}
+  #game.v154-art-fix6 .scene-content .v154ui-scene-actions button span{width:37px!important;height:31px!important;margin:0 auto 2px!important}
+  #game.v154-art-fix6 .scene-content .v154ui-scene-actions button b{font-size:9px!important;line-height:1.15!important}
+  #game.v154-art-fix6 .scene-content .v154ui-scene-actions button small{font-size:7px!important}
+  #game.v154-art-fix6 .scene-content .v154ui-scene-actions:has(#v154uiCraftsmanAction[hidden]){grid-template-columns:82px!important}
+  #game.v154-art-fix6 .scene-content .v154ui-scene-actions:has(#v154uiCraftsmanAction[hidden]) #v154uiArtifactAction{width:82px!important;height:82px!important;min-height:82px!important}
+  #game.v154-art-fix6 .scene-content .v154ui-scene-actions:has(#v154uiCraftsmanAction[hidden]) #v154uiArtifactAction b{font-size:13px!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .v14f-terrain-badge,
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .v154ui-zone-tag{position:absolute!important;z-index:14!important;top:18px!important;right:18px!important;min-width:100px!important;padding:10px 16px!important;border:1px solid rgba(224,190,105,.60)!important;border-radius:5px!important;background:rgba(4,8,13,.86)!important;color:#e9cf8a!important;font:700 18px "Noto Serif TC","Songti TC",serif!important;letter-spacing:.12em!important;box-shadow:0 8px 22px rgba(0,0,0,.34)!important}
+}
+@media(max-width:430px){
+  #game.v154-art-fix6 .scene-content{min-height:128px!important;max-height:128px!important;padding:13px 100px 10px 16px!important}
+  #game.v154-art-fix6 .scene-zone{font-size:24px!important}
+  #game.v154-art-fix6 .scene-copy{font-size:10px!important;max-width:190px!important}
+}
+@media(min-width:781px){
+  #game.v154-art-fix6 .world-panel>.card.panel{background:linear-gradient(160deg,rgba(8,12,17,.99),rgba(3,6,10,.98))!important;border-color:rgba(223,188,101,.30)!important;box-shadow:0 22px 56px rgba(0,0,0,.36),inset 0 1px rgba(255,255,255,.03)!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active{height:clamp(480px,62vh,720px)!important;min-height:480px!important;border-radius:18px!important;border:1px solid rgba(225,191,105,.46)!important;background:#02050a!important;box-shadow:inset 0 0 0 1px rgba(255,238,180,.04),0 18px 46px rgba(0,0,0,.48)!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active>.stars,
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active>.moon,
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active>.mountain{display:none!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active:before{content:"";position:absolute;inset:0;z-index:7;pointer-events:none;background:linear-gradient(180deg,rgba(2,5,9,.28),transparent 34%,rgba(1,4,8,.05) 58%,rgba(1,4,8,.78) 100%)!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active:after{content:"";position:absolute;inset:0;z-index:8;pointer-events:none;box-shadow:inset 0 0 72px rgba(0,0,0,.30)!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .scene-content{z-index:12!important;inset:auto 22px 18px 22px!important;min-height:108px!important;max-height:108px!important;padding:13px 174px 11px 20px!important;border:1px solid rgba(225,190,104,.54)!important;border-radius:17px!important;background:linear-gradient(145deg,rgba(7,10,15,.94),rgba(3,5,9,.90))!important;box-shadow:0 18px 46px rgba(0,0,0,.58),inset 0 1px rgba(255,255,255,.04)!important;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);text-shadow:none!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .scene-zone{font:700 clamp(26px,2.25vw,34px)/1 "Noto Serif TC","Songti TC",serif!important;color:#efd58e!important;letter-spacing:.075em!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .scene-coord{margin-top:5px!important;color:#c8b37a!important;font-size:10px!important;letter-spacing:.14em!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .scene-copy{margin-top:6px!important;max-width:720px!important;color:#d6d8d7!important;font-size:11px!important;line-height:1.4!important;max-height:32px!important;overflow:hidden!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .v154ui-scene-actions{position:absolute!important;right:15px!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important;display:flex!important;gap:8px!important;z-index:15!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .v154ui-scene-actions button{width:62px!important;height:72px!important;min-height:72px!important;border-radius:50%!important;border:1px solid rgba(239,205,117,.68)!important;background:radial-gradient(circle at 46% 35%,rgba(255,232,151,.18),transparent 47%),linear-gradient(155deg,rgba(30,23,12,.97),rgba(3,7,12,.96))!important;box-shadow:0 0 0 4px rgba(3,7,12,.66),0 10px 27px rgba(0,0,0,.49),inset 0 0 20px rgba(225,181,72,.09)!important;color:#efd68c!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .v154ui-scene-actions button span{width:28px!important;height:27px!important;margin:0 auto 2px!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .v154ui-scene-actions button b{font-size:8px!important;line-height:1.15!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .v154ui-scene-actions button small{font-size:6px!important}
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .v14f-terrain-badge,
+  #game.v154-art-fix6 .world-scene.v154fix6-world-active .v154ui-zone-tag{position:absolute!important;z-index:14!important;top:24px!important;right:25px!important;min-width:122px!important;padding:10px 20px!important;border:1px solid rgba(224,190,105,.60)!important;border-radius:5px!important;background:rgba(4,8,13,.86)!important;color:#e9cf8a!important;font:700 19px "Noto Serif TC","Songti TC",serif!important;letter-spacing:.12em!important;box-shadow:0 8px 22px rgba(0,0,0,.34)!important}
+}
