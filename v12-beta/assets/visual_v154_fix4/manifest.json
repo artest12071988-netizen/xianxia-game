@@ -1,0 +1,27 @@
+{
+  "version": "V15.4-VISUAL-SCENE-ART-FIX4-20260804",
+  "terrains": [
+    "icefire",
+    "ice",
+    "battle",
+    "ruin",
+    "desert",
+    "forest",
+    "yinyang",
+    "northpalace",
+    "sea",
+    "mountain"
+  ],
+  "poses": {
+    "icefire": "flight",
+    "ice": "ground",
+    "battle": "ground",
+    "ruin": "flight",
+    "desert": "ground",
+    "forest": "ground",
+    "yinyang": "flight",
+    "northpalace": "ground",
+    "sea": "flight",
+    "mountain": "flight"
+  }
+}
