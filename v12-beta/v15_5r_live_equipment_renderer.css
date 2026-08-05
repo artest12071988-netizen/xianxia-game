@@ -302,3 +302,45 @@
 @keyframes v155r-weapon-pulse{0%,100%{opacity:.90}50%{opacity:1}}
 @media(max-width:390px),(max-height:720px){@media(max-width:780px){.v155r-actor-stage{width:min(49vw,282px)}}}
 @media(prefers-reduced-motion:reduce){.v155r-backdrop,.v155r-actor-stage,.v155r-actor-stack,.v155r-weapon{animation:none!important}}
+
+/* ===== FIX10 overrides: integrated full-scene backgrounds, desktop lower intro removal ===== */
+#v154vsScene.v155r-pending{opacity:0!important}
+#v154vsScene.v155r-use-integrated{opacity:1!important;transition:opacity .18s ease}
+#v154vsScene.v155r-use-integrated .v155r-actor-stage,
+#v154vsScene.v155r-use-integrated .v154vs-particles,
+#v154vsScene.v155r-use-integrated .v155r-foreground,
+#v154vsScene.v155r-use-integrated .v154vs-beast{display:none!important}
+#v154vsScene.v155r-use-integrated .v155vs-backdrop-stage{position:absolute;inset:0!important;background:#07101a}
+#v154vsScene.v155r-use-integrated .v155vs-backdrop{
+  width:100%!important;height:100%!important;object-fit:cover!important;object-position:40% center!important;
+  transform:none!important;animation:none!important;filter:saturate(1.02) contrast(1.03) brightness(.92)!important;
+}
+#v154vsScene.v155r-use-integrated .v155r-backdrop-light{background:linear-gradient(180deg,rgba(0,4,9,.28) 0%,rgba(0,4,9,.06) 30%,rgba(0,4,9,.03) 60%,rgba(0,4,9,.35) 82%,#020508 100%)!important}
+
+@media(min-width:781px){
+  #game .world-scene{position:relative;overflow:hidden;background:#07101a}
+  #game .world-scene>#v154vsScene{position:absolute;inset:0;z-index:0}
+  #game .world-scene>.stars,#game .world-scene>.moon,#game .world-scene>.mountain{display:none!important}
+  #game .scene-content{
+    position:absolute!important;z-index:12!important;inset:auto 20px 14px 20px!important;top:auto!important;
+    width:auto!important;height:auto!important;min-height:0!important;padding:0 150px 0 0!important;
+    background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+    text-align:left!important
+  }
+  #game .scene-copy{display:none!important}
+  #game .scene-zone{font:700 22px/1.05 "Songti TC","Noto Serif TC",serif!important;color:#f0d78b!important;letter-spacing:.06em!important;text-shadow:0 3px 12px #000}
+  #game .scene-coord{font-size:10px!important;color:#c3d6d4!important;letter-spacing:.08em!important;margin-top:4px!important;text-shadow:0 2px 8px #000}
+  #game .v154ui-scene-actions{
+    position:absolute!important;z-index:14!important;right:12px!important;bottom:0!important;display:grid!important;
+    grid-template-columns:repeat(2,60px)!important;gap:8px!important;pointer-events:auto!important
+  }
+  #game .v154ui-scene-actions button{
+    width:60px!important;min-height:76px!important;padding:7px 4px!important;border-radius:50%!important;
+    background:radial-gradient(circle at 50% 34%,rgba(249,221,137,.18),transparent 48%),linear-gradient(155deg,rgba(30,24,13,.96),rgba(4,8,14,.96))!important;
+    border:1px solid rgba(236,205,120,.58)!important;box-shadow:0 0 0 3px rgba(5,9,14,.66),0 8px 22px rgba(0,0,0,.44),inset 0 0 20px rgba(224,181,72,.10)!important;
+    color:#ead58e!important
+  }
+  #game .v154ui-scene-actions button span{display:grid!important;place-items:center!important;width:29px!important;height:29px!important;margin:0 auto 3px!important;border:1px solid rgba(236,205,120,.42)!important;border-radius:50%!important;font:700 16px "Songti TC",serif!important}
+  #game .v154ui-scene-actions button b{display:block!important;font-size:9px!important;line-height:1.15!important}
+  #game .v154ui-scene-actions button small{display:none!important}
+}
