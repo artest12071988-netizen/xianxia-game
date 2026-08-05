@@ -321,3 +321,65 @@
   }
   #game .scene-copy{display:none!important}
 }
+
+
+/* ===== FIX13 DESKTOP ACTOR RESTORE =====
+   僅恢復桌機場景人物層；保留 FIX12 的原地域背景、桌機簡介隱藏與雙功能按鈕移除。 */
+@media(min-width:781px){
+  #game .world-scene{position:relative!important;overflow:hidden!important;isolation:isolate}
+  #game #v154vsScene.v154vs-scene{
+    position:absolute!important;inset:0!important;z-index:4!important;display:block!important;
+    overflow:hidden!important;pointer-events:none!important;
+    --char-left:38%;--char-bottom:0%;--char-width:min(25vw,250px)
+  }
+  /* 桌機保留目前已恢復的原地圖，不讓 Renderer 再覆蓋背景 */
+  #game #v154vsScene .v155r-backdrop-stage,
+  #game #v154vsScene .v154vs-beast,
+  #game #v154vsScene .v154vs-particles,
+  #game #v154vsScene .v155r-foreground{display:none!important}
+
+  #game #v154vsScene .v155r-actor-stage{
+    position:absolute!important;z-index:6!important;left:var(--char-left,38%)!important;
+    bottom:-9%!important;width:var(--char-width,min(25vw,250px))!important;
+    transform:translateX(-50%)!important;transform-origin:50% 100%!important;
+    display:block!important;pointer-events:none!important;
+    animation:v155r-actor-float-desktop 5.8s ease-in-out infinite!important
+  }
+  #game #v154vsScene[data-pose="flight"] .v155r-actor-stage{bottom:-3%!important;width:min(23vw,235px)!important}
+  #game #v154vsScene .v155r-contact-shadow{
+    position:absolute!important;z-index:0!important;left:20%!important;right:14%!important;bottom:1%!important;
+    height:8%!important;border-radius:50%!important;background:radial-gradient(ellipse,rgba(0,0,0,.58),transparent 72%)!important;
+    filter:blur(8px)!important
+  }
+  #game #v154vsScene[data-pose="flight"] .v155r-contact-shadow{opacity:.18!important}
+  #game #v154vsScene .v155r-actor-stack{
+    position:relative!important;width:100%!important;aspect-ratio:2/3!important;
+    transform-origin:50% 86%!important;display:block!important;
+    filter:brightness(var(--actor-brightness,1)) saturate(var(--actor-saturate,1))!important;
+    animation:v155r-actor-breathe-desktop 4.9s ease-in-out infinite!important
+  }
+  #game #v154vsScene .v155r-layer{
+    position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+    display:block!important;object-fit:contain!important;object-position:center bottom!important;
+    pointer-events:none!important;user-select:none!important;-webkit-user-drag:none!important
+  }
+  #game #v154vsScene .v155r-base{z-index:1!important;filter:drop-shadow(0 18px 16px rgba(0,0,0,.72))!important}
+  #game #v154vsScene .v155r-armor{z-index:2!important}
+  #game #v154vsScene .v155r-weapon-aura{position:absolute!important;z-index:3!important;inset:0!important;pointer-events:none!important}
+  #game #v154vsScene .v155r-weapon{z-index:4!important}
+  #game #v154vsScene .v155r-actor-light{
+    position:absolute!important;z-index:5!important;inset:8% 9% 10%!important;pointer-events:none!important;
+    opacity:.24!important;mix-blend-mode:soft-light!important;
+    background:linear-gradient(110deg,transparent 18%,rgba(255,255,255,.18) 38%,transparent 57%)!important
+  }
+  #game #v154vsScene[data-weapon="none"] .v155r-weapon{opacity:0!important}
+  #game #v154vsScene.v155r-enhance8 .v155r-weapon{filter:drop-shadow(0 0 4px rgba(100,220,255,.9)) drop-shadow(0 0 10px rgba(66,174,255,.56))!important}
+  #game #v154vsScene.v155r-enhance12 .v155r-weapon{filter:drop-shadow(0 0 5px rgba(126,228,255,.95)) drop-shadow(0 0 12px rgba(160,89,255,.8))!important}
+  #game #v154vsScene .v155r-layer[data-layer-error="1"]{display:none!important}
+}
+@keyframes v155r-actor-float-desktop{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
+@keyframes v155r-actor-breathe-desktop{0%,100%{transform:scale(1)}50%{transform:scale(1.008)}}
+@media(min-width:781px) and (prefers-reduced-motion:reduce){
+  #game #v154vsScene .v155r-actor-stage,
+  #game #v154vsScene .v155r-actor-stack{animation:none!important}
+}
