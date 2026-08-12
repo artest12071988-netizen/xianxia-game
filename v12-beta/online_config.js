@@ -42,15 +42,19 @@ window.XIANXIA_REWARDED_AD_PROVIDER = (() => {
   return {show};
 })();
 
-/* 2026-08-12 ADMIN REQUEST GUARD
-   僅作用於 admin.html：防止重複 auth/subscription/interval 疊加時，
-   player_presence 在線人數查詢與 admin_world_stats 統計 RPC 在短時間內被重複送出。
-   不改遊戲頁、不改 presence 寫入、不改任何玩法或資料。 */
+/* 2026-08-12 ADMIN REQUEST GUARD V2
+   僅作用於 admin.html：
+   1. 強制管理後台 Supabase client 使用 guardedFetch。
+   2. 合併短時間內重複的在線人數與世界統計讀取。
+   3. 防止 subscribe() 重複建立同一個 15 秒狀態輪詢 interval。
+   不改遊戲頁、不改 presence 寫入、不改資料庫、不改任何玩法。 */
 (function installAdminRequestGuard(){
   if(!/\/admin\.html$/i.test(location.pathname)) return;
+
   const nativeFetch=window.fetch.bind(window);
   const slots=new Map();
   const MIN_INTERVAL_MS=10000;
+
   function guardedKey(input,init){
     const url=typeof input==='string'?input:(input&&input.url)||'';
     const method=String((init&&init.method)||(input&&input.method)||'GET').toUpperCase();
@@ -58,7 +62,8 @@ window.XIANXIA_REWARDED_AD_PROVIDER = (() => {
     if(method==='POST'&&url.includes('/rest/v1/rpc/admin_world_stats')) return 'admin_world_stats';
     return '';
   }
-  window.fetch=async function(input,init){
+
+  async function guardedFetch(input,init){
     const key=guardedKey(input,init);
     if(!key) return nativeFetch(input,init);
     const now=Date.now();
@@ -74,5 +79,39 @@ window.XIANXIA_REWARDED_AD_PROVIDER = (() => {
     });
     slots.set(key,{at:0,response:null,pending});
     return (await pending).clone();
+  }
+
+  window.fetch=guardedFetch;
+
+  /* supabase-js 官方支援 global.fetch；直接注入 client，避免 SDK 使用其內部 fetch 時繞過 guard。 */
+  if(window.supabase&&typeof window.supabase.createClient==='function'){
+    const nativeCreateClient=window.supabase.createClient.bind(window.supabase);
+    window.supabase.createClient=function(url,key,options){
+      const base=options||{};
+      const globalOptions=base.global||{};
+      return nativeCreateClient(url,key,{
+        ...base,
+        global:{...globalOptions,fetch:guardedFetch}
+      });
+    };
+  }
+
+  /* 只去重 admin.html 內 loadPlayers + loadStats 的 15 秒狀態輪詢，不碰其他 interval。 */
+  const nativeSetInterval=window.setInterval.bind(window);
+  let adminStatusIntervalId=null;
+  window.setInterval=function(handler,delay,...args){
+    let isAdminStatusLoop=false;
+    if(Number(delay)===15000&&typeof handler==='function'){
+      try{
+        const src=Function.prototype.toString.call(handler);
+        isAdminStatusLoop=src.includes('loadPlayers')&&src.includes('loadStats');
+      }catch(_e){}
+    }
+    if(isAdminStatusLoop){
+      if(adminStatusIntervalId!==null) return adminStatusIntervalId;
+      adminStatusIntervalId=nativeSetInterval(handler,delay,...args);
+      return adminStatusIntervalId;
+    }
+    return nativeSetInterval(handler,delay,...args);
   };
 })();
