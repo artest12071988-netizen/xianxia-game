@@ -41,3 +41,38 @@ window.XIANXIA_REWARDED_AD_PROVIDER = (() => {
   }
   return {show};
 })();
+
+/* 2026-08-12 ADMIN REQUEST GUARD
+   僅作用於 admin.html：防止重複 auth/subscription/interval 疊加時，
+   player_presence 在線人數查詢與 admin_world_stats 統計 RPC 在短時間內被重複送出。
+   不改遊戲頁、不改 presence 寫入、不改任何玩法或資料。 */
+(function installAdminRequestGuard(){
+  if(!/\/admin\.html$/i.test(location.pathname)) return;
+  const nativeFetch=window.fetch.bind(window);
+  const slots=new Map();
+  const MIN_INTERVAL_MS=10000;
+  function guardedKey(input,init){
+    const url=typeof input==='string'?input:(input&&input.url)||'';
+    const method=String((init&&init.method)||(input&&input.method)||'GET').toUpperCase();
+    if(method==='HEAD'&&url.includes('/rest/v1/player_presence')) return 'player_presence_online_count';
+    if(method==='POST'&&url.includes('/rest/v1/rpc/admin_world_stats')) return 'admin_world_stats';
+    return '';
+  }
+  window.fetch=async function(input,init){
+    const key=guardedKey(input,init);
+    if(!key) return nativeFetch(input,init);
+    const now=Date.now();
+    const current=slots.get(key);
+    if(current&&current.response&&(now-current.at)<MIN_INTERVAL_MS) return current.response.clone();
+    if(current&&current.pending) return (await current.pending).clone();
+    const pending=nativeFetch(input,init).then(response=>{
+      slots.set(key,{at:Date.now(),response:response.clone(),pending:null});
+      return response;
+    }).catch(error=>{
+      slots.delete(key);
+      throw error;
+    });
+    slots.set(key,{at:0,response:null,pending});
+    return (await pending).clone();
+  };
+})();
