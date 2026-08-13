@@ -138,6 +138,8 @@ function publishLive(extra={}){
 }
 async function loadSettings(){
  try{
+  if(document.hidden) return;
+  try{if(typeof cloudState!=='undefined'&&cloudState?.serviceRestricted)return}catch(_){}
   if(!window.V12_ONLINE?.supabaseUrl||!window.V12_ONLINE?.supabasePublishableKey) return;
   const res=await fetch(window.V12_ONLINE.supabaseUrl+'/rest/v1/rpc/get_meditation_runtime_settings',{method:'POST',headers:{'Content-Type':'application/json','apikey':window.V12_ONLINE.supabasePublishableKey},body:'{}',cache:'no-store'});
   if(!res.ok) throw new Error(await res.text()); const d=await res.json();
@@ -303,7 +305,7 @@ function monitor(){
 }
 function init(){
  patchBag();patchMeditation();patchOffline();patchConsumables();loadSettings();
- setInterval(loadSettings,60000);setInterval(monitor,500);
+ setInterval(loadSettings,600000);setInterval(monitor,500);
  window.addEventListener('xianxia:meditation-live',updateLiveMetrics);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0));else setTimeout(init,0);

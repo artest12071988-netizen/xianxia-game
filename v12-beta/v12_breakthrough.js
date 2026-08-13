@@ -492,10 +492,10 @@
   function ensureBreakthroughLoops(){
     clearInterval(cloudState.breakthroughLoop);clearInterval(cloudState.breakthroughWorldLoop);
     cloudState.breakthroughLoop=setInterval(async()=>{
-      if(cloudState.breakthroughPolling)return;cloudState.breakthroughPolling=true;
+      if(document.hidden||cloudState.breakthroughPolling)return;cloudState.breakthroughPolling=true;
       try{await pollOwnerBreakthrough();await pollJoinedBreakthroughs()}finally{cloudState.breakthroughPolling=false}
-    },1000);
-    cloudState.breakthroughWorldLoop=setInterval(async()=>{await loadMyBreakthroughParticipation();await loadBreakthroughWorld()},1500);
+    },4000);
+    cloudState.breakthroughWorldLoop=setInterval(async()=>{if(document.hidden)return;await loadMyBreakthroughParticipation();await loadBreakthroughWorld()},15000);
     pollOwnerBreakthrough();loadMyBreakthroughParticipation().then(loadBreakthroughWorld);
   }
 

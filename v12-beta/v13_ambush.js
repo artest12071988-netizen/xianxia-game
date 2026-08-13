@@ -54,8 +54,8 @@
     const coord = getPlayerCoord();
     const now = Date.now();
 
-    if (!coord || now - lastCheck < 12000) return;
-    if (coord === lastCoord && now - lastCheck < 30000) return;
+    if (!coord || document.hidden || now - lastCheck < 60000) return;
+    if (coord === lastCoord && now - lastCheck < 120000) return;
 
     lastCoord = coord;
     lastCheck = now;
@@ -104,7 +104,7 @@
 
   function start() {
     stop();
-    timer = setInterval(check, 8000);
+    timer = setInterval(check, 30000);
     window.addEventListener('xianxia:ai-brain-tick', check);
   }
 

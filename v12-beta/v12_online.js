@@ -19,12 +19,16 @@ const v11OpenVersion = openVersion;
 function cloudConfigured(){
   return !!(V12_ONLINE.enabled && V12_ONLINE.supabaseUrl && V12_ONLINE.supabasePublishableKey && window.supabase);
 }
+function realtimeConfigured(){
+  return V12_ONLINE.realtimeEnabled !== false;
+}
 function setCloudBadge(text,state='ok'){
   const e=$('cloudSyncBadge'); if(!e)return;
   e.textContent=text; e.dataset.state=state;
 }
 function updateCloudBadge(){
   if(cloudState.preview)return setCloudBadge('離線預覽｜不可封測','warn');
+  if(cloudState.serviceRestricted)return setCloudBadge('服務配額暫停','bad');
   if(!cloudState.enabled)return setCloudBadge('伺服器未設定','bad');
   if(!cloudState.user)return setCloudBadge('尚未登入','warn');
   if(cloudState.accountSession?.kicked)return setCloudBadge('帳號已於其他裝置登入','bad');
@@ -33,6 +37,19 @@ function updateCloudBadge(){
   if(cloudState.lastError)return setCloudBadge('同步異常','bad');
   if(cloudState.lastSyncedAt)return setCloudBadge('雲端已同步 '+new Date(cloudState.lastSyncedAt).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}),'ok');
   setCloudBadge('安全連線中','busy');
+}
+
+function isCloudQuotaError(error){
+  return /exceed_(?:egress|realtime_message_count)_quota|project is restricted/i.test(String(error?.message||error||''));
+}
+function suspendCloudTraffic(error){
+  cloudState.serviceRestricted=true;
+  cloudState.lastError=String(error?.message||error||'CLOUD_SERVICE_RESTRICTED');
+  stopAccountSessionGuard();
+  try{teardownRealtime()}catch(_){}
+  clearTimeout(cloudState.saveTimer);
+  clearInterval(cloudState.playerTimer);clearInterval(cloudState.pvpTimer);clearInterval(cloudState.worldMaintenanceTimer);
+  updateCloudBadge();
 }
 
 const V154_ACCOUNT_SESSION_STORAGE_KEY='xianxia_v154_account_session_id';
@@ -136,7 +153,7 @@ async function heartbeatAccountSessionV154(){
 function startAccountSessionGuardV154(){
   stopAccountSessionGuard();
   if(!cloudState.accountSession?.active||cloudState.accountSession.kicked)return;
-  cloudState.accountSession.heartbeatTimer=setInterval(heartbeatAccountSessionV154,2500);
+  cloudState.accountSession.heartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatAccountSessionV154()},30000);
   heartbeatAccountSessionV154();
 }
 async function releaseAccountSessionV154(){
@@ -168,7 +185,10 @@ window.handleAccountSessionReplacedV154=handleAccountSessionReplacedV154;
 async function initV12Online(){
   window.addEventListener('online',()=>{cloudState.lastError='';updateCloudBadge();flushCloudSave(true)});
   window.addEventListener('offline',updateCloudBadge);
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushCloudSave(true)});
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden')flushCloudSave(true);
+    else heartbeatAccountSessionV154();
+  });
   window.addEventListener('beforeunload',flushOnUnload);
 
   if(cloudConfigured()){
@@ -188,6 +208,7 @@ async function initV12Online(){
         }
         if(event==='SIGNED_OUT'){stopAccountSessionGuard();cloudState.accountSession.active=false;cloudState.accountSession.kicked=false;removeSingleSessionKickLayer();cloudState.user=null;cloudState.remoteSave=null;cloudState.revision=0;teardownRealtime();updateCloudBadge();show('intro')}
       }catch(error){
+        if(isCloudQuotaError(error))suspendCloudTraffic(error);
         cloudState.lastError=String(error?.message||error||'AUTH_STATE_SYNC_FAILED');
         updateCloudBadge();
         console.error('[V15.4 AUTH STATE GUARD] synchronization failed',error);
@@ -275,7 +296,7 @@ async function doBetaAuth(mode){
   let result;
   if(mode==='signup')result=await cloudState.client.auth.signUp({email,password});
   else result=await cloudState.client.auth.signInWithPassword({email,password});
-  if(result.error){cloudState.lastError=result.error.message;toast('登入失敗：'+result.error.message);updateCloudBadge();return}
+  if(result.error){cloudState.lastError=result.error.message;if(isCloudQuotaError(result.error))suspendCloudTraffic(result.error);toast('登入失敗：'+result.error.message);updateCloudBadge();return}
   if(!result.data.session){toast('帳號已建立，請先完成 Email 驗證後登入');updateCloudBadge();return}
   cloudState.user=result.data.user;await afterCloudLogin();
   show(cloudState.remoteSave?'intro':'create');
@@ -633,7 +654,9 @@ render = function(){
   const stream=$('qiStream');if(stream)stream.classList.toggle('active',!!g?.meditating);
   const mode=$('cloudModeText');if(mode)mode.textContent=cloudState.preview?'OFFLINE PREVIEW':'ONLINE CBT';
   updateCloudBadge();
-  if(cloudState.channel&&cloudState.user)cloudState.channel.track({user_id:cloudState.user.id,name:g?.name||'未凝聚道體',realm:g?.big||'',level:g?.lv||0,online_at:new Date().toISOString()});
+  // Presence is for online-count only. Tracking on every render can exceed the
+  // per-client Realtime Presence quota within seconds, so it only runs when a
+  // Realtime channel has successfully joined.
 };
 
 tickAiWorld = function(){
@@ -660,6 +683,7 @@ loseFight = function(){
 setTimeout(()=>{
   Promise.resolve(initV12Online()).catch(error=>{
     const message=String(error?.message||error?.details||error||'ONLINE_INIT_FAILED');
+    if(isCloudQuotaError(error))suspendCloudTraffic(error);
     cloudState.lastError=message;
     updateCloudBadge();
     console.error('[V15.4 ONLINE INIT GUARD] initialization failed',error);
@@ -956,7 +980,7 @@ async function syncWorldCultivators(force=false){
   if(!cloudState.enabled||!cloudState.user){
     if(!ai.length)ai=initAi();cloudState.worldLoaded=ai.length>0;updateWorldPopulation();return;
   }
-  if(cloudState.worldSyncBusy||(!force&&Date.now()-cloudState.worldSyncAt<6000))return;
+  if(cloudState.worldSyncBusy||(!force&&Date.now()-cloudState.worldSyncAt<V122_WORLD_SYNC_INTERVAL_MS))return;
   cloudState.worldSyncBusy=true;
   try{
     await cloudState.client.rpc('advance_world_cultivators',{p_limit:200});
@@ -1008,16 +1032,22 @@ function renderChatContainer(el,html,forceBottom=false){
 }
 async function initRealtime(){
   teardownRealtime();if(!cloudState.enabled||!cloudState.user)return;
+  if(!realtimeConfigured()){
+    cloudState.chatPinnedToBottom=true;
+    await loadWorldChatHistory();
+    cloudState.chatRefreshTimer=setInterval(()=>{if(!document.hidden)loadWorldChatHistory()},300000);
+    renderChatIfOpen(true);
+    return;
+  }
   const channelName=V12_ONLINE.worldChannel||'xianxia-world-v12';
   cloudState.channel=cloudState.client.channel(channelName,{config:{presence:{key:cloudState.user.id}}});
   cloudState.channel
    .on('postgres_changes',{event:'INSERT',schema:'public',table:'world_chat'},payload=>{mergeChatMessages([payload.new]);renderChatIfOpen()})
-   .on('postgres_changes',{event:'*',schema:'public',table:'world_cultivators'},()=>{setTimeout(()=>syncWorldCultivators(true),250)})
    .on('presence',{event:'sync'},()=>{cloudState.presence=cloudState.channel.presenceState();updateWorldPopulation()})
    .subscribe(async status=>{if(status==='SUBSCRIBED'){await cloudState.channel.track({user_id:cloudState.user.id,name:g?.name||'未凝聚道體',build:V12_BUILD,online_at:new Date().toISOString()})}});
   cloudState.chatPinnedToBottom=true;
   await loadWorldChatHistory();
-  cloudState.chatRefreshTimer=setInterval(loadWorldChatHistory,20000);
+  cloudState.chatRefreshTimer=setInterval(()=>{if(!document.hidden)loadWorldChatHistory()},300000);
   renderChatIfOpen(true);
 }
 function openWorldChat(){
@@ -1217,11 +1247,16 @@ Object.assign(cloudState,{
   extraChannel:null,otherPlayers:[],playerTimer:null,playerLoadTimer:null,safeZoneTimer:null,
   pvpTimer:null,pvpCurrent:null,pvpPrompted:new Set(),pvpHandled:new Set(),
   worldControls:null,announcementIds:new Set(),playerAction:'修行',
-  lastPresenceSync:0,lastPoisonTick:0,eventCombat:false
+  lastPresenceSync:0,lastPresencePayload:'',presenceSyncTimer:null,
+  lastPresenceLoadAt:0,playerLoadTimer:null,lastPoisonTick:0,eventCombat:false
 });
 
 const V122_SAFE_COORD='A-6';
 const V122_SAFE_LIMIT_SECONDS=7200;
+const V122_PRESENCE_CHANGE_DEBOUNCE_MS=10000;
+const V122_PRESENCE_HEARTBEAT_MS=60000;
+const V122_PRESENCE_LOAD_INTERVAL_MS=30000;
+const V122_WORLD_SYNC_INTERVAL_MS=60000;
 const v122BaseInitRealtime=initRealtime;
 const v122BaseTeardownRealtime=teardownRealtime;
 const v122BaseStartLoops=startLoops;
@@ -1256,11 +1291,22 @@ function playerStatePayload(){
 }
 async function syncPlayerPresence(force=false){
   if(!cloudState.enabled||!cloudState.user||!g||g.dead||!accountSessionCanPlay())return;
-  if(!force&&Date.now()-cloudState.lastPresenceSync<5000)return;
+  const payload=playerStatePayload();
+  const serialized=JSON.stringify(payload);
+  const now=Date.now();
+  const changed=serialized!==cloudState.lastPresencePayload;
+  const elapsed=now-cloudState.lastPresenceSync;
+  if(!changed&&elapsed<V122_PRESENCE_HEARTBEAT_MS)return;
+  if(!force&&elapsed<V122_PRESENCE_CHANGE_DEBOUNCE_MS){
+    clearTimeout(cloudState.presenceSyncTimer);
+    cloudState.presenceSyncTimer=setTimeout(()=>syncPlayerPresence(false),V122_PRESENCE_CHANGE_DEBOUNCE_MS-elapsed);
+    return;
+  }
   cloudState.lastPresenceSync=Date.now();
   try{
-    const {data,error}=await cloudState.client.rpc('upsert_player_presence',{p_state:playerStatePayload()});
+    const {data,error}=await cloudState.client.rpc('upsert_player_presence',{p_state:payload});
     if(error)throw error;
+    cloudState.lastPresencePayload=serialized;
     const row=Array.isArray(data)?data[0]:data;
     if(row?.safe_zone_entered_at&&isSafeZoneNow()){
       const serverAt=Date.parse(row.safe_zone_entered_at);
@@ -1270,6 +1316,10 @@ async function syncPlayerPresence(force=false){
 }
 async function loadPlayerPresence(){
   if(!cloudState.enabled||!cloudState.user)return;
+  if(document.hidden)return;
+  const now=Date.now();
+  if(now-cloudState.lastPresenceLoadAt<V122_PRESENCE_LOAD_INTERVAL_MS)return;
+  cloudState.lastPresenceLoadAt=now;
   const since=new Date(Date.now()-60000).toISOString();
   const {data,error}=await cloudState.client.from('player_presence').select('user_id,character_id,player_name,coord,level,realm,hp,hp_max,mp,mp_max,attack,defense,action,alive,safe_zone_entered_at,updated_at').eq('alive',true).gt('updated_at',since);
   if(error){console.warn('presence load failed',error);return}
@@ -1327,18 +1377,18 @@ async function initV122Realtime(){
   if(!cloudState.enabled||!cloudState.user)return;
   await Promise.all([loadWorldControls(),loadWorldAnnouncements(),loadPlayerPresence()]);
   if(cloudState.extraChannel)cloudState.client.removeChannel(cloudState.extraChannel);
+  cloudState.extraChannel=null;
+  if(!realtimeConfigured())return;
   cloudState.extraChannel=cloudState.client.channel('xianxia-v122-'+cloudState.user.id)
-    .on('postgres_changes',{event:'*',schema:'public',table:'player_presence'},()=>{clearTimeout(cloudState.playerLoadTimer);cloudState.playerLoadTimer=setTimeout(loadPlayerPresence,250)})
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'world_controls'},p=>{cloudState.worldControls=p.new;renderWorldControls();render()})
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'world_announcements'},p=>showWorldAnnouncement(p.new))
-    .on('postgres_changes',{event:'*',schema:'public',table:'pvp_duels'},()=>setTimeout(pollPvp,180))
     .subscribe();
 }
 initRealtime=async function(){await v122BaseInitRealtime();await initV122Realtime()};
 teardownRealtime=function(){
   clearInterval(cloudState.playerTimer);clearInterval(cloudState.safeZoneTimer);clearInterval(cloudState.pvpTimer);
-  clearTimeout(cloudState.playerLoadTimer);
-  cloudState.playerTimer=cloudState.safeZoneTimer=cloudState.pvpTimer=cloudState.playerLoadTimer=null;
+  clearTimeout(cloudState.playerLoadTimer);clearTimeout(cloudState.presenceSyncTimer);
+  cloudState.playerTimer=cloudState.safeZoneTimer=cloudState.pvpTimer=cloudState.playerLoadTimer=cloudState.presenceSyncTimer=null;
   if(cloudState.extraChannel&&cloudState.client)cloudState.client.removeChannel(cloudState.extraChannel);
   cloudState.extraChannel=null;cloudState.otherPlayers=[];v122BaseTeardownRealtime();
 };
@@ -1351,13 +1401,13 @@ normalizeSave=function(){
 startLoops=function(){
   v122BaseStartLoops();
   clearInterval(cloudState.playerTimer);clearInterval(cloudState.safeZoneTimer);clearInterval(cloudState.pvpTimer);
-  cloudState.playerTimer=setInterval(()=>{syncPlayerPresence();loadPlayerPresence()},8000);
+  cloudState.playerTimer=setInterval(()=>{syncPlayerPresence();loadPlayerPresence()},V122_PRESENCE_HEARTBEAT_MS);
   cloudState.safeZoneTimer=setInterval(()=>{checkSafeZoneStay();applyWorldHazards()},1000);
-  cloudState.pvpTimer=setInterval(pollPvp,2200);
+  cloudState.pvpTimer=setInterval(()=>{if(!document.hidden)pollPvp()},15000);
   syncPlayerPresence(true);loadPlayerPresence();checkSafeZoneStay();pollPvp();
   Promise.resolve(startOnlineWorld()).catch(e=>console.warn('online world start failed',e));
 };
-render=function(){v122BaseRender();renderWorldControls();renderSafeZoneTimer();syncPlayerPresence()};
+render=function(){v122BaseRender();renderWorldControls();renderSafeZoneTimer()};
 
 function renderSafeZoneTimer(){
   if(!g||!isSafeZoneNow())return;
@@ -1655,9 +1705,9 @@ function renderShaQiBadge(){
   if(!e){e=document.createElement('div');e.id='shaQiBadge';e.className='small';const host=document.getElementById('charStats')||document.querySelector('.character-card')||document.body;host.appendChild(e)}
   const q=cloudState.shaQi;e.textContent='煞氣｜同階 '+q.same_realm_kills+'（收益 '+Math.round(Number(q.same_reward_multiplier)*100)+'%）｜低階 '+q.lower_realm_kills+'（收益 '+Math.round(Number(q.lower_reward_multiplier)*100)+'%）';
 }
-async function runWorldMaintenance(){if(!cloudState.enabled||!cloudState.client||!cloudState.user)return;try{await cloudState.client.rpc('world_maintenance_scheduled')}catch(_){}}
+async function runWorldMaintenance(){if(document.hidden||!cloudState.enabled||!cloudState.client||!cloudState.user)return;try{await cloudState.client.rpc('world_maintenance_scheduled')}catch(_){}}
 const v123BaseStartOnlineWorld=startOnlineWorld;
-startOnlineWorld=async function(){const r=await v123BaseStartOnlineWorld();clearInterval(cloudState.worldMaintenanceTimer);cloudState.worldMaintenanceTimer=setInterval(runWorldMaintenance,30000);runWorldMaintenance();loadShaQiStatus();return r};
+startOnlineWorld=async function(){const r=await v123BaseStartOnlineWorld();clearInterval(cloudState.worldMaintenanceTimer);cloudState.worldMaintenanceTimer=setInterval(runWorldMaintenance,300000);runWorldMaintenance();loadShaQiStatus();return r};
 const v123BaseHandlePvpFinished=handlePvpFinished;
 handlePvpFinished=function(d){
   const uid=cloudState.user?.id,won=d&&d.winner_user_id===uid,meCh=d&&d.challenger_user_id===uid;
@@ -1943,7 +1993,7 @@ console.log('[V15.4 CONSOLE FINAL CLEANUP FIX1] installed');
   let timer=null;
 
   async function claimAdminDeliveries(){
-    if(busy||!window.cloudState?.enabled||!window.cloudState?.user||!window.cloudState?.client||!window.g||window.cloudState?.accountSession?.kicked)return;
+    if(document.hidden||busy||!window.cloudState?.enabled||!window.cloudState?.user||!window.cloudState?.client||!window.g||window.cloudState?.accountSession?.kicked)return;
     busy=true;
     try{
       const response=await window.cloudState.client.rpc('claim_player_admin_deliveries',{});
@@ -1997,7 +2047,7 @@ console.log('[V15.4 CONSOLE FINAL CLEANUP FIX1] installed');
   function start(){
     if(timer)return;
     claimAdminDeliveries();
-    timer=setInterval(claimAdminDeliveries,3000);
+    timer=setInterval(claimAdminDeliveries,60000);
   }
   window.addEventListener('focus',claimAdminDeliveries);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)claimAdminDeliveries();});

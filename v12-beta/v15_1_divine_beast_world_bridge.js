@@ -3,7 +3,7 @@
 const BUILD='V15.1-DIVINE-BEAST-WORLD-BRIDGE-PHASE1';
 const S={timer:null,running:false,last:null};
 function client(){try{return typeof cloudState!=='undefined'&&cloudState?.client?cloudState.client:null}catch(_){return null}}
-function loggedIn(){try{return !!(cloudState?.enabled&&cloudState?.user&&client())}catch(_){return false}}
+function loggedIn(){try{return !!(!document.hidden&&cloudState?.enabled&&!cloudState?.serviceRestricted&&cloudState?.user&&client())}catch(_){return false}}
 async function tick(){
   if(S.running||!loggedIn())return null;
   S.running=true;
@@ -21,7 +21,7 @@ async function tick(){
 function start(){
   if(S.timer)return;
   tick();
-  S.timer=setInterval(tick,60000);
+  S.timer=setInterval(tick,600000);
   console.info('['+BUILD+'] active');
 }
 function stop(){if(S.timer)clearInterval(S.timer);S.timer=null}

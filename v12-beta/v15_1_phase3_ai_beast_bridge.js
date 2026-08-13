@@ -10,7 +10,7 @@ function cloud(){
   return window.XIANXIA_CLOUD_STATE||window.cloudState||null;
 }
 function client(){return cloud()?.client||null}
-function ready(){return !!(cloud()?.enabled&&cloud()?.user&&client())}
+function ready(){return !!(!document.hidden&&cloud()?.enabled&&!cloud()?.serviceRestricted&&cloud()?.user&&client())}
 
 async function cycle(force=false){
   if(S.running||!ready())return null;
@@ -40,7 +40,7 @@ async function cycle(force=false){
 function start(){
   if(S.timer)return;
   setTimeout(()=>cycle(false),4000);
-  S.timer=setInterval(()=>cycle(false),60000);
+  S.timer=setInterval(()=>cycle(false),600000);
   console.info('['+BUILD+'] active');
 }
 function stop(){

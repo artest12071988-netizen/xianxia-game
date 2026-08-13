@@ -86,7 +86,7 @@
   }
   async function loadPublishedRuntimeConfig(force=false){
     await waitForStaticConfig();
-    if(!cloudState.enabled||!cloudState.client||!cloudState.user){if(!cloudState.runtimeConfigVersion)loadCachedRuntimeConfig();return false}
+    if(document.hidden||cloudState.serviceRestricted||!cloudState.enabled||!cloudState.client||!cloudState.user){if(!cloudState.runtimeConfigVersion)loadCachedRuntimeConfig();return false}
     try{
       const {data,error}=await cloudState.client.rpc('get_published_game_config');if(error)throw error;
       const version=Number(data?.version||0),config=data?.config;
@@ -97,7 +97,7 @@
   }
   function ensureRuntimeConfigTimer(){
     clearInterval(cloudState.runtimeConfigTimer);
-    cloudState.runtimeConfigTimer=setInterval(()=>loadPublishedRuntimeConfig(false),60000);
+    cloudState.runtimeConfigTimer=setInterval(()=>loadPublishedRuntimeConfig(false),300000);
   }
 
   afterCloudLogin=async function(){await loadPublishedRuntimeConfig(true);const r=await baseAfterCloudLoginV129();ensureRuntimeConfigTimer();return r};

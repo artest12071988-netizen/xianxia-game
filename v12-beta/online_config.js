@@ -2,6 +2,7 @@
 window.XIANXIA_ONLINE_CONFIG = {
   enabled: true,
   requireCloudForBeta: true,
+  realtimeEnabled: false,
   supabaseUrl: "https://jbldhalexfrujudljhpf.supabase.co",
   supabasePublishableKey: "sb_publishable_fFAxdaiYEMTSvPpLecoi1A__JsnlfXr",
   build: "V12.9-ADMIN-CONFIG",

@@ -1,7 +1,7 @@
 'use strict';
 (() => {
   const VERSION = 'V13.5-PHASE2-ORCHESTRATOR-1';
-  const CADENCE = Object.freeze({ brain: 15000, ambush: 8000, observatory: 20000 });
+  const CADENCE = Object.freeze({ brain: 300000, ambush: 60000, observatory: 600000 });
   const state = {
     timer: null,
     running: false,
@@ -16,7 +16,7 @@
   }
   function ready() {
     const cs = cloud();
-    return !!(cs?.enabled && cs?.user && cs?.client);
+    return !!(cs?.enabled && !cs?.serviceRestricted && cs?.user && cs?.client);
   }
 
   async function run(name, fn, now) {
@@ -65,8 +65,8 @@
   function start() {
     stop();
     stopLegacyTimers();
-    state.timer = setInterval(cycle, 5000);
-    setTimeout(() => cycle({ force: true }), 2500);
+    state.timer = setInterval(cycle, 15000);
+    setTimeout(() => cycle({ force: true }), 5000);
   }
 
   window.V13_WORLD_ORCHESTRATOR = {

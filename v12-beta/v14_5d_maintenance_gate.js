@@ -10,6 +10,7 @@
     revision: -1,
     enabled: false,
     handling: false,
+    serviceRestricted: false,
     channel: null,
     pollTimer: null
   };
@@ -79,6 +80,7 @@
   }
 
   async function fetchState() {
+    if (document.hidden || state.serviceRestricted) return null;
     const client = getClient();
     if (!client) return null;
     const { data, error } = await client.rpc('maintenance_get_state');
@@ -184,10 +186,28 @@
   }
 
   async function check(initial = false) {
+    if (document.hidden || state.serviceRestricted) return;
     try {
       const info = await fetchState();
       await applyState(info, initial);
     } catch (error) {
+      const message = String(error?.message || error || '');
+      if (/exceed_(?:egress|realtime_message_count)_quota|project is restricted/i.test(message)) {
+        state.serviceRestricted = true;
+        clearInterval(state.pollTimer);
+        state.pollTimer = null;
+        if (state.channel && state.client) state.client.removeChannel(state.channel);
+        state.channel = null;
+        try {
+          if (typeof cloudState !== 'undefined' && cloudState) {
+            cloudState.serviceRestricted = true;
+            clearInterval(cloudState.playerTimer);
+            clearInterval(cloudState.pvpTimer);
+            clearInterval(cloudState.worldMaintenanceTimer);
+            try { teardownRealtime(); } catch (_) {}
+          }
+        } catch (_) {}
+      }
       const pending = localStorage.getItem(PENDING_KEY);
       if (pending) {
         let info = {};
@@ -199,6 +219,7 @@
   }
 
   function subscribe() {
+    if (getConfig().realtimeEnabled === false) return;
     const client = getClient();
     if (!client || state.channel) return;
     state.channel = client.channel('xianxia-maintenance-gate-v145d')
@@ -227,7 +248,7 @@
     }
     check(true);
     subscribe();
-    state.pollTimer = setInterval(() => check(false), 8000);
+    state.pollTimer = setInterval(() => check(false), 60000);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') check(false);
     });
